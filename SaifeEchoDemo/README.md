@@ -32,25 +32,25 @@ All commands are relative to the cpp directory.
 # Running
 Edit the command lines below for appropriate paths.   The application will create the SAIFE keystore and exit after the first run. Contact SAIFE to connect your application instances to the SAIFE network.
 
-1. Create directories for instances of the app. For example
+1. Create directories for instances of the app. For example <p/>
 <code>
-~$ mkdir EchoServer
-~$ mkdir EchoCli1
+~$ mkdir EchoServer <p/>
+~$ mkdir EchoCli1 <p/>
 ~$ mkdir EchoCli2
 </code>
-2. Run the server.  
+2. Run the server.  <p/>
 <code>
-~$ cd EchoServer
+~$ cd EchoServer <p/>
 ~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife .../SaifeEcho
 </code>
-3. Run a client that uses secure messaging.
+3. Run a client that uses secure messaging. <p/>
 <code>
-~$ cd EchoCli1
+~$ cd EchoCli1 <p/>
 ~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife .../SaifeEcho -cEchoServer -msg one two three four five
 </code>
-4. Run a client that uses secure sessions.
+4. Run a client that uses secure sessions. <p/>
 <code>
-~$ cd EchoCli2
+~$ cd EchoCli2 <p/>
 ~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife .../SaifeEcho -cEchoServer -sess six seven eight nine ten
 </code>
 
