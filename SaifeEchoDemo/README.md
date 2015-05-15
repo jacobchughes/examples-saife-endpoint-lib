@@ -8,12 +8,12 @@ All commands are relative to the java directory.
 
 ### Build
 <code>
-~$ SAIFE_HOME=<path to java lib>; javac -d bin -cp $SAIFE_HOME/java-lib-2.0.1.jar:$SAIFE_HOME/simple-xml-2.3.2.jar:gson-2.3.1.jar src/com/saife/demo/SaifeEcho.java
+~$ SAIFE_HOME=\<path to java lib\>; javac -d bin -cp $SAIFE_HOME/java-lib-2.0.1.jar:$SAIFE_HOME/simple-xml-2.3.2.jar:gson-2.3.1.jar src/com/saife/demo/SaifeEcho.java
 </code>
 
 ### Run
 <code>
-~$ SAIFE_HOME=<path to java lib>; java -cp bin:$SAIFE_HOME/java-lib-2.0.1.jar:$SAIFE_HOME/guava-11.0.jar:gson-2.3.1.jar  -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.SaifeEcho
+~$ SAIFE_HOME=\<path to java lib\>; java -cp bin:$SAIFE_HOME/java-lib-2.0.1.jar:$SAIFE_HOME/guava-11.0.jar:gson-2.3.1.jar  -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.SaifeEcho
 </code>
 
 # C++ 
@@ -21,12 +21,12 @@ All commands are relative to the cpp directory.
 
 ### Build
 <code>
-~$ SAIFE_HOME=<path to cpp lib>; g++ -std=c++11 -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o SaifeEcho src/SaifeEcho.cpp -l saife -l CecCryptoEngine -l roxml
+~$ SAIFE_HOME=\<path to cpp lib\>; g++ -std=c++11 -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o SaifeEcho src/SaifeEcho.cpp -l saife -l CecCryptoEngine -l roxml
 </code>
 
 ### Run
 <code>
-~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife ./SaifeEcho
+~$ LD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife ./SaifeEcho
 </code>
 
 # Running
