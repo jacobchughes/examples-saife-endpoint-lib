@@ -19,7 +19,6 @@ using saife::SaifeSecureSessionInterface;
 
 using saife::InvalidManagementStateException;
 using saife::SaifeInvalidCredentialException;
-using saife::SaifeIoException;
 using saife::AdminLockedException;
 using saife::LicenseExceededException;
 using saife::NoSuchContactException;
@@ -98,7 +97,7 @@ void runMessageClient() {
         std::cout << "Ok .. All done.  Sent " << messageList.size() << " messages and received " << rcvMsgCnt << " messages" << std::endl;
       } catch (NoSuchContactException e) {
         std::cout << "Oops .. '" << sendTo << "' no such contact.  Go to the Dashboard to manage contacts." << std::endl;
-      } catch (SaifeIoException e) {
+      } catch (saife::io::IOException e) {
         std::cout << "Oops ... seems like we couldn't send message." << std::endl;
       } catch (LicenseExceededException e) {
         std::cerr << e.error() << std::endl;
@@ -131,7 +130,7 @@ void runMessageServer() {
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
     } catch (NoSuchContactException &e) {
       std::cerr << e.error() << std::endl;
-    } catch (SaifeIoException &e) {
+    } catch (saife::io::IOException &e) {
       std::cerr << e.error() << std::endl;
     } catch (InvalidManagementStateException &e) {
       std::cerr << e.error() << std::endl;
@@ -188,7 +187,7 @@ void runSessionClient() {
         std::cout << "Oops ... Looks like presence isn't ready." << std::endl;
       } catch (NoSuchContactException e) {
         std::cout << "Oops ... Looks like we aren't allowed to securely communicate with this contact yet." << std::endl;
-      } catch (SaifeIoException e) {
+      } catch (saife::io::IOException e) {
         std::cout << "Oops ... seems like we couldn't connect." << std::endl;
       }
 
@@ -230,7 +229,7 @@ void handleSession(SaifeSecureSessionInterface *session) {
           break;
         }
       }
-    } catch (SaifeIoException e) {
+    } catch (saife::io::IOException e) {
       std::cout << "Well ... looks like we're done with " << peer.alias() << ".  Let's clean up session." << std::endl;
       session->Close();
       saife_ptr->ReleaseSecureSession(session);
@@ -284,7 +283,7 @@ void updateSaife() {
       saife_ptr->UpdateSaifeData();
     } catch (InvalidManagementStateException &e) {
       std::cerr << e.error() << std::endl;
-    } catch (SaifeIoException &e) {
+    } catch (saife::io::IOException &e) {
       std::cerr << e.error() << std::endl;
     }
   }
