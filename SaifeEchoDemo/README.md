@@ -49,21 +49,21 @@ Edit the command lines below for appropriate paths.   The application will creat
 Expect to see three ouput logs on the initial start up containing details like:<p/>
 <code>
 [info]    SecurityInitializer: SecurityInitializer caught Not Keyed exception <p/>
-[info]    ContactListManagerImpl: Error while loading contact list: Algorithm provider is not available. </p>
+[info]    ContactListManagerImpl: Error while loading contact list: Algorithm provider is not available.</p>
 [info]    MessagingStore: CecException while load persisted decrypted messages. Algorithm provider is not available.
 </code>
-3. View the contents of the CSR located in the hidden directory <p/>
+3. View the contents of the CSR located in the hidden directory<p/>
 <code>
-cat EchoServer/.SaifeStore/newkey.smcsr </p>
+cat EchoServer/.SaifeStore/newkey.smcsr
 </code>
 4. Create a certificate using the CSR and CAPS on the [SAIFE Management Dashboard](https://dashboard.saifeinc.com/) and add it to contact group
 5. Repeat Steps 2-4 to provision all instances of the application: EchoCli1 and EchoCli2 in their respective directories
-6. Run a client that uses secure messaging. <p/>
+6. Run a client that uses secure messaging.<p/>
 <code>
 ~$ cd EchoCli1 <p/>
 ~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife .../SaifeEcho -cEchoServer -msg one two three four five
 </code>
-7. Run a client that uses secure sessions. <p/>
+7. Run a client that uses secure sessions.<p/>
 <code>
 ~$ cd EchoCli2 <p/>
 ~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife .../SaifeEcho -cEchoServer -sess six seven eight nine ten
