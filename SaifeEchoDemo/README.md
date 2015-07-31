@@ -3,8 +3,10 @@
 
 [SAIFE Endpoint Library](http://saifeinc.com/developers/libraries/) - version 2.0.1 or newer.  Contact SAIFE to obtain SAIFE Endpoint Library.
 
-# Java 
-All commands are relative to the java directory. 
+[SAIFE Management Dashboard](https://dashboard.saifeinc.com/) account with <i/>at least one</i> organization and group
+
+# Java
+All commands are relative to the java directory.
 
 ### Build
 <code>
@@ -16,7 +18,7 @@ All commands are relative to the java directory.
 ~$ SAIFE_HOME=\<path to java lib\>; java -cp bin:$SAIFE_HOME/java-lib-2.0.1.jar:$SAIFE_HOME/guava-11.0.jar:gson-2.3.1.jar  -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.SaifeEcho
 </code>
 
-# C++ 
+# C++
 All commands are relative to the cpp directory.
 
 ### Build
@@ -32,25 +34,37 @@ All commands are relative to the cpp directory.
 # Running
 Edit the command lines below for appropriate paths.   The application will create the SAIFE keystore and exit after the first run. Contact SAIFE to connect your application instances to the SAIFE network.
 
+
 1. Create directories for instances of the app. For example <p/>
 <code>
 ~$ mkdir EchoServer <p/>
 ~$ mkdir EchoCli1 <p/>
 ~$ mkdir EchoCli2
 </code>
-2. Run the server.  <p/>
+2. Run the server in the Echo Server Directory.  <p/>
 <code>
 ~$ cd EchoServer <p/>
 ~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife .../SaifeEcho
 </code>
-3. Run a client that uses secure messaging. <p/>
+Expect to see three ouput logs on the initial start up containing details like:<p/>
+<code>
+[info]    SecurityInitializer: SecurityInitializer caught Not Keyed exception <p/>
+[info]    ContactListManagerImpl: Error while loading contact list: Algorithm provider is not available. </p>
+[info]    MessagingStore: CecException while load persisted decrypted messages. Algorithm provider is not available.
+</code>
+3. View the contents of the CSR located in the hidden directory <p/>
+<code>
+cat EchoServer/.SaifeStore/newkey.smcsr </p>
+</code>
+4. Create a certificate using the CSR and CAPS on the [SAIFE Management Dashboard](https://dashboard.saifeinc.com/) and add it to contact group
+5. Repeat Steps 2-4 to provision all instances of the application: EchoCli1 and EchoCli2 in their respective directories
+6. Run a client that uses secure messaging. <p/>
 <code>
 ~$ cd EchoCli1 <p/>
 ~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife .../SaifeEcho -cEchoServer -msg one two three four five
 </code>
-4. Run a client that uses secure sessions. <p/>
+7. Run a client that uses secure sessions. <p/>
 <code>
 ~$ cd EchoCli2 <p/>
 ~$ LD_LIBRARY_PATH=<path to cpp lib>/lib/saife .../SaifeEcho -cEchoServer -sess six seven eight nine ten
 </code>
-
