@@ -8,6 +8,8 @@ import android.view.View;
 import android.widget.Button;
 
 import android.util.Log;
+import android.widget.CompoundButton;
+import android.widget.ToggleButton;
 
 import com.saife.examples.saifeecho.R;
 
@@ -39,14 +41,16 @@ public class MainActivity extends ActionBarActivity {
       Log.e(LOG_TAG, "Exception: ", e);
     }
 
-    Button startSessionButton = (Button) findViewById(R.id.startsessionbutton);
-    startSessionButton.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View v) {
-        saifeManager.runSessionClient();
+    ToggleButton toggle = (ToggleButton) findViewById(R.id.sessionToggleButton);
+    toggle.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+      public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+        if (isChecked) {
+          saifeManager.runSessionClient();
+        } else {
+          saifeManager.stopSessions();
+        }
       }
     });
-
   }
 
   @Override
