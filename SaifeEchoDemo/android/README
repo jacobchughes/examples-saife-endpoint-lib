@@ -1,0 +1,68 @@
+To build and load the SaifeEcho android application:
+
+1. Obtain an android-lib-<version>.aar file from SaifeInc.
+
+2. Copy the android-lib-<version>.aar into app/libs/
+
+3. Edit the build.gradle file in the app directory as follows
+
+Edit the following line to match the android-lib-<version>.aar obtained
+from SaifeInc.
+
+repositories {
+  flatDir{
+    dirs 'libs'
+  }
+  mavenLocal()
+}
+dependencies {
+  ...
+  compile (name:'android-lib-<version>', ext:'aar')
+  ...
+}
+
+For Example
+
+repositories {
+  flatDir{
+    dirs 'libs'
+  }
+  mavenLocal()
+}
+dependencies {
+  ...
+    compile (name:'android-lib-2.0.0-1', ext:'aar')
+  ...
+}
+
+4. Build the apk using the following command from the project directory:
+
+./gradlew clean assembleDebug
+
+
+5. Install app/build/outputs/apk/app-debug.apk into an emulator or android device
+   and execute like any other android app.
+
+Running -- 1st time Provisioning
+
+Before running the first time, make sure to have a log of the android device.
+
+adb logcat -v threadtime
+
+Then run the android saife echo app.  The app will start and quickly stop.
+
+In the log you'll see lines like
+
+Successfully keyed. CSR: MIIBLDCBsgIAMDQxMjAwBgNVBAMTKWNvbTo6c2FpZmU6OmV4YW1wbGVzOjpTYWlmZUVjaG86OmVuZHBvaW50MHYwEAYHKoZIzj0CAQYFK4EEACIDYgAEO1F+sqSJyh0dqs0uP5GIIzksB6XuNcKBmPvFAoeqRL8t7Nh2ssBnuAyPlmJyDg8pSrep0FPMQ/OSlQ7DnNqeF7sqNLszbNHbNDACUKB/Jvp+ki4QZO67nQeBr6FZhXgxoAAwCgYIKoZIzj0EAwIDaQAwZgIxAIxANZUAiYEbSMSdTt8cLjDq84Wno9U044X4PTXafxKNmFcGfLVLdNojlmH7DWuotAIxAMMsr3alZnjfJNPjrVIx84PMwSUQ2fBOJFJU4jw90xEhVc932X2VKfOH3h1J2TwIKg==
+Capabilities: ["com::saife::crypto::capability::AES_128_BIT","com::saife::examples::SaifeEcho"]
+
+Log into the dashboard and create a new certificate using the above CSR and capabilities.
+Also, add the certificate into a group with one other device with which you want to communicate.
+
+Force quit the SaifeEcho app. and rerun the app.
+
+In the log, you should see lines like
+
+PresenceConnection: ENTER Online
+
+For now, the app may need to be stopped and started again in order to receive contact list updates.

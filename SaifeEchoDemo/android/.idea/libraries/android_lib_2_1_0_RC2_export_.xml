@@ -1,0 +1,15 @@
+<component name="libraryTable">
+  <library name="android-lib-2.1.0-RC2-export-">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/android-lib-2.1.0-RC2-export/jars/libs/jsr305-1.3.9.jar!/" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/android-lib-2.1.0-RC2-export/jars/libs/simple-xml-2.3.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/android-lib-2.1.0-RC2-export/jars/libs/java-lib-2.1.0-RC2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/android-lib-2.1.0-RC2-export/jars/libs/guava-11.0.jar!/" />
+      <root url="file://$PROJECT_DIR$/app/build/intermediates/exploded-aar/android-lib-2.1.0-RC2-export/res" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/android-lib-2.1.0-RC2-export/jars/libs/base64-2.3.8.jar!/" />
+      <root url="jar://$PROJECT_DIR$/app/build/intermediates/exploded-aar/android-lib-2.1.0-RC2-export/jars/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
