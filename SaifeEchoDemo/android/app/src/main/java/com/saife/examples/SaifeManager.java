@@ -246,12 +246,12 @@ public class SaifeManager implements PasswordResetListener {
           // Just use the first one in the list.
           Contact sendTo = contactList.get(0);
 
-          Log.i(LOG_TAG, "Sessions have started");
+          Log.i(LOG_TAG, "Session client has started" + runSession.get());
           while (runSession.get()) {
             Log.i(LOG_TAG, "Starting a session with " + sendTo.getAlias());
             SecureSession session = null;
             try {
-              byte[] sessionBytes = new byte[1031];
+              byte[] sessionBytes = new byte[1024 * 100];
               Arrays.fill(sessionBytes, (byte) 0x41);
               session = saife.constructSecureSession();
               session.connect(sendTo, TransportType.LOSSLESS, 5);
@@ -284,10 +284,6 @@ public class SaifeManager implements PasswordResetListener {
             // up to the while (true) loop beginning
           }
 
-          // if we get here, someone has set runSession to false
-          // Reset runSession so sessions can be restarted.
-          runSession.set(true);
-          Log.i(LOG_TAG, "Sessions have been stopped");
         } catch (InvalidManagementStateException e) {
           Log.e(LOG_TAG, e.getMessage());
         } catch (InvalidSessionState e) {
@@ -296,6 +292,10 @@ public class SaifeManager implements PasswordResetListener {
           e.printStackTrace();
         }
 
+        // if we get here, someone has set runSession to false
+        // Reset runSession so sessions can be restarted.
+        runSession.set(true);
+        Log.i(LOG_TAG, "Session client has been stopped");
       }
     });
   }
@@ -349,15 +349,29 @@ public class SaifeManager implements PasswordResetListener {
           long elapsedTime = System.currentTimeMillis() - start;
           Log.i(LOG_TAG, "Wrote " + sessionBytes.length + " bytes of data to peer. elapsed time " + elapsedTime);
           byte[] echoBack;
-          try {
-            echoBack = session.read(1024, 2000);
-            Log.i(LOG_TAG, "Received " + echoBack.length + " bytes echoed back");
-            ++rcvMsgCnt;
-          } catch (SessionTimeoutException e) {
-            Log.i(LOG_TAG, "Missed an echo response.");
-          } catch (IOException e) {
-            Log.i(LOG_TAG, "IO problem reading response.");
+          int timesRead = 0;
+          int echoBackBytesRead = 0;
+          // Read the session bytes back
+          while (timesRead <= 25 && echoBackBytesRead < sessionBytes.length) {
+            try {
+              timesRead++;
+              echoBack = session.read(sessionBytes.length, 1000);
+              Log.i(LOG_TAG, "Read " + echoBack.length + " bytes in read iteration " + timesRead);
+              echoBackBytesRead += echoBack.length;
+            } catch (SessionTimeoutException e) {
+              Log.i(LOG_TAG, "Missed an echo response.");
+            } catch (IOException e) {
+              Log.i(LOG_TAG, "IO problem reading response.");
+            }
           }
+
+          if (sessionBytes.length == echoBackBytesRead) {
+            Log.i(LOG_TAG, "Received a full echo. Received  " + echoBackBytesRead + " and send " + sessionBytes.length + " bytes in " + timesRead + " reads");
+            rcvMsgCnt++;
+          } else {
+            Log.i(LOG_TAG, "Did not receive an echo. Received  " + echoBackBytesRead + " and should've received " + sessionBytes.length + " bytes in " + timesRead + " reads");
+          }
+
         }
         cdl.countDown();
         Log.i(LOG_TAG, "ReadWriterRunner done. Received " + rcvMsgCnt + " messages echoed back");

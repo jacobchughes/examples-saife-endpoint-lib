@@ -7,7 +7,7 @@ def String libsaifeArtifact = 'android-lib'
 // Put your libsaife version here.
 // The version must correspond to the version of the aar copied into app/libs
 // Version 2.1.0-RC7-export is an example only
-def String libsaifeVersion = '2.1.0-RC7-export'
+def String libsaifeVersion = '2.1.0-RC8-export'
 
 version = libsaifeVersion
 group = libsaifeGroup
@@ -45,6 +45,6 @@ dependencies {
     // Add the reference to the android-lib-<version>.aar as shown in the example below.
     // See the above comment about where to copy the android-lib-<version>.aar file.
     // Version 2.1.0-RC7-export is an example only
-    compile (name:'android-lib-2.1.0-RC7-export', ext:'aar')
+    compile (name:'android-lib-2.1.0-RC8-export', ext:'aar')
     compile 'com.google.code.gson:gson:2.2.2'
 }
