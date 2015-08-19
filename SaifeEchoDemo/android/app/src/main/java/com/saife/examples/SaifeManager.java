@@ -29,7 +29,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class SaifeManager implements PasswordResetListener {
 
@@ -43,9 +45,13 @@ public class SaifeManager implements PasswordResetListener {
   private final ExecutorService executorService;
   private String password = null;
   private PasswordResetCallback resetCallback = null;
+  private final AtomicBoolean runSession;
 
   public SaifeManager(final ExecutorService executorService) {
     this.executorService = executorService;
+
+    // Set up so session can be started.
+    runSession = new AtomicBoolean(true);
   }
 
   /**
@@ -239,47 +245,63 @@ public class SaifeManager implements PasswordResetListener {
           }
           // Just use the first one in the list.
           Contact sendTo = contactList.get(0);
-          Log.i(LOG_TAG, "Trying to have a session with " + sendTo.getAlias());
-          try {
-            byte[] sessionBytes = new byte[1024];
-            Arrays.fill(sessionBytes, (byte) 0x41);
-            SecureSession session = saife.constructSecureSession();
-            session.connect(sendTo, TransportType.LOSSLESS, 10);
-            int rcvMsgCnt = 0;
-            for (int i = 0; i < 20; i++) {
-              session.write(sessionBytes);
-              Log.i(LOG_TAG, "Wrote " + sessionBytes.length + " bytes of data to peer");
-              try {
-                byte[] echoBack;
-                echoBack = session.read(1024, 5);
-                Log.i(LOG_TAG, "Received " + echoBack.length + " bytes echoed back");
-                ++rcvMsgCnt;
-              } catch (SessionTimeoutException e) {
-                Log.i(LOG_TAG, "Missed an echo response.");
-              }
+
+          Log.i(LOG_TAG, "Sessions have started");
+          while (runSession.get()) {
+            Log.i(LOG_TAG, "Starting a session with " + sendTo.getAlias());
+            SecureSession session = null;
+            try {
+              byte[] sessionBytes = new byte[1031];
+              Arrays.fill(sessionBytes, (byte) 0x41);
+              session = saife.constructSecureSession();
+              session.connect(sendTo, TransportType.LOSSLESS, 5);
+              final CountDownLatch cdl = new CountDownLatch(1);
+              ReadWriteRunner r = new ReadWriteRunner(cdl, session, sessionBytes);
+              executorService.execute(r);
+              cdl.await();
+              Log.i(LOG_TAG, "Ok .. All done.  Sent 20 messages and received " + r.getRcvMsgCnt() + " messages echoed back");
+              session.close();
+              Log.i(LOG_TAG, "Closed the session");
+
+            } catch (NoSuchContactException e) {
+              Log.e(LOG_TAG, e.getMessage());
+            } catch (SessionTimeoutException e) {
+              Log.e(LOG_TAG, e.getMessage());
+              Log.v(LOG_TAG, "Couldn't connect in time. ");
+              // session.close();
+            } catch (PresenceRequiredException e) {
+              Log.e(LOG_TAG, e.getMessage());
+            } catch (IOException e) {
+              Log.e(LOG_TAG, e.getMessage());
             }
 
-            Log.i(LOG_TAG, "Ok .. All done.  Sent 20 messages and received " + rcvMsgCnt + " messages echoed back");
-            session.close();
-            saife.releaseSecureSession(session);
+            if (session != null) {
+              saife.releaseSecureSession(session);
+              Log.i(LOG_TAG, "Released the session");
+            }
 
-          } catch (NoSuchContactException e) {
-            Log.e(LOG_TAG, e.getMessage());
-          } catch (SessionTimeoutException e) {
-            Log.e(LOG_TAG, e.getMessage());
-          } catch (PresenceRequiredException e) {
-            Log.e(LOG_TAG, e.getMessage());
-          } catch (IOException e) {
-            Log.e(LOG_TAG, e.getMessage());
+            Thread.sleep(500);
+            // up to the while (true) loop beginning
           }
 
+          // if we get here, someone has set runSession to false
+          // Reset runSession so sessions can be restarted.
+          runSession.set(true);
+          Log.i(LOG_TAG, "Sessions have been stopped");
         } catch (InvalidManagementStateException e) {
           Log.e(LOG_TAG, e.getMessage());
         } catch (InvalidSessionState e) {
           Log.e(LOG_TAG, e.getMessage());
+        } catch (InterruptedException e) {
+          e.printStackTrace();
         }
+
       }
     });
+  }
+
+  public void stopSessions() {
+    runSession.set(false);
   }
 
   @Override
@@ -296,6 +318,50 @@ public class SaifeManager implements PasswordResetListener {
         Log.e(LOG_TAG, "That was rude", e);
       }
     }
+  }
+
+  public class ReadWriteRunner implements Runnable {
+    private final CountDownLatch cdl;
+    private final SecureSession session;
+    private final byte[] sessionBytes;
+    private int rcvMsgCnt = 0;
+
+    public ReadWriteRunner(CountDownLatch cdl, SecureSession session, final byte[] bytes) {
+      this.cdl = cdl;
+      this.session = session;
+      this.sessionBytes = bytes;
+    }
+
+    public int getRcvMsgCnt() {
+      return rcvMsgCnt;
+    }
+
+      @Override
+      public void run() {
+        for (int i = 0; i < 20; i++) {
+          long start = System.currentTimeMillis();
+          try {
+            session.write(sessionBytes);
+          } catch (IOException e) {
+            Log.i(LOG_TAG, "IO problem writing data.");
+            continue;
+          }
+          long elapsedTime = System.currentTimeMillis() - start;
+          Log.i(LOG_TAG, "Wrote " + sessionBytes.length + " bytes of data to peer. elapsed time " + elapsedTime);
+          byte[] echoBack;
+          try {
+            echoBack = session.read(1024, 2000);
+            Log.i(LOG_TAG, "Received " + echoBack.length + " bytes echoed back");
+            ++rcvMsgCnt;
+          } catch (SessionTimeoutException e) {
+            Log.i(LOG_TAG, "Missed an echo response.");
+          } catch (IOException e) {
+            Log.i(LOG_TAG, "IO problem reading response.");
+          }
+        }
+        cdl.countDown();
+        Log.i(LOG_TAG, "ReadWriterRunner done. Received " + rcvMsgCnt + " messages echoed back");
+      }
   }
 
 }
