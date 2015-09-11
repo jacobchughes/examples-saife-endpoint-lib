@@ -44,6 +44,12 @@ static const std::string echoMsgType = "com.saife.demo.echo";
 /** The SAIFE contact to which message and session are directed. The application runs as server if not specified. */
 static std::string sendTo;
 
+/** Time for reading data from the session */
+static const int kSessionReadTimeMs = 5000;
+
+/** Time for reading data from inbound session */
+static const int kInboundSessionReadMs = 30000;
+
 static bool messageClient = false;
 static bool sessionClient = false;
 static std::vector<std::string> messageList;
@@ -168,7 +174,7 @@ void runSessionClient() {
           std::cout << "Data >: '" << sendMsg << "'" << std::endl;
           try {
             std::vector< uint8_t > data;
-            session->Read(&data, 1024, 5);
+            session->Read(&data, 1024, kSessionReadTimeMs);
             std::string datastr(data.begin(), data.end());
             std::cout << "Data <: '" << datastr << "'" << std::endl;
             ++rcvMsgCnt;
@@ -182,13 +188,13 @@ void runSessionClient() {
         saife_ptr->ReleaseSecureSession(session);
 
       } catch (SessionTimeoutException e) {
-        std::cout << "Oops ... seems like we couldn't connect securely." << std::endl;
+        std::cout << "Timeout attempting to connect session" << std::endl;
       } catch (PresenceRequiredException e) {
-        std::cout << "Oops ... Looks like presence isn't ready." << std::endl;
+        std::cout << "Presence is not available" << std::endl;
       } catch (NoSuchContactException e) {
-        std::cout << "Oops ... Looks like we aren't allowed to securely communicate with this contact yet." << std::endl;
+        std::cout << "Contact was not found" << std::endl;
       } catch (saife::io::IOException e) {
-        std::cout << "Oops ... seems like we couldn't connect." << std::endl;
+        std::cout << "I/O Error while attempting to connect session" << std::endl;
       }
 
       // Do it all over in a bit
@@ -216,7 +222,7 @@ void handleSession(SaifeSecureSessionInterface *session) {
         try {
           // Read data from client
           std::vector< uint8_t > data;
-          session->Read(&data, 1024, 30);
+          session->Read(&data, 1024, kInboundSessionReadMs);
           std::string datastr(data.begin(), data.end());
           std::cout << "D:" << peer.alias() << " '" << datastr << "'" << std::endl;
           // Echo it right back
@@ -342,7 +348,7 @@ int main(int argc, char *argv[]) {
   try {
     LogSinkFactory logSinkFactory;
     //LogSinkManagerInterface *logMgr = logSinkFactory.CreateFileSink(defaultKeyStore + "/log");
-    //LogSinkManagerInterface *logMgr = logSinkFactory.CreateConsoleSink();
+    LogSinkManagerInterface *logMgr = logSinkFactory.CreateConsoleSink();
 
     // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
     SaifeFactory factory;
@@ -353,6 +359,12 @@ int main(int argc, char *argv[]) {
 
     // Initialize the SAIFE interface
     SaifeManagementState state = saife_ptr->Initialize(defaultKeyStore);
+
+    if (state != saife::SAIFE_UNKEYED && state != saife::SAIFE_INITIALIZED) {
+      std::cerr << "failed to initialize SAIFE" << std::endl;
+      return 1;
+    }
+
     if (state == saife::SAIFE_UNKEYED) {
       // The UNKEYED state is returned when SAIFE doesn't have a public/private key pair.
 
@@ -387,13 +399,11 @@ int main(int argc, char *argv[]) {
         f << "]" << std::endl;
       }
       f.close();
-    } else if (state == saife::SAIFE_ERROR) {
-      std::cerr << "failed to initialize SAIFE" << std::endl;
-    } else {
-      // SAIFE is initialized.
-      parseArgs(argc, argv);
-      runEcho();
     }
+
+    // SAIFE is initialized.
+    parseArgs(argc, argv);
+    runEcho();
   } catch (InvalidManagementStateException& e) {
     std::cerr << e.error() << std::endl;
   } catch (SaifeInvalidCredentialException& e) {
