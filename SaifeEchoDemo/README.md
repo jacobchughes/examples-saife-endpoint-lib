@@ -22,13 +22,26 @@ All commands are relative to the java directory.
 All commands are relative to the cpp directory.
 
 ### Build
+For linux: 
 <code>
 ~$ SAIFE_HOME=\<path to cpp lib\>; g++ -std=c++11 -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o SaifeEcho src/SaifeEcho.cpp -l saife -l CecCryptoEngine -l roxml
 </code>
 
+For darwin (MAC OS X):
+<code>
+~$ SAIFE_HOME=\<path to cpp lib\>; clang++ -std=c++11 -stdlib=libc++ -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o SaifeEcho src/SaifeEcho.cpp -l saife -l CecCryptoEngine -l roxml
+</code>
+
 ### Run
+
+For Linux: 
 <code>
 ~$ LD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife ./SaifeEcho
+</code>
+
+For darwin (MAC OS X):
+<code>
+~$ DYLD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife ./SaifeEcho
 </code>
 
 # Running
