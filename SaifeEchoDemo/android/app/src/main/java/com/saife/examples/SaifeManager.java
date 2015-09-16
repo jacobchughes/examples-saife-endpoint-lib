@@ -4,7 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.saife.Address;
+
 import com.saife.Saife;
 import com.saife.SaifeFactory;
 import com.saife.contacts.Contact;
@@ -26,7 +26,6 @@ import com.saife.sessions.SessionTimeoutException;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -90,11 +89,8 @@ public class SaifeManager implements PasswordResetListener {
         // Setup the DN attributes to be used in the X509 certificate.
         final DistinguishedName dn = new DistinguishedName(DISTINGUISH_NAME);
 
-        // Setup an optional list of logical addresses associated with this SAIFE end point.
-        final List<Address> addressList = new ArrayList<Address>();
-
         // Generate the public/private key pair and certificate signing request.
-        final CertificationSigningRequest csr = saife.generateSmCsr(dn, password, addressList);
+        final CertificationSigningRequest csr = saife.generateSmCsr(dn, password);
 
         // Add additional capabilities to the SAIFE capabilities list that convey the application specific capabilities.
         final List<String> capabilities = csr.getCapabilities();
@@ -169,7 +165,7 @@ public class SaifeManager implements PasswordResetListener {
               // Wait for SAIFE clients to connect securely
               SecureSession session = saife.accept();
               Contact peer = session.getPeer();
-              Log.i(LOG_TAG, "Whoa, received a new session from " + peer.getAlias());
+              Log.i(LOG_TAG, "Whoa, received a new session from " + peer.getName());
               handleSession(session);
             } catch (InvalidManagementStateException e) {
               Log.e(LOG_TAG, e.getMessage() + ". Waiting a couple of seconds before trying again");
@@ -199,7 +195,7 @@ public class SaifeManager implements PasswordResetListener {
         Contact peer;
         try {
           peer = session.getPeer();
-          Log.i(LOG_TAG, "Having a session with peer " + peer.getAlias());
+          Log.i(LOG_TAG, "Having a session with peer " + peer.getName());
           try {
             while (true) {
               try {
@@ -212,14 +208,14 @@ public class SaifeManager implements PasswordResetListener {
                 session.write(data);
 
               } catch (SessionTimeoutException e) {
-                Log.i(LOG_TAG, "Got nothing from " + peer.getAlias()  +  " for 30 seconds. Close up shop.");
+                Log.i(LOG_TAG, "Got nothing from " + peer.getName()  +  " for 30 seconds. Close up shop.");
                 session.close();
                 saife.releaseSecureSession(session);
                 break;
               }
             }
           } catch (IOException e) {
-            Log.i(LOG_TAG, "Well ... looks like we're done with " + peer.getAlias() +  ".  Let's clean up session.");
+            Log.i(LOG_TAG, "Well ... looks like we're done with " + peer.getName() +  ".  Let's clean up session.");
             session.close();
             saife.releaseSecureSession(session);
           }
@@ -248,7 +244,7 @@ public class SaifeManager implements PasswordResetListener {
 
           Log.i(LOG_TAG, "Session client has started" + runSession.get());
           while (runSession.get()) {
-            Log.i(LOG_TAG, "Starting a session with " + sendTo.getAlias());
+            Log.i(LOG_TAG, "Starting a session with " + sendTo.getName());
             SecureSession session = null;
             try {
               byte[] sessionBytes = new byte[1024 * 100];
