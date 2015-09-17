@@ -43,7 +43,6 @@ static std::string vFile = "black_data.bin";
 static bool recreateVolume = false;
 static bool storeIfTrue = false;
 
-
 /**
  * parseArgs, process the arguments.
  * @param argc
@@ -109,7 +108,7 @@ void runDAR() {
     std::cerr << e.error() << std::endl;
   }
 
-  /** Subscribe alows saife to get messages from the SAIFE contnuum */
+  /** Subscribe alows saife to get messages from the SAIFE continuum */
   saife_ptr->Subscribe();
 
   // Start a task to periodically update SAIFE data
@@ -168,8 +167,6 @@ void runDAR() {
     return;
   }
 
-  std::this_thread::sleep_for(std::chrono::seconds(10));
-
   SaifeSecureFile *pRoot;
   SaifeSecureFile *pFile;
   
@@ -187,13 +184,11 @@ void runDAR() {
   if ( pFile->Exists() && pFile->IsDirectory() )
   {
     std::cerr << "File " + iFile + " is a directory in the VFS" << std::endl;
-    
     return;
   }
 
   if ( storeIfTrue ) {
     try {
-
       /** SaifeSecureFileOutputStream. A SAIFE handle for writes to VFS files. */
       SaifeSecureFileOutputStream *sfos = new SaifeSecureFileOutputStream (pFile, false);
    
@@ -249,9 +244,7 @@ void runDAR() {
 
       /** Data is decrypted from the SAIFE VFS upon Read().  Read returns (int) -1 upon a failure. */
       int size = sfis->Read (&buf);
-      std::cout << "initial read " << size << " bytes returned." << std::endl;
       while (size != -1 ) {
-        std::cout << "write " << size << " bytes to " +oFile << std::endl;
         ofs.write ( (char *) &buf[0], size ); 
         size = sfis->Read (&buf);
       }
@@ -261,11 +254,9 @@ void runDAR() {
 
     } catch ( ... ) {
        std::cerr << "File operations failed in VFS" << std::endl;
-       
       return;     
     }
   }
-
 }
 
 /**
