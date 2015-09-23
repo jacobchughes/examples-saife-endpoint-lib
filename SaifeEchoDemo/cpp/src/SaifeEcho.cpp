@@ -9,7 +9,6 @@ using saife::SaifeManagementState;
 using saife::SaifeException;
 using saife::DistinguishedName;
 using saife::CertificateSigningRequest;
-using saife::SaifeAddress;
 using saife::LogSinkInterface;
 using saife::LogSinkManagerInterface;
 using saife::LogSinkFactory;
@@ -19,7 +18,6 @@ using saife::SaifeSecureSessionInterface;
 
 using saife::InvalidManagementStateException;
 using saife::SaifeInvalidCredentialException;
-using saife::AdminLockedException;
 using saife::LicenseExceededException;
 using saife::NoSuchContactException;
 using saife::UnlockRequiredException;
@@ -43,6 +41,12 @@ static const std::string echoMsgType = "com.saife.demo.echo";
 
 /** The SAIFE contact to which message and session are directed. The application runs as server if not specified. */
 static std::string sendTo;
+
+/** Time for reading data from the session */
+static const int kSessionReadTimeMs = 5000;
+
+/** Time for reading data from inbound session */
+static const int kInboundSessionReadMs = 30000;
 
 static bool messageClient = false;
 static bool sessionClient = false;
@@ -72,7 +76,7 @@ void runMessageClient() {
   try {
     while (true) {
       try {
-        SaifeContact contact = saife_ptr->GetContactByAlias(sendTo);
+        SaifeContact contact = saife_ptr->GetContactByName(sendTo);
         int rcvMsgCnt = 0;
         for (std::vector<std::string>::iterator iter = messageList.begin(); iter != messageList.end(); ++iter) {
           std::string sendMsg = *iter;
@@ -124,7 +128,7 @@ void runMessageServer() {
           iter != msgs.end(); ++iter) {
         SaifeMessagingInterface::SaifeMessageData *msg = *iter;
         std::string msgstr(msg->message_bytes.begin(), msg->message_bytes.end());
-        std::cout << "M:" << msg->sender.alias() << " '" << msgstr << "'" << std::endl;
+        std::cout << "M:" << msg->sender.name() << " '" << msgstr << "'" << std::endl;
         saife_ptr->SendMessage(msg->message_bytes, msg->message_type, msg->sender, 30, 2000, false);
       }
       std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -157,7 +161,7 @@ void runSessionClient() {
   try {
     while (true) {
       try {
-        SaifeContact contact = saife_ptr->GetContactByAlias(sendTo);
+        SaifeContact contact = saife_ptr->GetContactByName(sendTo);
         SaifeSecureSessionInterface *session = saife_ptr->ConstructSecureSession();
         session->Connect(contact, SaifeSecureSessionInterface::LOSSY, 10);
         int rcvMsgCnt = 0;
@@ -168,7 +172,7 @@ void runSessionClient() {
           std::cout << "Data >: '" << sendMsg << "'" << std::endl;
           try {
             std::vector< uint8_t > data;
-            session->Read(&data, 1024, 5);
+            session->Read(&data, 1024, kSessionReadTimeMs);
             std::string datastr(data.begin(), data.end());
             std::cout << "Data <: '" << datastr << "'" << std::endl;
             ++rcvMsgCnt;
@@ -182,13 +186,13 @@ void runSessionClient() {
         saife_ptr->ReleaseSecureSession(session);
 
       } catch (SessionTimeoutException e) {
-        std::cout << "Oops ... seems like we couldn't connect securely." << std::endl;
+        std::cout << "Timeout attempting to connect session" << std::endl;
       } catch (PresenceRequiredException e) {
-        std::cout << "Oops ... Looks like presence isn't ready." << std::endl;
+        std::cout << "Presence is not available" << std::endl;
       } catch (NoSuchContactException e) {
-        std::cout << "Oops ... Looks like we aren't allowed to securely communicate with this contact yet." << std::endl;
+        std::cout << "Contact was not found" << std::endl;
       } catch (saife::io::IOException e) {
-        std::cout << "Oops ... seems like we couldn't connect." << std::endl;
+        std::cout << "I/O Error while attempting to connect session" << std::endl;
       }
 
       // Do it all over in a bit
@@ -216,21 +220,21 @@ void handleSession(SaifeSecureSessionInterface *session) {
         try {
           // Read data from client
           std::vector< uint8_t > data;
-          session->Read(&data, 1024, 30);
+          session->Read(&data, 1024, kInboundSessionReadMs);
           std::string datastr(data.begin(), data.end());
-          std::cout << "D:" << peer.alias() << " '" << datastr << "'" << std::endl;
+          std::cout << "D:" << peer.name() << " '" << datastr << "'" << std::endl;
           // Echo it right back
           session->Write(data);
 
         } catch (SessionTimeoutException e) {
-          std::cout << "Got nothing from " << peer.alias() << " for 30 seconds. Close up shop." << std::endl;
+          std::cout << "Got nothing from " << peer.name() << " for 30 seconds. Close up shop." << std::endl;
           session->Close();
           saife_ptr->ReleaseSecureSession(session);
           break;
         }
       }
     } catch (saife::io::IOException e) {
-      std::cout << "Well ... looks like we're done with " << peer.alias() << ".  Let's clean up session." << std::endl;
+      std::cout << "Well ... looks like we're done with " << peer.name() << ".  Let's clean up session." << std::endl;
       session->Close();
       saife_ptr->ReleaseSecureSession(session);
     }
@@ -258,7 +262,7 @@ void runSessionServer() {
       // Wait for SAIFE clients to connect securely
       SaifeSecureSessionInterface *session = saife_ptr->Accept();
       SaifeContact peer = session->GetPeer();
-      std::cout << "Hey ... " << peer.alias() << " just connected." << std::endl;
+      std::cout << "Hey ... " << peer.name() << " just connected." << std::endl;
       std::thread handleSessThread(handleSession, session);
       handleSessThread.detach();
     } catch (InvalidManagementStateException e) {
@@ -297,19 +301,10 @@ void runEcho() {
     std::cerr << e.error() << std::endl;
   } catch (InvalidManagementStateException &e) {
     std::cerr << e.error() << std::endl;
-  } catch (AdminLockedException &e) {
-    std::cerr << e.error() << std::endl;
   }
 
   // Subscribe for SAIFE messages
   saife_ptr->Subscribe();
-
-  // Request a contact list re-sync
-  try {
-    saife_ptr->SynchronizeContacts();
-  } catch (InvalidManagementStateException &e) {
-    std::cerr << e.error() << std::endl;
-  }
 
   // Start a task to periodically update SAIFE data
   std::thread updateThread(updateSaife);
@@ -342,7 +337,7 @@ int main(int argc, char *argv[]) {
   try {
     LogSinkFactory logSinkFactory;
     //LogSinkManagerInterface *logMgr = logSinkFactory.CreateFileSink(defaultKeyStore + "/log");
-    //LogSinkManagerInterface *logMgr = logSinkFactory.CreateConsoleSink();
+    LogSinkManagerInterface *logMgr = logSinkFactory.CreateConsoleSink();
 
     // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
     SaifeFactory factory;
@@ -353,18 +348,21 @@ int main(int argc, char *argv[]) {
 
     // Initialize the SAIFE interface
     SaifeManagementState state = saife_ptr->Initialize(defaultKeyStore);
+
+    if (state != saife::SAIFE_UNKEYED && state != saife::SAIFE_INITIALIZED) {
+      std::cerr << "failed to initialize SAIFE" << std::endl;
+      return 1;
+    }
+
     if (state == saife::SAIFE_UNKEYED) {
       // The UNKEYED state is returned when SAIFE doesn't have a public/private key pair.
 
       // Setup the DN attributes to be used in the X509 certificate.
       const DistinguishedName dn("SaifeEcho");
 
-      // Setup an optional list of logical addresses associated with this SAIFE end point.
-      const std::vector<SaifeAddress> address_list;
-
       // Generate the public/private key pair and certificate signing request.
       CertificateSigningRequest *certificate_signing_request = new CertificateSigningRequest();
-      saife_ptr->GenerateSmCsr(dn, defaultPassword, address_list, certificate_signing_request);
+      saife_ptr->GenerateSmCsr(dn, defaultPassword, certificate_signing_request);
 
       // Add additional capabilities to the SAIFE capabilities list that convey the application specific capabilities.
       std::vector< std::string > capabilities = certificate_signing_request->capabilities();
@@ -387,13 +385,11 @@ int main(int argc, char *argv[]) {
         f << "]" << std::endl;
       }
       f.close();
-    } else if (state == saife::SAIFE_ERROR) {
-      std::cerr << "failed to initialize SAIFE" << std::endl;
-    } else {
-      // SAIFE is initialized.
-      parseArgs(argc, argv);
-      runEcho();
     }
+
+    // SAIFE is initialized.
+    parseArgs(argc, argv);
+    runEcho();
   } catch (InvalidManagementStateException& e) {
     std::cerr << e.error() << std::endl;
   } catch (SaifeInvalidCredentialException& e) {
