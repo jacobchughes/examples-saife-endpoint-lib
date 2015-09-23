@@ -137,7 +137,15 @@ public:
    * @return The next byte from the stream or "-1" if the end of the stream has been reached.
    */
   virtual int Read() {
-    return 0;
+    char b;
+    if ( open )
+    {
+      ifs.read(&b,1);
+      if ( !ifs ) {
+        return -1;
+      }
+    }
+    return static_cast<int> (b);
   }
   /**
    * Reads up to length bytes from the stream starting at offset. 
@@ -147,7 +155,16 @@ public:
    * @return Bytes read or "-1" if the end of the stream has been reached.
    */
   virtual int Read(std::vector<uint8_t>* buffer_ptr, const std::size_t offset, const std::size_t length){ 
-    return 0; 
+    int adj_len = length;
+
+    if ( buffer_ptr->size() < (length + offset ) ) {
+      adj_len = buffer_ptr->size() - offset;
+    }
+
+    void *v_ptr = &buffer_ptr->at(offset);
+
+    return (Read ( v_ptr, adj_len ));
+
   } 
   /** 
    * Reads up to length bytes from the stream. 
@@ -513,10 +530,7 @@ void runNS() {
 
     ofs.close();
     is_ptr->Close();
-
-
   }
-  
 }
 
 /**
