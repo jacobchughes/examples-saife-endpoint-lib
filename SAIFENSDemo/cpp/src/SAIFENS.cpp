@@ -48,102 +48,213 @@ static std::string oFile;
 /** iFile names a file to store to / retrieve from the virtual file system. */
 static std::string iFile;
 
-/** vFile is the file that stores the virtual file system */
-static std::string vFile = "black_data.bin";
-
-std::string kPrefix = "black_data/";
+std::string kPathSeparator = "/";
+std::string kPrefix = "black_data" + kPathSeparator;
 /**
+ * Basic definition of an output stream. 
  * This class defines how the software stores encrypted content delivered by the SAIFE library 
  * This example stores and retrieves data to disk, but it is optional where the data is stored
  * since it is encrypted.  This enables the use of untrusted network shares for private data.
  */
-class saver : public saife::io::OutputStreamInterface {
+class FileSaver : public saife::io::OutputStreamInterface {
 public:
-  std::string prefix;
+  std::string prefix;  //he storage directory path
   bool open;
   std::ofstream ofs;
-  saver ( std::string fname ) : prefix (kPrefix), open(false)
+
+  /** 
+   * The Constructor
+  * @param fName  The name of file which will be saved.
+  */
+  FileSaver ( std::string fname ) : prefix (kPrefix), open(false)
   {
     std::string path = prefix + fname;
     ofs.open(path, std::ofstream::out | std::ofstream::binary );
     if ( ofs.is_open() ) {
       open = true;
     }
-    
   } 
-  virtual void Write(const uint8_t b) {}
-  virtual void Write(const std::vector<uint8_t>& buffer) {}
-  virtual void Write(const std::vector<uint8_t>& buffer, const std::size_t offset, const std::size_t length) {}
-  virtual void Write(const void* buffer_ptr, const std::size_t length) {
-    if ( open) {
-      ofs.write ( (char*) buffer_ptr, length );
-      return;
-    } 
+
+  /**
+   * Writes a single byte to the stream. 
+   * @param b
+   */
+  virtual void Write(const uint8_t b) {
+    if ( open ) {
+      ofs.write((char*)&b,1);
+    }
   }
-  virtual void Flush(){}
+
+  /**
+   * Writes bytes from the buffer to the output stream. 
+   * @param buffer_ptr
+   * @param length
+   */
+  virtual void Write(const void* buffer_ptr, const std::size_t length) {
+    if ( open ) {
+      ofs.write ( (char*) buffer_ptr, length );    
+    } 
+    return;
+  }
+
+  /**
+   * Flushes the data from the stream. 
+   */
+  virtual void Flush(){
+    ofs.flush();
+  }
+
+  /**
+   * Close the output stream. 
+   */
   virtual void Close(){ 
     ofs.close(); 
     open = false; 
   }
+  
 };
 
 /**
- * This class defines how the software returns encrypted content delivered by the SAIFE library 
- * This example stores and retrieves data to disk, but it is optional where the data is stored
- * since it is encrypted.  This enables the use of untrusted network shares for private data.
+ * Basic definition of an input stream.
+ * This class accesses encrypted user content on behalf of the SAIFE library.
  */
-class returner : public saife::io::InputStreamInterface {
+class FileReturner : public saife::io::InputStreamInterface {
 public:
   bool open;
   std::ifstream ifs;
-  returner ( std::string fname ) : open(false) {
+
+  /** 
+   * The Constructor
+   * @param fName  The name of file which will be opened for reading
+   */
+  FileReturner ( std::string fname ) : open(false) {
     std::string path = kPrefix + fname;
     ifs.open ( path, std::ifstream::in | std::ifstream::binary );
     open = ifs.is_open();
   }
-  virtual int Read() {return 0;}
-  virtual int Read(std::vector<uint8_t>* buffer_ptr, const std::size_t offset, const std::size_t length){ return 0; } 
+  /**
+   * Reads exactly one byte from the stream.
+   * @return The next byte from the stream or "-1" if the end of the stream has been reached.
+   */
+  virtual int Read() {
+    return 0;
+  }
+  /**
+   * Reads up to length bytes from the stream starting at offset. 
+   * @param buffer_ptr
+   * @param offset
+   * @param length
+   * @return Bytes read or "-1" if the end of the stream has been reached.
+   */
+  virtual int Read(std::vector<uint8_t>* buffer_ptr, const std::size_t offset, const std::size_t length){ 
+    return 0; 
+  } 
+  /** 
+   * Reads up to length bytes from the stream. 
+   * @param buffer_ptr
+   * @param len
+   * @return Bytes read or "-1" if the end of the stream has been reached.
+   */
   virtual int Read(void* buffer_ptr, const std::size_t len) {
     int i = -1;
     if ( open ) {
       ifs.read ( (char *) buffer_ptr, len );
-      i=((ifs)?len:ifs.gcount());
-      cout << "read " << i << " bytes." <<endl;
+      i=ifs.gcount();
       if ( i == 0 ) {
         i = -1;  //per the interface agreement with SAIFE lib.
       }
     }
-    cout << "return code " << i << "." <<endl;
     return i;
   }
+  /**
+   * Reads and fills buffer_ptr from the stream. 
+   * @param buffer_ptr
+   * @return Bytes read or "-1" if the end of the stream has been reached.
+   */
   virtual int Read(std::vector<uint8_t>* buffer_ptr) {
     void *v_ptr=(void *)&buffer_ptr->at(0);
     return Read ( v_ptr, buffer_ptr->size() ) ;
   }
+  
+  /**
+   * Close the stream.
+   */
   virtual void Close() { 
     if ( open ) {
       ifs.close();
     }
     open = false;
   }
-  virtual int Available() { return 0; }
-  virtual int64_t Skip(const int64_t n)  { return 0; }
+  /**
+   * An estimate of the number of remaining bytes that can be read from this input stream without blocking.
+   */
+  virtual int Available() { 
+    // for example purposes, claim reads always block
+    // not real behavior
+    return 0; 
+  }
+
+  /**
+   * Skips over and discards n bytes of data from the input stream.
+   * The skip method may, for a variety of reasons, end up skipping over some 
+   * smaller number of bytes, possibly 0. If n is negative, an IOException is 
+   * thrown, even though the skip method of the InputStream superclass does 
+   * nothing in this case. The actual number of bytes skipped is returned.
+   * This method may skip more bytes than are remaining in the backing stream. 
+   * This produces no exception and the number of bytes skipped may include some 
+   * number of bytes that were beyond the EOF of the backing file. Attempting to 
+   * read from the stream after skipping past the end will result in -1 
+   * indicating the end of the file.
+   * @param n
+   * @return the number of bytes skipped
+   */
+  virtual int64_t Skip(const int64_t n)  { 
+    int b;
+    int64_t i;
+    for ( i=0; i<n; i++ ) {
+      b=Read();
+      if ( b == -1 ) {
+        return i;
+      }
+    }
+    return n;
+  }
 };
 
+/**
+ * This implements an interface that represents an object persisted within the context of a network share.
+ */
 class LocalObject : public PersistedObjectInterface {
   public:
   std::string name;
+  /** Constructor 
+   * @param fname the name of a file 
+   */
   LocalObject ( std::string fname ) {
     name = fname;
   }
+
   virtual std::string GetName() {
     return name;
   }
 };
 
+
+/** 
+ * This class defines the methods that must be provided by a client application for working with the SAIFE network share feature.
+ */
 class LocalPersistentStore : public PersistentStoreInterface {
 virtual void ReleaseObjects(std::vector<PersistedObjectInterface*> objects) {
+  for ( auto obj_ptr : objects ) {
+    delete ( obj_ptr );
+  }
 }
+  /**
+   * Return a list of objects starting with the given prefix.
+   * @param storage_path the base path
+   * @param prefix The start of the file name
+   * @return std::vector<PersistedObjectInterface*>
+   */
   virtual std::vector<PersistedObjectInterface*> GetObjects(const std::string& storage_path, const std::string& prefix) {
     std::vector<PersistedObjectInterface*> result;
     result.clear();
@@ -165,53 +276,87 @@ virtual void ReleaseObjects(std::vector<PersistedObjectInterface*> objects) {
     }
     return result;
   }
-  
+  /**
+   * Returns a input stream to the given object.
+   * @param object_ptr
+   * @return saife::io::InputStreamInterface*
+   */
   virtual saife::io::InputStreamInterface* GetInputStream(PersistedObjectInterface* object_ptr) {
     cout << "GetInputStream " + object_ptr->GetName () << endl;
-    returner *r_ptr = new returner ( object_ptr->GetName () );
-    return ((saife::io::InputStreamInterface*)r_ptr);
+    FileReturner *r_ptr = new FileReturner ( object_ptr->GetName () );
+    return (static_cast<saife::io::InputStreamInterface*>(r_ptr));
   }
-  
+  /**
+   * Returns a input stream to the given file name in the given path 
+   * @param storage_path
+   * @param name
+   * @return saife::io::InputStreamInterface*
+   */  
   virtual saife::io::InputStreamInterface* GetInputStream(const std::string& storage_path, const std::string& name) {
-    cout << "GetInputStream " + storage_path + std::string("/") + name << endl;
-    returner *r_ptr = new returner ( storage_path + std::string("/") + name );
-    return ((saife::io::InputStreamInterface*)r_ptr);
+    cout << "GetInputStream " + storage_path + kPathSeparator + name << endl;
+    FileReturner *r_ptr = new FileReturner ( storage_path + kPathSeparator + name );
+    return ( static_cast<saife::io::InputStreamInterface*>(r_ptr));
   }
-  
+  /**
+   * Closes and frees the InputStreamInterface.
+   * @param io_stream_ptr
+   */
   virtual void ReleaseInputStream(saife::io::InputStreamInterface* io_stream_ptr) {
-     returner *r_ptr = (returner*)io_stream_ptr;
+     FileReturner *r_ptr = static_cast<FileReturner*>(io_stream_ptr);
      r_ptr->Close();
+     delete (r_ptr);
   }
-  
+  /**
+   * Returns a output stream to the given object.
+   * @param object_ptr 
+   * @return saife::io::OutputStreamInterface*
+   */  
   virtual saife::io::OutputStreamInterface* GetOutputStream(PersistedObjectInterface* object_ptr) {
     cout << "GetOutputStream " + object_ptr->GetName () << endl;
-    saver *s_ptr = new saver ( object_ptr->GetName() );
-    return (saife::io::OutputStreamInterface*)s_ptr;
+    FileSaver *s_ptr = new FileSaver ( object_ptr->GetName() );
+    return (static_cast<saife::io::OutputStreamInterface*>(s_ptr));
   }
-  
+/**
+ * Closes and frees an output stream
+ * @param io_stream_ptr
+ */  
   virtual void ReleaseOutputStream(saife::io::OutputStreamInterface* io_stream_ptr) {
-    saver *s_ptr = (saver*) io_stream_ptr;
+    FileSaver *s_ptr = static_cast<FileSaver*> (io_stream_ptr);
     s_ptr->Close();
+    delete (s_ptr);
   }
-
+  /**
+   * Removes and frees a persisted object 
+   * @param object_ptr
+   */
   virtual void DeleteObject(PersistedObjectInterface* object_ptr) {
     std::string fullPath = kPrefix + object_ptr->GetName();
     if ( remove (fullPath.c_str()) != 0 ) {
       std::cerr << " failed to remove " << fullPath << std::endl;
     }
+    delete (object_ptr);
   }
-
+  /**
+   * removes a file from the storage.
+   * @param storage_path
+   * @param name
+   */
   virtual void DeleteObject(const std::string& storage_path, const std::string& name) {
-    std::string fullPath = kPrefix + storage_path + "/" +  name;
+    std::string fullPath = kPrefix + storage_path + kPathSeparator +  name;
     if ( remove (fullPath.c_str()) != 0 ) {
       std::cerr << " failed to remove " << fullPath << std::endl;
     }
   }
-
+  /**
+   * returns an output stream to the object identified by its path and file name
+   * @param storage_path
+   * @param name
+   * @return OutputStreamInterface*
+   */
   virtual saife::io::OutputStreamInterface* GetOutputStream(const std::string& storage_path, const std::string& name) {
-    string full_path = storage_path + "/" + name;
+    string full_path = storage_path + kPathSeparator + name;
     cout << "GetOutputStream " + full_path  << endl;
-    saver *s_ptr = new saver ( full_path );
+    FileSaver *s_ptr = new FileSaver ( full_path );
     return (saife::io::OutputStreamInterface*)s_ptr;
   }
 
@@ -294,12 +439,11 @@ void runNS() {
   std::string share_path = "";
 
   /** create a networkShareManagerFactory */
-  saife::NetworkShareManagerFactory *nsmf_ptr = new saife::NetworkShareManagerFactory();
+  saife::NetworkShareManagerFactory nsmf;
 
   /** create a NetworkStorage handle */
-  saife::NetworkShareManagerInterface *nsm_ptr = nsmf_ptr->ConstructNetworkShareManager(saife_ptr);
+  saife::NetworkShareManagerInterface *nsm_ptr = nsmf.ConstructNetworkShareManager(saife_ptr);
   
-  //GetNetworkStorageManager();
   /** create a network share adapter */
   saife::NetworkShareInterface *nsi_ptr;
   try {
@@ -324,7 +468,7 @@ void runNS() {
         return;
     }
 
-    saife::io::OutputStreamInterface *os_ptr = nsi_ptr->GetEncryptStream ( new saver (iFile));
+    saife::io::OutputStreamInterface *os_ptr = nsi_ptr->GetEncryptStream ( new FileSaver (iFile));
 
     char block[1024];
     char *pBuf = block;
@@ -355,7 +499,7 @@ void runNS() {
       return;
     }
 
-    saife::io::InputStreamInterface *is_ptr = nsi_ptr->GetDecryptStream ( new returner ( iFile ));
+    saife::io::InputStreamInterface *is_ptr = nsi_ptr->GetDecryptStream ( new FileReturner ( iFile ));
     char block[1024];
     char *buf_ptr = block;
 
