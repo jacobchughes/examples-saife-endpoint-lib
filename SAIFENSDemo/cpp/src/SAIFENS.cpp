@@ -147,25 +147,7 @@ public:
     }
     return static_cast<int> (b);
   }
-  /**
-   * Reads up to length bytes from the stream starting at offset. 
-   * @param buffer_ptr
-   * @param offset
-   * @param length
-   * @return Bytes read or "-1" if the end of the stream has been reached.
-   */
-  virtual int Read(std::vector<uint8_t>* buffer_ptr, const std::size_t offset, const std::size_t length){ 
-    int adj_len = length;
 
-    if ( buffer_ptr->size() < (length + offset ) ) {
-      adj_len = buffer_ptr->size() - offset;
-    }
-
-    void *v_ptr = &buffer_ptr->at(offset);
-
-    return (Read ( v_ptr, adj_len ));
-
-  } 
   /** 
    * Reads up to length bytes from the stream. 
    * @param buffer_ptr
@@ -183,16 +165,7 @@ public:
     }
     return i;
   }
-  /**
-   * Reads and fills buffer_ptr from the stream. 
-   * @param buffer_ptr
-   * @return Bytes read or "-1" if the end of the stream has been reached.
-   */
-  virtual int Read(std::vector<uint8_t>* buffer_ptr) {
-    void *v_ptr=(void *)&buffer_ptr->at(0);
-    return Read ( v_ptr, buffer_ptr->size() ) ;
-  }
-  
+
   /**
    * Close the stream.
    */
@@ -351,7 +324,6 @@ virtual void ReleaseObjects(std::vector<PersistedObjectInterface*> objects) {
     if ( remove (fullPath.c_str()) != 0 ) {
       std::cerr << " failed to remove " << fullPath << std::endl;
     }
-    delete (object_ptr);
   }
   /**
    * removes a file from the storage.
