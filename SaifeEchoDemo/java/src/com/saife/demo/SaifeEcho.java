@@ -30,9 +30,11 @@ import com.saife.sessions.SecureSession.TransportType;
 import com.saife.sessions.SessionTimeoutException;
 
 /**
- * SaifeEcho is sample code to demonstrate the capabilities of SAIFE library. This class allows messages and sessions
- * between two SAIFE end points. One client runs in echo mode where it echos back all received messages and session
- * data. Another client sends messages and/or session data.
+ * SaifeEcho is sample code that demonstrates some of the capabilities of SAIFE library. This class allows messages and
+ * sessions between two SAIFE end points. One client acts as an echo server echoing back all received messages and
+ * session data. The other client sends messages and/or session data and then waits for the data to be echoed back from
+ * the server.
+ * 
  */
 public class SaifeEcho implements Runnable {
 
@@ -40,7 +42,7 @@ public class SaifeEcho implements Runnable {
   static Saife saife;
 
   /** The default path where all persisted SAIFE data is written. */
-  static final String defaultKeyStore = ".SaifeStore";
+  static final String defaultKeyStorePath = ".SaifeStore";
 
   /**
    * The default password to unlock the SAIFE private key. In practice a user is always prompted for this input.
@@ -68,9 +70,13 @@ public class SaifeEcho implements Runnable {
   private boolean sessionClient = false;
 
   /**
+   * The main method creates and initializes the SAIFE library, and then runs the SaifeEcho application with the
+   * specified arguments.
+   * 
    * @param args command line arguments [-c<contact>] [-msg] [-sess] [<data>]...
    */
   public static void main(final String[] args) {
+
     // Initialize SAIFE
     try {
       // final LogSinkManager logMgr = LogSinkFactory.constructFileSinkManager(defaultKeyStore + "/log");
@@ -82,28 +88,33 @@ public class SaifeEcho implements Runnable {
       // Set SAIFE logging level
       saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
 
-      // Initialize the SAIFE interface
+      // Initialize the SAIFE interface at the specified path.
+      final ManagementState state = saife.initialize(defaultKeyStorePath);
 
-      final ManagementState state = saife.initialize(defaultKeyStore);
+      // Now check the management state.
       if (state == ManagementState.UNKEYED) {
-        // The UNKEYED state is returned when SAIFE doesn't have a public/private key pair.
+
+        // The UNKEYED state is returned when SAIFE doesn't have a public/private key pair. This is normal when
+        // running initialize for the first time. Now keys are generated along with a certificate signing
+        // request.
 
         // Setup the DN attributes to be used in the X509 certificate.
         final DistinguishedName dn = new DistinguishedName("SaifeEcho");
 
-        // Setup an optional list of logical addresses associated with this SAIFE end point.
-        final List<Address> addressList = new ArrayList<Address>();
-
         // Generate the public/private key pair and certificate signing request.
-        final CertificationSigningRequest csr = saife.generateSmCsr(dn, defaultPassword, addressList);
+        final CertificationSigningRequest csr = saife.generateSmCsr(dn, defaultPassword);
 
-        // Add additional capabilities to the SAIFE capabilities list that convey the application specific capabilities.
+        // Add additional capabilities to the SAIFE capabilities list that convey application specific capabilities.
         final List<String> capabilities = csr.getCapabilities();
         capabilities.add("com::saife::demo::echo");
 
-        // Provide CSR and capabilities (JSON string) to user for provisioning.
-        // The application must restart from the UNKEYED state.
-        final PrintWriter f = new PrintWriter(defaultKeyStore + "/newkey.smcsr");
+        // Provide CSR and capabilities (JSON string) to user for provisioning. In this case, the certificate signing
+        // request and the capabilities are placed into a file found at .SaifeStore/newkey.smcsr. The data found in
+        // newkey.smcsr is used to provision the certificate using the SAIFE Management Dashboard. Once provisioned, 
+        // the application must be stopped and restarted. After restarting, the saife library should complete its 
+        // initialization and should be ready for use within the SaifeEcho example application.
+        // 
+        final PrintWriter f = new PrintWriter(defaultKeyStorePath + "/newkey.smcsr");
         f.println("CSR: " + csr.getEncodedCsr());
         final Gson gson = new Gson();
         f.println("CAPS: " + gson.toJson(capabilities));
@@ -112,7 +123,10 @@ public class SaifeEcho implements Runnable {
       } else if (state == ManagementState.ERROR) {
         System.out.println("failed to initialize SAIFE");
       } else {
+
         // SAIFE is initialized.
+
+        System.out.println("The SAIFE library has successfully initialized.");
         final SaifeEcho saifeEcho = new SaifeEcho(args);
         saifeEcho.run();
       }
@@ -148,8 +162,8 @@ public class SaifeEcho implements Runnable {
 
   @Override
   public void run() {
-    // Start a task to periodically update SAIFE data
-    saifeThreadPool.schedule(new Runnable() {
+    // Start a task to periodically update SAIFE data every 10 minutes.
+    saifeThreadPool.execute(new Runnable() {
 
       @Override
       public void run() {
@@ -162,7 +176,7 @@ public class SaifeEcho implements Runnable {
         }
         saifeThreadPool.schedule(this, 600, TimeUnit.SECONDS);
       }
-    }, 60, TimeUnit.SECONDS);
+    });
 
     // Unlock SAIFE library with user's credential
     try {
@@ -178,28 +192,37 @@ public class SaifeEcho implements Runnable {
     // Subscribe for SAIFE messages
     saife.subscribe();
 
-    // Request a contact list re-sync
-    try {
-      saife.synchronizeContacts();
-    } catch (final InvalidManagementStateException e) {
-      e.printStackTrace();
-    }
-
-    // Now start the processing threads
+    // Now start the processing threads. 
     if (sendTo == null) {
+      System.out.println("Running as an echo server");
+
+      // If another provisioned certificate (a contact) was NOT specified at start then run as an echo server for both
+      // messages and serssions.
       saifeThreadPool.submit(new MessageServer());
       saifeThreadPool.submit(new SessionServer());
+
     } else {
-      if (messageClient)
+      // If another provisioned certificate (a contact) was specified at start then run as an echo client. The
+      // application can be run as both a message and a session client.
+
+      if (messageClient) {
+        // If running as a message client was specified then run the message client.
+        System.out.println("Running as a message client");
         saifeThreadPool.submit(new MessageClient());
-      if (sessionClient)
+      }
+
+      if (sessionClient) {
+        // If running as a session client was specified then run the session client.
+        System.out.println("Running as a session client");
         saifeThreadPool.submit(new SessionClient());
+      }
+
     }
   }
 
   /**
-   * Sends messages to the specified SAIFE end point form the contact list and receives the echoed response. Does this
-   * forever.
+   * The message client sends messages to a specified echo server. The echo server is specified at startup on the
+   * command line with the -c option. 
    */
   class MessageClient implements Runnable {
 
@@ -208,7 +231,7 @@ public class SaifeEcho implements Runnable {
       try {
         while (true) {
           try {
-            final Contact contact = saife.getContactByAlias(sendTo);
+            final Contact contact = saife.getContactByName(sendTo);
             int rcvMsgCnt = 0;
             for (final String sendMsg : messageList) {
               saife.sendMessage(sendMsg.getBytes(), echoMsgType, contact, 30, 2000, false);
@@ -217,7 +240,7 @@ public class SaifeEcho implements Runnable {
               int maxInterval = 0;
               do {
                 try {
-                  Thread.sleep(50);
+                  Thread.sleep(100);
                 } catch (final InterruptedException e) {
                 }
                 rcvMsgs = saife.getMessages(echoMsgType);
@@ -231,7 +254,7 @@ public class SaifeEcho implements Runnable {
             System.out.println("Ok .. All done.  Sent " + messageList.size() + " messages and received " + rcvMsgCnt
                 + " messages");
           } catch (final NoSuchContactException e) {
-            System.out.println("Oops .. '" + sendTo + "' no such contact.  Go to the Dashboard to manage contacts.");
+            System.out.println("Waiting for echo server '" + sendTo + "' to get into our contact list.");
           } catch (final IOException e) {
             System.out.println("Oops ... seems like we couldn't send message.");
           } catch (final LicenseExceededException e) {
@@ -250,8 +273,8 @@ public class SaifeEcho implements Runnable {
   }
 
   /**
-   * Receives messages from a SAIFE end point in the contact list and echos back the messages to the sender. Does this
-   * forever.
+   * If an echo server is not specified on the command line using the -c option, the SaifeEcho example application runs
+   * as a echo server. The MessageServer listens for messages and echos the messages back to the sender.   
    */
   class MessageServer implements Runnable {
 
@@ -262,14 +285,15 @@ public class SaifeEcho implements Runnable {
           // Get and echo messages
           final List<MessageData> msgs = saife.getMessages(echoMsgType);
           for (final MessageData msg : msgs) {
-            System.out.println("M:" + msg.sender.getAlias() + " '" + new String(msg.message) + "'");
+            System.out.println("M:" + msg.sender.getName() + " '" + new String(msg.message) + "'");
             saife.sendMessage(msg.message, msg.messageType, msg.sender, 30, 2000, false);
           }
-          Thread.sleep(50);
+          // Check for messages every second.
+          Thread.sleep(100);
         } catch (final InterruptedException e) {
           break;
         } catch (final NoSuchContactException e) {
-          System.out.println("Oops .. '" + sendTo + "' no such contact.  Go to the Dashboard to manage contacts.");
+          System.out.println("Oops .. message client is not in the contact list.  Go to the Dashboard to manage contacts.");
         } catch (final IOException e) {
           e.printStackTrace();
         } catch (final InvalidManagementStateException e) {
@@ -282,8 +306,9 @@ public class SaifeEcho implements Runnable {
   }
 
   /**
-   * Establishes a session with the specified SAIFE end point from the contact list, send a set of data and receive the
-   * echoed response, disconnect session. Does this forever.
+   * If an echo server is specified on the command line using the -c option, the SaifeEcho example application can be
+   * started as a session client. The SessionClient establishes a session with the echo server, sends session data and
+   * receives the echoed data. Then that process repeats itself forever.
    */
   class SessionClient implements Runnable {
 
@@ -301,15 +326,27 @@ public class SaifeEcho implements Runnable {
       try {
         while (true) {
           try {
-            final Contact contact = saife.getContactByAlias(sendTo);
+            // Get the contact from the contact list.
+            final Contact contact = saife.getContactByName(sendTo);
+
+            System.out.println("Establishing a session with echo server " + contact.getName());
             final SecureSession session = saife.constructSecureSession();
-            session.connect(contact, TransportType.LOSSY, 10);
+
+            // Try to connect for 10 seconds.
+            session.connect(contact, TransportType.LOSSLESS, 10);
+            System.out.println("Established a session with echo server " + contact.getName());
+
             int rcvMsgCnt = 0;
             for (final String sendMsg : messageList) {
+
+              // Write session data to the echo server.
               session.write(sendMsg.getBytes());
               System.out.println("Data >: '" + sendMsg + "'");
+
               try {
-                final byte[] data = session.read(1024, 5);
+
+                // Try to read session data back from the echo server, try for 5 seconds.
+                final byte[] data = session.read(1024, 5000);
                 System.out.println("Data <: '" + new String(data) + "'");
                 ++rcvMsgCnt;
               } catch (final SessionTimeoutException e) {
@@ -326,7 +363,7 @@ public class SaifeEcho implements Runnable {
           } catch (final PresenceRequiredException e) {
             System.out.println("Oops ... Looks like presence isn't ready.");
           } catch (final NoSuchContactException e) {
-            System.out.println("Oops ... Looks like we aren't allowed to securely communicate with this contact yet.");
+            System.out.println("Oops ... Looks like echo server " + sendTo + " is not part of our contact list.");
           } catch (final IOException e) {
             System.out.println("Oops ... seems like we couldn't connect.");
           }
@@ -346,8 +383,9 @@ public class SaifeEcho implements Runnable {
   }
 
   /**
-   * Read data from the session and echo it back. Do this until no data is received for 30 seconds or the session is
-   * closed by the peer.
+   * When an echo server receives a session request, it spins off a SessionHandler to handle the session. The
+   * SessionHandler reads data from the client and echos it back. This process continues until no data is received for
+   * 30 seconds or the session is closed by the peer.
    */
   class SessionHandler implements Runnable {
 
@@ -372,21 +410,23 @@ public class SaifeEcho implements Runnable {
         try {
           while (true) {
             try {
-              // Read data from client
-              final byte[] data = session.read(1024, 30);
-              System.out.println("D:" + peer.getAlias() + " '" + new String(data) + "'");
+
+              // Read data from client waiting a maximum of 30 seconds
+              final byte[] data = session.read(1024, 30000);
+              System.out.println("D:" + peer.getName() + " '" + new String(data) + "'");
+
               // Echo it right back
               session.write(data);
 
             } catch (final SessionTimeoutException e) {
-              System.out.println("Got nothing from " + peer.getAlias() + " for 30 seconds. Close up shop.");
+              System.out.println("Got nothing from " + peer.getName() + " for 30 seconds. Close up shop.");
               session.close();
               saife.releaseSecureSession(session);
               break;
             }
           }
         } catch (final IOException e) {
-          System.out.println("Well ... looks like we're done with " + peer.getAlias()
+          System.out.println("Well ... looks like we're done with " + peer.getName()
               + ".  Let's clean up session. sess:" + session);
           session.close();
           saife.releaseSecureSession(session);
@@ -398,8 +438,9 @@ public class SaifeEcho implements Runnable {
   }
 
   /**
-   * Accepts incoming session connections from a SAIFE end point in the contact list, dispatch for processing in a new
-   * thread.
+   * If an echo server is not specified on the command line using the -c option, the SaifeEcho example application runs
+   * as a echo server. The SessionServer listens for incoming session from echo clients. Once a session is received, the
+   * SessionServer dispatches the session to a SessionHandler for the echoing of data.
    */
   class SessionServer implements Runnable {
 
@@ -418,9 +459,13 @@ public class SaifeEcho implements Runnable {
         try {
           // Wait for SAIFE clients to connect securely
           final SecureSession session = saife.accept();
+
           final Contact peer = session.getPeer();
-          System.out.println("Hey ... " + peer.getAlias() + " just connected. sess: " + session);
+          System.out.println("Just received a incoming session from echo client " + peer.getName() + ". sess: " + session);
+
+          // Now give the session over to the SessionHandler to be run in a separate thread.
           saifeThreadPool.submit(new SessionHandler(session));
+
         } catch (final InvalidManagementStateException e) {
           e.printStackTrace();
         } catch (final PresenceRequiredException e) {
