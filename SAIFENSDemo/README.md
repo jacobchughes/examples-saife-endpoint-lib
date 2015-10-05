@@ -18,36 +18,35 @@ mkdir bin
 mkdir black_data
 </code>
 
-# Compile
+# Compile and set up library path
 
 # For Linux:
 <code>
 ~$ SAIFE_HOME=\<path to cpp lib\>; g++ -std=c++11 -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o bin/SAIFENS src/SAIFENS.cpp -l saife -l CecCryptoEngine -l roxml
+~$ export LD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife:${LD_LIBRARY_PATH}
 </code>
 
 # For Darwin:
 <code>
 ~$ SAIFE_HOME=\<path to cpp lib\>; clang++ -std=c++11 -stdlib=libc++ -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o bin/SAIFENS src/SAIFENS.cpp -l saife -l CecCryptoEngine -l roxml
+~$ export DYLD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife:${DYLD_LIBRARY_PATH}
 </code>
 
-### Run
-<code>
-~$ export LD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife
-</code>
+### To Run
 
-# Create the keystore.
+# 1. Create the keystore.
 <code>
 ./bin/SAIFENS  
 </code>
 
-# Provision ./.SaifeStore/newkey.smcsr at the SAIFE dashboard.
+# 2. Provision ./.SaifeStore/newkey.smcsr at the SAIFE dashboard.
 
-# Encrypt and store a file in the black_data directory.
+# 3. Encrypt and store a file in the black_data directory.
 <code>
 ./bin/SAIFENS -i <a_file_to_store> -s
 </code>
 
-# Retrieve an encrypted file.
+# 4. Retrieve an encrypted file.
 <code>
 ./bin/SAIFENS -i <a_file_to_retrieve> -o <the_new_file_name>
 </code>
