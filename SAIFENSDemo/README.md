@@ -89,7 +89,7 @@ mkdir black_data
 [ AWS libraries are available from Amazon ]
 
 # Java
-All commands are relative to the java directory.
+All commands are relative to the java or java_swing directory.
 
 ### Build
 <code>
