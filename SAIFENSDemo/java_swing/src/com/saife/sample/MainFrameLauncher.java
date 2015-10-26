@@ -26,6 +26,7 @@ public class MainFrameLauncher {
   /** The ml. A static reference */
   static MainFrameLauncher ml = null;
 
+  /** The handler manages Amazon S3 */
   static S3Manager handler = null;
 
   /**

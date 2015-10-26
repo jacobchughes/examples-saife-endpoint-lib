@@ -1,19 +1,20 @@
-/*
- * Copyright (c) 2015 SAIFE, Inc.  All Rights Reserved.
- *
- * This software is proprietary to, and a valuable trade secret of, SAIFE, Inc.
- *
- * The software and documentation may not be copied, reproduced, translated,
- * or reduced to any electronic medium or machine-readable form without a
- * prior written agreement from SAIFE, Inc.
- *
- * UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, THE SOFTWARE
- * AND DOCUMENTATION ARE DISTRIBUTED ON AN "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING BUT NOT
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE AND NONINFRINGEMENT.  REFER TO THE WRITTEN AGREEMENT FOR SPECIFIC
- * LANGUAGE GOVERNING PERMISSIONS AND LIMITATIONS.
- */
+/* Copyright (c) 2015 SAIFE Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, THE SOFTWARE
+* AND DOCUMENTATION ARE DISTRIBUTED ON AN "AS IS" BASIS, WITHOUT WARRANTIES
+* OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING BUT NOT
+* LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+* PURPOSE AND NONINFRINGEMENT.  REFER TO THE WRITTEN AGREEMENT FOR SPECIFIC
+* LANGUAGE GOVERNING PERMISSIONS AND LIMITATIONS.
+*
+*
+*/
 package com.saife.sample;
 
 import java.io.ByteArrayOutputStream;
@@ -35,6 +36,8 @@ import com.saife.NotAllowedException;
 import com.saife.Saife;
 import com.saife.SaifeFactory;
 import com.saife.contacts.Contact;
+import com.saife.contacts.ContactListUpdateCallback;
+import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.internal.InvalidCredentialException;
 import com.saife.dar.NetworkShare;
@@ -53,104 +56,94 @@ import com.saife.management.ManagementService.ManagementState;
 import com.saife.management.UnlockRequiredException;
 
 /**
- * The SaifeManager.
+ * The SaifeManager manages the SAIFE library and all the local classes needed to support a SAIFE NetworkShare,
+ * including the PersistedObject and PersistentStore classes. This also supports any other SAIFE library calls needed by
+ * the application.
  */
 public class SaifeManager {
 
   /**
-   * The saifeUpdater. The SAIFE library needs to updated successfully at least once. The thread can go away after that.
+   * The S3OutputStream extends the output stream to handle S3 specific implementations.
    */
-  public class saifeUpdater implements Runnable {
+  public class S3OutputStream extends OutputStream {
 
-    @Override
-    public void run() {
-      while (!saifeUpdated) {
-        try {
-          saife.updateSaifeData();
-          saifeUpdated = true;
-        } catch (final InvalidManagementStateException e) {
-          System.out.println("saifeUpdater: InvalidManagementStateException.");
-        } catch (final IOException e) {
-          System.out.println("saifeUpdater: IOException.");
-        }
-        try {
-          Thread.sleep(10000);
-        } catch (final InterruptedException e) {
-          // do nothing
-        }
-      }
-    }
-  }
+    /** The objectData stream to store data in until it is written out. */
+    ByteArrayOutputStream objectData = null;
 
-  /**
-   * The AnObject, This class derives PersistedObjects to track the local objects and easily relate them to the
-   * PersistedObjects on the other side of the JNI interface.
-   */
-  public class AnObject implements PersistedObject {
-
-    /** The objName. The persisted object needs a name to return in function getName */
-    String objName;
-
-    /** The objectData. */
-    ByteArrayOutputStream objectData;
+    /** The objectName. */
+    String objectName;
 
     /**
-     * The constructor.
+     * The constructor initializes a byte output stream
      *
-     * @param aName is set here, since it is convenient
+     * @param name the S3 object tag
      */
-    public AnObject(final String aName) {
-      objName = aName;
+    public S3OutputStream(final String name) {
+      objectName = name;
       objectData = new ByteArrayOutputStream();
+
     }
 
     @Override
-    public String getName() {
-      return objName;
+    public void write(final int arg0) throws IOException {
+      objectData.write(arg0);
     }
 
-    /**
-     * @return true if data has been stored in this object
-     */
-    public Boolean isUploadable() {
-      return (objectData.size() > 0);
+    @Override
+    public void flush() throws IOException {
+      objectData.flush();
     }
 
-    /**
-     * @return the byte array where data is stored
-     */
-    public ByteArrayOutputStream getStream() {
-      return objectData;
+    @Override
+    public void write(final byte[] b) throws IOException {
+      objectData.write(b);
+    }
+
+    @Override
+    public void write(final byte[] b, final int off, final int len) throws IOException {
+      objectData.write(b, off, len);
+    }
+
+    @Override
+    public void close() throws IOException {
+      try {
+        flush();
+      } catch (final Exception e) {
+        // do nothing.
+      }
+      if (objectData.size() > 0) {
+        writeOut();
+      }
+      objectData.close();
     }
 
     /**
      * Writes the file out to S3
      */
     public void writeOut() {
-      System.out.println("writeOut: file " + getName() + ".");
+      System.out.println("writeOut: file " + objectName + ".");
 
-      final File file = getFile();
+      final File file = toFile();
       if (null != file) {
-        s3m.getS3Mgr().putObject(new PutObjectRequest(s3m.getBucket(), getName(), file));
+        s3m.getS3Mgr().putObject(new PutObjectRequest(s3m.getBucket(), objectName, file));
         file.delete();
       } else {
         System.out.println("writeOut: Uploadable persistent object without a file.");
       }
       objectData.reset();
-
     }
 
     /**
-     * S3 only uploads entire files, so the easiest thing is to create a temp file and let Amazon handle it. (The temp
-     * file is encrypted and secure, just like the data stored in S3.)
+     * S3 uploads entire files, so the easiest thing is to create a temp file and let Amazon handle it. The temp file is
+     * encrypted and secure, just like the data stored in S3. Also only temporary.
      * 
      * @return File. Deleted after use.
      */
     @SuppressWarnings("resource")
-    public File getFile() {
+    public File toFile() {
       File file;
       try {
-        file = File.createTempFile(getName(), ".bin");
+        file = File.createTempFile(objectName, ".bin");
       } catch (final IOException e) {
         System.out.println("getFile: could not create temp file.");
         e.printStackTrace();
@@ -181,6 +174,102 @@ public class SaifeManager {
       }
       return file;
     }
+  }
+
+  /**
+   * @param name a storage tag for S3
+   * @return a new S3Stream
+   */
+  public S3OutputStream getNewS3Stream(final String name) {
+    return new S3OutputStream(name);
+  }
+
+  /**
+   * The saifeUpdater. The SAIFE library needs to updated successfully at least once. The thread can go away after that.
+   */
+  public class SaifeUpdater implements Runnable {
+
+    /**
+     * 
+     */
+    public void registerForContactupdates() {
+      class Listener implements ContactListUpdateListener, ContactListUpdateCallback {
+
+        @Override
+        public void contactListUpdated() {
+          // handle updates here, if needed.
+        }
+
+      }
+
+      final Listener l = new Listener();
+      saife.addContactListUpdateListener(l);
+    }
+
+    @Override
+    public void run() {
+      while (!saifeUpdated) {
+        try {
+          saife.updateSaifeData();
+          saifeUpdated = true;
+        } catch (final InvalidManagementStateException e) {
+          System.out.println("saifeUpdater: InvalidManagementStateException.");
+        } catch (final IOException e) {
+          System.out.println("saifeUpdater: IOException.");
+        }
+        try {
+          Thread.sleep(10000);
+        } catch (final InterruptedException e) {
+          // do nothing
+        }
+      }
+      registerForContactupdates();
+    }
+  }
+
+  /**
+   * The AnObject, This class derives PersistedObjects to track the local objects
+   */
+  public class AnObject implements PersistedObject {
+
+    /**
+     * The objName. The persisted object name. In this example it maps to the S3 object name.
+     */
+    String objName;
+
+    /** The objectData. */
+    public S3OutputStream s3Data = null;
+
+    /**
+     * @return the stream for an object to be written to
+     */
+    public ByteArrayOutputStream getStream() {
+      if (null == s3Data) {
+        s3Data = new S3OutputStream(objName);
+      }
+      return s3Data.objectData;
+    }
+
+    /**
+     * The constructor.
+     *
+     * @param aName is set here, since it is convenient
+     */
+    public AnObject(final String aName) {
+      objName = aName;
+    }
+
+    @Override
+    public String getName() {
+      return objName;
+    }
+
+    /**
+     * @return true if data has been stored in this object
+     */
+    public Boolean isUploadable() {
+      return (s3Data.objectData.size() > 0);
+    }
 
   }
 
@@ -190,49 +279,10 @@ public class SaifeManager {
    */
   public class Persister implements PersistentStore {
 
-    /** The objects. */
-    List<AnObject> objects;
-
     /**
      * The constructor.
-     * 
-     * @param s3m the S3 manager
      */
-    public Persister(final S3Manager s3m) {
-      // objects can be empty, but should not be null.
-      objects = new Vector<AnObject>();
-    }
-
-    /**
-     * write whatever working object needs it
-     */
-    public void sync() {
-      for (final AnObject workingObj : objects) {
-        if (workingObj.isUploadable()) {
-          workingObj.writeOut();
-        }
-      }
-    }
-
-    /**
-     * Locate an S3 object by its key and return an associated object.
-     * 
-     * @param a_key The S3 storage name
-     * @return AnObject a local view of an object.
-     */
-    private AnObject findObject(final String a_key) {
-      for (final String name : s3m.listObjects()) {
-        if (name.equals(a_key)) {
-          System.out.println("findObject Found " + name);
-
-          final AnObject newObj = new AnObject(a_key);
-          objects.add(newObj);
-
-          return newObj;
-        }
-      }
-
-      return null;
+    public Persister() {
     }
 
     @Override
@@ -246,7 +296,6 @@ public class SaifeManager {
           System.out.println("getObjects Found " + name);
 
           final AnObject newObj = new AnObject(name);
-          objects.add(newObj);
 
           returnObjects.add(newObj);
         }
@@ -257,24 +306,14 @@ public class SaifeManager {
     @Override
     public void releaseObjects(final List<PersistedObject> releaseObjects) {
       for (final PersistedObject po : releaseObjects) {
-
-        // see if we can cast this class
         try {
           final AnObject test = (AnObject) po;
-
-          if (test.isUploadable()) {
-            // data has been written to this object that is not stored. Write it out to S3.
-            final File file = test.getFile();
-            if (null != file) {
-              System.out.println("releaseObjects: Writting " + test.getName() + " upon its release by SAIFE.");
-              s3m.getS3Mgr().putObject(new PutObjectRequest(s3m.getBucket(), test.getName(), file));
-              file.delete();
-            }
-          }
-          objects.remove(test);
-          break;
-        } catch (final Exception e) {
-          System.out.println("releaseObjects: Invalid cast of object released by SAIFE: " + po.getName());
+          test.s3Data.close();
+        } catch (final IOException e) {
+          System.out.println("releaseObjects: failed to close " + po.getName());
+        } catch (final Exception e1) {
+          // should not get here.
+          System.out.println("releaseObjects: Invalid err handling: " + po.getName());
         }
       }
     }
@@ -302,59 +341,43 @@ public class SaifeManager {
 
     @Override
     public void releaseInputStream(final InputStream is) {
-      try {
-        is.close();
-      } catch (final IOException e) {
-        System.out.println("NOTE: releaseInputStream ignored an IOException");
-      }
+
     }
 
     @Override
     public OutputStream getOutputStream(final PersistedObject object) throws IOException {
 
-      // libsaife callbacks will return PersistedObjects, not the expanded AnObject class we defined
-      for (final AnObject tmp : this.objects) {
-        if (tmp.getName().equals(object.getName())) {
+      // return the local object stream
+      if (object instanceof AnObject) {
 
-          System.out.println("Found local object " + tmp.getName() + " returning local stream.");
-          return tmp.getStream();
+        System.out.println("Found local object " + object.getName() + " returning local stream.");
+        final AnObject theObj = (AnObject) object;
+        return theObj.getStream();
 
-        }
       }
-      return null;
+
+      throw new IOException("The object can't be found");
+
     }
 
     @Override
     public OutputStream getOutputStream(final String storagePath, final String name) throws IOException {
-      final AnObject obj = findObject(name);
-      if (null != obj) {
-        final ByteArrayOutputStream stream = obj.getStream();
-        return stream;
-      }
-
-      System.out.println("creating new object for output stream at path " + storagePath + ".");
-      final AnObject newObj = new AnObject(name);
-      objects.add(newObj);
-      return newObj.getStream();
+      return new S3OutputStream(name);
     }
 
     @Override
     public void releaseOutputStream(final OutputStream os) {
-      try {
-        os.close();
-      } catch (final IOException e) {
-        e.printStackTrace();
-      }
+
     }
 
     @Override
     public void deleteObject(final PersistedObject object) throws IOException {
-
+      s3m.deleteObject(object.getName());
     }
 
     @Override
     public void deleteObject(final String storagePath, final String name) throws IOException {
-
+      s3m.deleteObject(name);
     }
   }
 
@@ -377,23 +400,22 @@ public class SaifeManager {
    * @param name of the contact
    * @return true if the user was added
    */
-  public boolean deleteFromShare(final String name) {
+  public boolean excludeMemberFromShare(final String name) {
     try {
       final Contact c = saife.getContactByName(name);
       ns.removeMember(c);
-      blackDataHandler.sync();
     } catch (final NoSuchContactException e) {
       return false;
     } catch (final InvalidManagementStateException e) {
       return false;
     } catch (final NotAllowedException e) {
-      // addMemeber not allowed
+      // not allowed
       return false;
     } catch (final UnlockRequiredException e) {
-      // addMember while locked
+      // while locked
       return false;
     } catch (final IOException e) {
-      // add member IOException
+      // member IOException
       return false;
     }
     return true;
@@ -407,7 +429,7 @@ public class SaifeManager {
     try {
       final Contact c = saife.getContactByName(name);
       ns.addMember(c);
-      blackDataHandler.sync();
+
     } catch (final NoSuchContactException e) {
       return false;
     } catch (final InvalidManagementStateException e) {
@@ -451,7 +473,7 @@ public class SaifeManager {
    * @return a new persister
    */
   public Persister newPersister() {
-    return new Persister(s3m);
+    return new Persister();
   }
 
   /** The blackDataHandler. */
@@ -551,7 +573,7 @@ public class SaifeManager {
   public void runNS() {
 
     // SAIFE should be initialized by now. Make sure update completes before continuing.
-    final Thread t = new Thread(new saifeUpdater());
+    final Thread t = new Thread(new SaifeUpdater());
     t.start();
 
     while (!saifeUpdated) {
@@ -612,7 +634,6 @@ public class SaifeManager {
       }
     }
 
-    blackDataHandler.sync();
     /*
      * SAIFE has set up the network share, now it can be used to encrypt and decrypt content
      */

@@ -1,19 +1,20 @@
-/*
- * Copyright (c) 2015 SAIFE, Inc.  All Rights Reserved.
- *
- * This software is proprietary to, and a valuable trade secret of, SAIFE, Inc.
- *
- * The software and documentation may not be copied, reproduced, translated,
- * or reduced to any electronic medium or machine-readable form without a
- * prior written agreement from SAIFE, Inc.
- *
- * UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, THE SOFTWARE
- * AND DOCUMENTATION ARE DISTRIBUTED ON AN "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING BUT NOT
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE AND NONINFRINGEMENT.  REFER TO THE WRITTEN AGREEMENT FOR SPECIFIC
- * LANGUAGE GOVERNING PERMISSIONS AND LIMITATIONS.
- */
+/* Copyright (c) 2015 SAIFE Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, THE SOFTWARE
+* AND DOCUMENTATION ARE DISTRIBUTED ON AN "AS IS" BASIS, WITHOUT WARRANTIES
+* OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING BUT NOT
+* LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+* PURPOSE AND NONINFRINGEMENT.  REFER TO THE WRITTEN AGREEMENT FOR SPECIFIC
+* LANGUAGE GOVERNING PERMISSIONS AND LIMITATIONS.
+*
+*
+*/
 package com.saife.sample;
 
 import java.awt.event.ActionEvent;
@@ -30,6 +31,7 @@ import javax.swing.JList;
 /**
  * The MainFrame. The introductory window as seen by the user
  */
+@SuppressWarnings("javadoc")
 public class MainFrame {
 
   /**
@@ -62,6 +64,7 @@ public class MainFrame {
   /** The networkShares. A list of network shares. */
   List<String> networkShares = new Vector<String>();
 
+  /** The S3Manager */
   S3Manager S3;
 
   /**
@@ -76,13 +79,6 @@ public class MainFrame {
    */
   public String getSelection() {
     return nsName;
-  }
-
-  /**
-   * launches the next frame
-   */
-  public void startNSWorkingFrame() {
-
   }
 
   /**
@@ -104,7 +100,8 @@ public class MainFrame {
 
     nsName = (String) NetworkShareList.getSelectedValue();
     S3.setBucket(nsName);
-    final NSWorkingFrame nsw = new NSWorkingFrame(nsName, this, S3);
+    @SuppressWarnings("unused")
+    final NSWorkingFrame nsw = new NSWorkingFrame(nsName, S3);
 
   }
 
@@ -122,19 +119,24 @@ public class MainFrame {
   void handleDelete() {
     final String ns = (String) NetworkShareList.getSelectedValue();
     listModel.removeElement(ns);
-    // TODO : actually remove the NS bucket
   }
 
   /**
    * Create the MainFrame frame, It is the introductory frame the user sees.
+   * 
+   * @param ml The Main Frame Launcher
+   * @param s3m The S3Manager.
    */
-  public MainFrame(final MainFrameLauncher ml, final S3Manager parent) {
-    this.S3 = parent;
+  public MainFrame(final MainFrameLauncher ml, final S3Manager s3m) {
+    this.S3 = s3m;
     this.ml = ml;
     System.out.println("initialized MainFrame");
     initialize();
   }
 
+  /**
+   * Fills in the object (bucket) list.
+   */
   void populateBuckets() {
     final List<String> bucks = S3.listBuckets();
     listModel.clear();
@@ -217,7 +219,7 @@ public class MainFrame {
   /**
    * create a new bucket
    * 
-   * @param name
+   * @param name is the name of a new bucket. (a UUID will be appended by the S3Manager)
    */
   public void addNewBucket(final String name) {
     S3.addNewBucket(name);

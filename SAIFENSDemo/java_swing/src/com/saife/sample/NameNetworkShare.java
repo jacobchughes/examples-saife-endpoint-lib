@@ -26,34 +26,56 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+/**
+ * The NameNetworkShare.
+ */
+@SuppressWarnings("serial")
+/**
+ * The NameNetworkShare class provides a test widget to enter a NetworkShare name. It then tells the system to create
+ * the share.
+ */
 public class NameNetworkShare extends JFrame {
 
+  /** The contentPane. */
   private final JPanel contentPane;
 
+  /** The textField. */
   private final JTextField textField;
 
+  /** The parent. */
   MainFrame parent;
 
   // widgets
+  /** The lblEnterTheNetwork. */
   JLabel lblEnterTheNetwork;
 
+  /** The btnAccept. */
   JButton btnAccept;
 
+  /** The btnCancel. */
   JButton btnCancel;
 
   // handlers
+  /**
+   * 
+   */
   void handleAccept() {
     parent.addNewBucket(textField.getText());
     this.dispose();
 
   }
 
+  /**
+   * 
+   */
   void handleCancel() {
     this.dispose();
   }
 
   /**
    * Create the frame.
+   * 
+   * @param mf The main frame
    */
   public NameNetworkShare(final MainFrame mf) {
 

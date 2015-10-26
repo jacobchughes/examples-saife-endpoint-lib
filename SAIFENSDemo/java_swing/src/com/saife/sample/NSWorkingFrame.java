@@ -1,19 +1,20 @@
-/*
- * Copyright (c) 2015 SAIFE, Inc.  All Rights Reserved.
- *
- * This software is proprietary to, and a valuable trade secret of, SAIFE, Inc.
- *
- * The software and documentation may not be copied, reproduced, translated,
- * or reduced to any electronic medium or machine-readable form without a
- * prior written agreement from SAIFE, Inc.
- *
- * UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, THE SOFTWARE
- * AND DOCUMENTATION ARE DISTRIBUTED ON AN "AS IS" BASIS, WITHOUT WARRANTIES
- * OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING BUT NOT
- * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE AND NONINFRINGEMENT.  REFER TO THE WRITTEN AGREEMENT FOR SPECIFIC
- * LANGUAGE GOVERNING PERMISSIONS AND LIMITATIONS.
- */
+/* Copyright (c) 2015 SAIFE Inc.
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, THE SOFTWARE
+* AND DOCUMENTATION ARE DISTRIBUTED ON AN "AS IS" BASIS, WITHOUT WARRANTIES
+* OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED INCLUDING BUT NOT
+* LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+* PURPOSE AND NONINFRINGEMENT.  REFER TO THE WRITTEN AGREEMENT FOR SPECIFIC
+* LANGUAGE GOVERNING PERMISSIONS AND LIMITATIONS.
+*
+*
+*/
 package com.saife.sample;
 
 import java.awt.event.ActionEvent;
@@ -28,13 +29,17 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 
+/**
+ * The NSWorkingFrame manages the content of a NetworkShare. It provides widgets to upload and download files.
+ */
+@SuppressWarnings("javadoc")
 public class NSWorkingFrame {
 
+  /** The netShareWorkingFrame. */
   private JFrame netShareWorkingFrame;
 
+  /** The nsName. */
   public String nsName;
-
-  MainFrame parent;
 
   /**
    * The widgets used by NSWorkingFrame: NetworkShareLabel display the name of the NetworkShare btnSettings Access
@@ -69,7 +74,7 @@ public class NSWorkingFrame {
    */
   void handleSettings() {
     @SuppressWarnings("unused")
-    final NSSettingsFrame nssf = new NSSettingsFrame(this, S3);
+    final NSSettingsFrame nssf = new NSSettingsFrame(S3);
   }
 
   /**
@@ -92,13 +97,16 @@ public class NSWorkingFrame {
 
     final File chosenFile = chooser.getSelectedFile();
     S3.upload(chosenFile);
-    lm.addElement(chosenFile.getName());
+    lm.clear();
+    populateFiles();
   }
 
   /**
    * open a dialogue to download a file from the NetworkShare
    */
   void handleDownload() {
+
+    // non-example code would open a folder browser here.
     final String sel = (String) networkShareList.getSelectedValue();
     S3.download(sel, null);
   }
@@ -107,8 +115,11 @@ public class NSWorkingFrame {
    * Delete a file from the NetworkShare and the displayed list
    */
   void handleDelete() {
-    final String sel = (String) networkShareList.getSelectedValue();
-    lm.removeElement(sel);
+    if (-1 != networkShareList.getSelectedIndex()) {
+      final String sel = (String) networkShareList.getSelectedValue();
+      lm.removeElement(sel);
+      S3.deleteObject(sel);
+    }
   }
 
   /**
@@ -116,12 +127,13 @@ public class NSWorkingFrame {
    */
   void handleBack() {
     System.out.println("go back");
-    if (null != parent) {
-      netShareWorkingFrame.dispose();
-      return;
-    }
+
+    netShareWorkingFrame.dispose();
+    return;
+
   }
 
+  /** The Amazon S3 manager */
   S3Manager S3;
 
   /**
@@ -140,14 +152,13 @@ public class NSWorkingFrame {
    * The constructor.
    *
    * @param networkShare the name of a NetworkShare
-   * @param mf The MainFrame window
+   * @param s32 The S3 Manager
    */
-  public NSWorkingFrame(final String networkShare, final MainFrame mf, final S3Manager s32) {
+  public NSWorkingFrame(final String networkShare, final S3Manager s32) {
     this.S3 = s32;
-    parent = mf;
     nsName = networkShare;
 
-    // initialize the fram upon construction. Keeps things simple.
+    // initialize the frame upon construction. Keeps things simple.
     initialize();
   }
 

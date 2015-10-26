@@ -60,7 +60,7 @@ public class S3Sample {
    * The constructor of this example class.
    */
   public S3Sample() {
-    s3m = new S3Manager(this);
+    s3m = new S3Manager();
     s3m.initS3();
 
     // start the GUI after all the handlers are initialized.
@@ -99,6 +99,7 @@ public class S3Sample {
    * @param args main ignores command line input
    */
   public static void main(final String[] args) {
+    @SuppressWarnings("unused")
     final S3Sample s = new S3Sample();
   }
 

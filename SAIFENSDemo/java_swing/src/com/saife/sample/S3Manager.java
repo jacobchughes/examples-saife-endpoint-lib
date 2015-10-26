@@ -39,20 +39,25 @@ import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.saife.sample.SaifeManager.AnObject;
 
 /**
- * The S3Manager.
+ * The S3Manager manages the AmazonS3 library for this application. functions include Bucket creation, bucket deletion,
+ * object up/download
  */
 public class S3Manager {
 
   /**
+   * Downloads an object from S3, decrypts it using the SAIFE library, and saves it. Note: Some S3 operations have
+   * financial penalties.
+   * 
    * @param fname the file to store
    * @param outName the data stream to read from
    * @return true if download works
    */
+  @SuppressWarnings({ "null", "unused" })
   public boolean download(final String fname, final String outName) {
-    final File f = new File(fname);
+
+    // in real code oName should be used.
     String oName = outName;
 
     if (null == outName) {
@@ -60,17 +65,14 @@ public class S3Manager {
       oName = fname;
     }
 
-    InputStream is;
+    InputStream is = null;
+    boolean result = true;
+    FileOutputStream os = null;
+    File f = null;
     try {
+      f = new File(fname);
       is = saifeManager.getNS().getDecryptStream(saifeManager.getPersister().getInputStream(bucketName, fname));
-
-    } catch (final IOException e1) {
-      System.out.println("Failed to locate file: " + fname + " in the current bucket");
-      return false;
-    }
-
-    try {
-      final FileOutputStream os = new FileOutputStream(oName);
+      os = new FileOutputStream(f);
 
       final byte[] block = new byte[1024];
 
@@ -82,41 +84,41 @@ public class S3Manager {
         }
         os.write(block, 0, size);
       }
-      os.close();
-      return true;
-
-    } catch (final FileNotFoundException e) {
-      System.out.println("Failed to locate file: " + fname);
     } catch (final IOException io) {
-      System.out.println("IOException during file IO: " + fname);
+      System.out.println("IOException during download: " + fname);
+      result = false;
+    } finally {
+      try {
+        os.close();
+      } catch (final Exception e) {
+      }
+      try {
+        is.close();
+      } catch (final Exception e) {
+      }
     }
 
-    try {
-      is.close();
-    } catch (final Exception e) {
-      // do nothing
-    }
-
-    return false;
+    return result;
   }
 
   /**
-   * @param fname the path to a file.
+   * Encrypts a file with the SAIFE library and then uploads it to Amazon S3 Note: some S3 operations have financial
+   * penalties.
+   * 
+   * @param f the path to a file.
    * @return true if the write is completed
    */
+  @SuppressWarnings("null")
   public boolean upload(final File f) {
 
     final String fname = f.getName();
     FileInputStream is = null;
-    AnObject newObj;
-    newObj = saifeManager.getObject(f.getName());
-    OutputStream os;
+    OutputStream os = null;
 
     try {
-      os = saifeManager.getNS().getEncryptStream(newObj.getStream());
+      os = saifeManager.getNS().getEncryptStream(saifeManager.getNewS3Stream(f.getName()));
     } catch (final IOException e1) {
-      System.out.println("upload: Failed to create local object for file: " + fname);
-      return false;
+      System.out.println(" Failed to open a new encryption stream for " + f.getName());
     }
 
     try {
@@ -143,24 +145,37 @@ public class S3Manager {
       }
     } catch (final FileNotFoundException e) {
       System.out.println("Failed to locate or open file: " + fname);
-    } catch (final Exception e) {
-      // do nothing. close() failed.
+    } finally {
+      try {
+        os.close();
+      } catch (final IOException e) {
+      }
+      try {
+        is.close();
+      } catch (final IOException e) {
+      }
     }
 
-    try {
-      os.close();
-      if (null != is) {
-        is.close();
-      }
-    } catch (final IOException e) {
-      // do nothing
-    }
-    newObj.writeOut();
     return true;
   }
 
   /**
-   * @return
+   * deletes a object from S3
+   * 
+   * @param tag the object tag
+   */
+  public void deleteObject(final String tag) {
+    try {
+      s3.deleteObject(bucketName, tag);
+    } catch (final AmazonClientException e) {
+      System.out.println("Failed to delet file: " + tag);
+    }
+  }
+
+  /**
+   * Searches for tags in the current S3 bucket
+   * 
+   * @return the object tags
    */
   public List<String> listObjects() {
     final List<String> names = new Vector<String>();
@@ -175,7 +190,9 @@ public class S3Manager {
   }
 
   /**
-   * @return
+   * Looks for the buckets assigned to the current account. (According to the credentials used in this code.)
+   * 
+   * @return a list of S3 bucket names.
    */
   public List<String> listBuckets() {
 
@@ -203,29 +220,37 @@ public class S3Manager {
     return names;
   }
 
+  /** The saifeManager manages the SAIFE library for this application */
   SaifeManager saifeManager;
 
+  /** The bucketName a unique bucket name assigned to this user account. */
   String bucketName;
 
+  /** The s3 handler is provided by Amazon. Check online documentation. */
   AmazonS3 s3;
 
-  private final S3Sample parent;
-
   /**
-   * @return a saife handle
+   * This class doesn't wrap every trivial use of the saifeManager. Pass a handle to other classes for simple calls.
+   * 
+   * @return a SAIFE handle
    */
   public SaifeManager getSaife() {
     return saifeManager;
   }
 
   /**
-   * @return the bucket
+   * Returns the name of the bucket that was selected by the user.
+   * 
+   * @return the bucketName string
    */
   public String getBucket() {
     return bucketName;
   }
 
   /**
+   * When the SaifeManager is initialized it gets a handle for this S3Manager. This class uses the saifeManager handle
+   * for crypto operations after that.
+   * 
    * @param sm a manager
    */
   public void setManager(final SaifeManager sm) {
@@ -233,23 +258,18 @@ public class S3Manager {
   }
 
   /**
-   * @return
+   * This class doesn't wrap all the trivial S3 operations. provide a handle to s3 for that.
+   * 
+   * @return the direct handle to the Amazon S3 manager
    */
   public AmazonS3 getS3Mgr() {
     return s3;
   }
 
   /**
-   * The constructor.
-   *
-   * @param share the NetworkSahre
-   * @param p a persister for S3
-   * @param s the Saife library handle
-   * @param sm the manager
-   * @param bn
+   * The trivial constructor.
    */
-  public S3Manager(final S3Sample s) {
-    parent = s;
+  public S3Manager() {
   }
 
   /**
@@ -262,7 +282,7 @@ public class S3Manager {
   }
 
   /**
-   * Initialize the S3 toolkit
+   * Initialise the amazon S3 toolkit. Checks the credentials.
    */
   void initS3() {
     // S3 credential identity
@@ -287,7 +307,9 @@ public class S3Manager {
   }
 
   /**
-   * @param name
+   * Create a new S3 bucket for this user's account. Note: some of these operations have financial penalties.
+   * 
+   * @param name is the name for a new bucket. a UUID is added to make it unique.
    */
   public void addNewBucket(final String name) {
     /*
