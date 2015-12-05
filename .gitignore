@@ -8,3 +8,6 @@ SAIFEDARDemo/cpp/lib
 SAIFENSDemo/java/include
 SAIFENSDemo/java/jars
 SAIFENSDemo/java/lib
+.classpath
+.project
+build.txt
