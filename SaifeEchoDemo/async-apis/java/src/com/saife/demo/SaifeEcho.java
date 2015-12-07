@@ -30,6 +30,9 @@ import com.saife.sessions.InvalidSessionState;
 import com.saife.sessions.PresenceRequiredException;
 import com.saife.sessions.SecureSession;
 import com.saife.sessions.SecureSession.TransportType;
+import com.saife.sessions.SessionServiceCallback;
+import com.saife.sessions.SessionServiceCallbackFactory;
+import com.saife.sessions.SessionServiceListener;
 import com.saife.sessions.SessionTimeoutException;
 
 /**
@@ -37,8 +40,10 @@ import com.saife.sessions.SessionTimeoutException;
  * sessions between two SAIFE end points. One client acts as an echo server echoing back all received messages and
  * session data. The other client sends messages and/or session data and then waits for the data to be echoed back from
  * the server.
+ * <p>
+ * This sample shows the use of the asynchronous apis for messaging and sessions.
  */
-public class SaifeEcho {
+public class SaifeEcho implements SessionServiceListener {
 
   /** The SAIFE interface */
   static Saife saife;
@@ -71,8 +76,17 @@ public class SaifeEcho {
   /** Do client sessions */
   private boolean sessionClient = false;
 
-  /** A SaifeMessagingCallback used to receive messages asynchronously. */
+  /**
+   * The SaifeMessagingCallback reference. When adding a SaifeMessagingCallback, a reference to the
+   * SaifeMessagingCallback must be maintained for the life of the application.
+   */
   private SaifeMessagingCallback msgCallback;
+
+  /**
+   * The SessionServiceCallback reference. When adding a SessionServiceCallback, a reference to the
+   * SessionServiceCallback must be maintained for the life of the application.
+   */
+  private SessionServiceCallback sessionCallback;
 
   /** The rcvMsgCnt. */
   AtomicInteger rcvMsgCnt = new AtomicInteger(0);
@@ -214,6 +228,21 @@ public class SaifeEcho {
    */
   private void setupMessagingListenerCallback(final MessagingListener listener) {
 
+    /**
+     * WARNING: If you add a the messaging callback in the following way:
+     * 
+     * <pre>
+     * SaifeMessagingCallback msgCallback = SaifeMessagingCallbackFactory.construct(listener, saife);
+     * saife.addSaifeMessagingListenerCallback(msgCallback, filterList);
+     * </pre>
+     * 
+     * And msgCallback goes out of scope, and is ultimately garbage collected, then it'll be as though a messaging
+     * callback was never added, and you will stop receiving messages. You may receive messages for a while, but once
+     * the msgCallback is garbage collected you will no longer receive messages.
+     * <p>
+     * A reference to the messaging callback needs to be maintained for the life of the application or as long as the
+     * saife reference is being used.
+     */
     // Use the SaifeMessagingCallbackFactory to construct an appropriate call back for async messaging.
     msgCallback = SaifeMessagingCallbackFactory.construct(listener, saife);
 
@@ -256,15 +285,33 @@ public class SaifeEcho {
       // Were acting as a server, setup async receiving of messages so that received messages are echoed back to the
       // sender.
       setupMessagingListenerCallback(new SaifeEchoServerMessagingListener(subscriptionReady));
+      System.out.println("Listening for incoming messages -- echoing");
     } else {
       // We're acting as a client, setup async receiving of messages so that received messages are not echoed back to
       // the sender.
       setupMessagingListenerCallback(new SaifeEchoClientMessagingListener(subscriptionReady));
+      System.out.println("Listening for incoming messages -- no echoing");
     }
 
-    // Always setup a thread to listen for incoming sessions. We're always listening for incoming sessions.
+    /**
+     * WARNING: If you add a the session callback in the following way:
+     * 
+     * <pre>
+     * SessionServiceCallback sessionCallback = SessionServiceCallbackFactory.construct(saife, this);
+     * saife.addSessionServiceCallback(sessionCallback);
+     * </pre>
+     * 
+     * And sessionCallback goes out of scope, and is ultimately garbage collected, then it'll be as though a session
+     * callback was never added, and you will stop receiving inbound sessions. You may receive inbound calls for a
+     * while, but once the sessionCallback is garbage collected you will no longer receive inbound sessions.
+     * <p>
+     * A reference to the session callback needs to be maintained for the life of the application or as long as the
+     * saife reference is being used.
+     */
+    // We're always listening for incoming sessions.
+    sessionCallback = SessionServiceCallbackFactory.construct(saife, this);
+    saife.addSessionServiceCallback(sessionCallback);
     System.out.println("Listening for incoming sessions");
-    saifeThreadPool.submit(new SessionServer());
 
     // Subscribe for SAIFE messages
     saife.subscribe();
@@ -410,9 +457,9 @@ public class SaifeEcho {
             System.out.println("Oops ... seems like we couldn't connect.");
           }
 
-          // Do it all over in a bit
+          // Wait 5 seconds before beginning the session cycle again.
           try {
-            Thread.sleep(2000);
+            Thread.sleep(5000);
           } catch (final InterruptedException e) {
           }
         }
@@ -425,7 +472,7 @@ public class SaifeEcho {
   }
 
   /**
-   * When an echo server receives a session request, it spins off a SessionHandler to handle the session. The
+   * When an echo server receives an incoming session, it spins off a SessionHandler to handle the session. The
    * SessionHandler reads data from the client and echos it back. This process continues until no data is received for
    * 30 seconds or the session is closed by the peer.
    */
@@ -477,45 +524,32 @@ public class SaifeEcho {
       } catch (final InvalidSessionState e1) {
         e1.printStackTrace();
       }
+      System.out.println("Done handling the incoming session");
     }
   }
 
-  /**
-   * If an echo server is not specified on the command line using the -c option, the SaifeEcho example application runs
-   * as a echo server. The SessionServer listens for incoming session from echo clients. Once a session is received, the
-   * SessionServer dispatches the session to a SessionHandler for the echoing of data.
-   */
-  class SessionServer implements Runnable {
+  @Override
+  public void newSession(final SecureSession session) {
 
-    @Override
-    public void run() {
+    try {
+      System.out.println("Just received a incoming session from echo client " + session.getPeer().getName()
+          + ". sess: " + session);
+      // Now give the session over to the SessionHandler to be run in a separate thread.
+      saifeThreadPool.submit(new SessionHandler(session));
 
-      while (true) {
-        try {
-          // Wait for SAIFE clients to connect securely
-          System.out.println("Waiting for incoming session");
-          final SecureSession session = saife.accept();
-
-          final Contact peer = session.getPeer();
-          System.out.println("Just received a incoming session from echo client " + peer.getName() + ". sess: "
-              + session);
-
-          // Now give the session over to the SessionHandler to be run in a separate thread.
-          saifeThreadPool.submit(new SessionHandler(session));
-
-        } catch (final InvalidManagementStateException e) {
-          e.printStackTrace();
-        } catch (final PresenceRequiredException e) {
-          System.out.println("Oops ... Looks like presence isn't ready.  Trying again in few");
-          try {
-            Thread.sleep(1000);
-          } catch (final InterruptedException e1) {
-          }
-        } catch (final InvalidSessionState e) {
-          e.printStackTrace();
-        }
-      }
+    } catch (final InvalidSessionState e) {
+      e.printStackTrace();
     }
+    System.out.println("Getting out of the newSession callback.");
+  }
+
+  @Override
+  public void unlockRequired(final Contact contact) {
+    // The SAIFE library is letting us know that we need to unlock because we have an incoming session. So, just unlock
+    // the SAIFE library. Although, in this app, the unlockRequired may never happen.
+    System.out.println("Just received an unlock required for session incoming session from echo client "
+        + contact.getName());
+    unlockSaife();
   }
 
   /**
@@ -556,12 +590,9 @@ public class SaifeEcho {
                   + ") FROM " + msg.sender.getName());
               e.printStackTrace();
             }
-
           }
         });
-
       }
-
     }
 
     @Override
