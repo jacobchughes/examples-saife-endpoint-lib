@@ -94,7 +94,7 @@ public class SaifeEcho {
       saife = SaifeFactory.constructSaife(null);
 
       // Set SAIFE logging level
-      saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+      saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
 
       // Initialize the SAIFE interface at the specified path.
       final ManagementState state = saife.initialize(defaultKeyStorePath);
@@ -258,11 +258,11 @@ public class SaifeEcho {
       setupMessagingListenerCallback(new SaifeEchoServerMessagingListener(subscriptionReady));
     } else {
       // We're acting as a client, setup async receiving of messages so that received messages are not echoed back to
-      // the sender whether we're a session client or a messaging client.
+      // the sender.
       setupMessagingListenerCallback(new SaifeEchoClientMessagingListener(subscriptionReady));
     }
 
-    // Always setup a thread to listen for incoming sessions
+    // Always setup a thread to listen for incoming sessions. We're always listening for incoming sessions.
     System.out.println("Listening for incoming sessions");
     saifeThreadPool.submit(new SessionServer());
 
@@ -271,7 +271,7 @@ public class SaifeEcho {
     // Wait until we're completely subscribed.
     subscriptionReady.await();
 
-    System.out.println("                                           Should be fully subscribed here");
+    System.out.println("Fully subscribed here");
 
     // Now start the client threads if necessary.
     //
@@ -300,10 +300,13 @@ public class SaifeEcho {
     @Override
     public void run() {
       try {
+        // Run forever as a client
         while (true) {
           try {
             @SuppressWarnings("deprecation")
             final Contact contact = saife.getContactByName(sendTo);
+
+            // Send the list of messages.
             for (final String sendMsg : messageList) {
               saife.sendMessage(sendMsg.getBytes(), echoMsgType, contact, 30, 2000, false);
               System.out.println("SENT MSG >: '" + sendMsg + "'");
@@ -313,18 +316,25 @@ public class SaifeEcho {
               } catch (final InterruptedException e) {
               }
             }
-            // now wait until the sent messages are received. Watch out here.
-            // TODO make some sort of time based thing.
-            while (rcvMsgCnt.get() < messageList.size()) {
+
+            // Now, await the echo of all the messages
+            int numOfWaits = 0;
+            final int maxWaits = 20;
+            while ((false == rcvMsgCnt.compareAndSet(messageList.size(), 0)) && (numOfWaits++ < maxWaits)) {
               try {
-                // Just give it some time
+                // Just give it some time for all messages to be echoed back
                 Thread.sleep(100);
               } catch (final InterruptedException e) {
               }
             }
-            System.out.println("Ok .. All done.  Sent " + messageList.size() + " messages and received "
-                + rcvMsgCnt.get() + " messages");
-            rcvMsgCnt.set(0);
+
+            if (numOfWaits < maxWaits) {
+              System.out.println("Ok .. All done.  Sent and received " + messageList.size() + " messages");
+            } else {
+              System.out.println("Did NOT receive all messages.  Sent " + messageList.size()
+                  + " messages and received " + rcvMsgCnt.getAndSet(0) + " messages");
+            }
+
           } catch (final NoSuchContactException e) {
             System.out.println("Waiting for echo server '" + sendTo + "' to get into our contact list.");
           } catch (final IOException e) {
@@ -333,6 +343,7 @@ public class SaifeEcho {
             e.printStackTrace();
           }
 
+          // Wait 5 seconds before beginning the message send cycle again.
           try {
             Thread.sleep(5000);
           } catch (final InterruptedException e) {
@@ -482,7 +493,7 @@ public class SaifeEcho {
       while (true) {
         try {
           // Wait for SAIFE clients to connect securely
-          System.out.println("Waiting for incoming call");
+          System.out.println("Waiting for incoming session");
           final SecureSession session = saife.accept();
 
           final Contact peer = session.getPeer();
