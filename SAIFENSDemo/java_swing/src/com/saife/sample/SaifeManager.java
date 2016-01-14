@@ -39,7 +39,7 @@ import com.saife.contacts.Contact;
 import com.saife.contacts.ContactListUpdateCallback;
 import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.NoSuchContactException;
-import com.saife.crypto.internal.InvalidCredentialException;
+import com.saife.crypto.InvalidCredentialException;
 import com.saife.dar.NetworkShare;
 import com.saife.dar.NetworkShareDoesNotExistException;
 import com.saife.dar.NetworkShareExistsException;
@@ -139,7 +139,6 @@ public class SaifeManager {
      * 
      * @return File. Deleted after use.
      */
-    @SuppressWarnings("resource")
     public File toFile() {
       File file;
       try {

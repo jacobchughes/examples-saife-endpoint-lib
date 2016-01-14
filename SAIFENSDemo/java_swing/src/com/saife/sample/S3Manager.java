@@ -54,7 +54,7 @@ public class S3Manager {
    * @param outName the data stream to read from
    * @return true if download works
    */
-  @SuppressWarnings({ "null", "unused" })
+  @SuppressWarnings({ "unused" })
   public boolean download(final String fname, final String outName) {
 
     // in real code oName should be used.
@@ -108,7 +108,6 @@ public class S3Manager {
    * @param f the path to a file.
    * @return true if the write is completed
    */
-  @SuppressWarnings("null")
   public boolean upload(final File f) {
 
     final String fname = f.getName();
@@ -286,7 +285,9 @@ public class S3Manager {
    */
   void initS3() {
     // S3 credential identity
-    final String me = "john.curtis@saife-tiprnet";
+      // if you are using a different AWS group, change this
+      // see AWS credential documentation for more information
+    final String me = "default";
 
     AWSCredentials credentials = null;
     try {

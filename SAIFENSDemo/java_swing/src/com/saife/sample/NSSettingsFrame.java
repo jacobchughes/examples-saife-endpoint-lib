@@ -56,16 +56,16 @@ public class NSSettingsFrame {
   JLabel lblNetworksharelabel;
 
   /** The contactList. */
-  JList contactList;
+  JList<String> contactList;
 
   /** The memberList. */
-  JList memberList;
+  JList<String> memberList;
 
   /** The list of contacts */
-  DefaultListModel lmc = new DefaultListModel();
+  DefaultListModel<String> lmc = new DefaultListModel<String>();
 
   /** The list of members */
-  DefaultListModel lmm = new DefaultListModel();
+  DefaultListModel<String> lmm = new DefaultListModel<String>();
 
   /**
    * 
@@ -87,7 +87,7 @@ public class NSSettingsFrame {
    * 
    */
   void handleAdd() {
-    final String con = (String) contactList.getSelectedValue();
+    final String con = contactList.getSelectedValue();
     if (S3.getSaife().addToShare(con)) {
       lmm.addElement(con);
     }
@@ -98,7 +98,7 @@ public class NSSettingsFrame {
    * 
    */
   void handleDelete() {
-    final String con = (String) memberList.getSelectedValue();
+    final String con = memberList.getSelectedValue();
     if (S3.getSaife().excludeMemberFromShare(con)) {
       lmm.removeElement(con);
     }
@@ -122,11 +122,11 @@ public class NSSettingsFrame {
     lblNetworksharelabel.setBounds(10, 11, 414, 29);
     networkShareSettings.getContentPane().add(lblNetworksharelabel);
 
-    contactList = new JList(lmc);
+    contactList = new JList<String>(lmc);
     contactList.setBounds(10, 63, 140, 120);
     networkShareSettings.getContentPane().add(contactList);
 
-    memberList = new JList(lmm);
+    memberList = new JList<String>(lmm);
     memberList.setBounds(284, 63, 140, 121);
     networkShareSettings.getContentPane().add(memberList);
 

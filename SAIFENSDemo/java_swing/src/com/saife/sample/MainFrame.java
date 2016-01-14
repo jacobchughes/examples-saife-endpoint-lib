@@ -38,7 +38,7 @@ public class MainFrame {
    * The widgets used by the MainFrame btnCancel: closes the Main Frame btnNew: opens a dialogue to create a new network
    * share btnDelete: opens a dialogue to delete a network share
    */
-  JList NetworkShareList;
+  JList<String> NetworkShareList;
 
   JButton btnCancel;
 
@@ -59,7 +59,7 @@ public class MainFrame {
   MainFrameLauncher ml;
 
   /** The listModel. */
-  DefaultListModel listModel;
+  DefaultListModel<String> listModel;
 
   /** The networkShares. A list of network shares. */
   List<String> networkShares = new Vector<String>();
@@ -98,7 +98,7 @@ public class MainFrame {
       return;
     }
 
-    nsName = (String) NetworkShareList.getSelectedValue();
+    nsName = NetworkShareList.getSelectedValue();
     S3.setBucket(nsName);
     @SuppressWarnings("unused")
     final NSWorkingFrame nsw = new NSWorkingFrame(nsName, S3);
@@ -117,7 +117,7 @@ public class MainFrame {
    * Delete a NetworkShare.
    */
   void handleDelete() {
-    final String ns = (String) NetworkShareList.getSelectedValue();
+    final String ns = NetworkShareList.getSelectedValue();
     listModel.removeElement(ns);
   }
 
@@ -183,8 +183,8 @@ public class MainFrame {
     lblMainfunctionlabel.setBounds(10, 11, 224, 23);
     mainFrame.getContentPane().add(lblMainfunctionlabel);
 
-    listModel = new DefaultListModel();
-    NetworkShareList = new JList(listModel);
+    listModel = new DefaultListModel<String>();
+    NetworkShareList = new JList<String>(listModel);
     NetworkShareList.setBounds(10, 64, 414, 138);
     mainFrame.getContentPane().add(NetworkShareList);
 

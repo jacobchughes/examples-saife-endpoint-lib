@@ -50,7 +50,7 @@ public class NSWorkingFrame {
 
   JButton btnSettings;
 
-  JList networkShareList;
+  JList<String> networkShareList;
 
   JButton btnUpload;
 
@@ -67,7 +67,7 @@ public class NSWorkingFrame {
   /**
    * The file list handler
    */
-  DefaultListModel lm = null;
+  DefaultListModel<String> lm = null;
 
   /**
    * Open a dialogue to handle NetworkShare settings
@@ -107,7 +107,7 @@ public class NSWorkingFrame {
   void handleDownload() {
 
     // non-example code would open a folder browser here.
-    final String sel = (String) networkShareList.getSelectedValue();
+    final String sel = networkShareList.getSelectedValue();
     S3.download(sel, null);
   }
 
@@ -116,7 +116,7 @@ public class NSWorkingFrame {
    */
   void handleDelete() {
     if (-1 != networkShareList.getSelectedIndex()) {
-      final String sel = (String) networkShareList.getSelectedValue();
+      final String sel = networkShareList.getSelectedValue();
       lm.removeElement(sel);
       S3.deleteObject(sel);
     }
@@ -188,8 +188,8 @@ public class NSWorkingFrame {
 
     netShareWorkingFrame.getContentPane().add(btnSettings);
 
-    lm = new DefaultListModel();
-    networkShareList = new JList(lm);
+    lm = new DefaultListModel<String>();
+    networkShareList = new JList<String>(lm);
     networkShareList.setBounds(10, 65, 414, 144);
     netShareWorkingFrame.getContentPane().add(networkShareList);
 
