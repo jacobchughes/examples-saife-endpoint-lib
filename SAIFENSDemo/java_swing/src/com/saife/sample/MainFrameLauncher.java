@@ -23,42 +23,42 @@ import java.awt.EventQueue;
  */
 public class MainFrameLauncher {
 
-  /** The ml. A static reference */
-  static MainFrameLauncher ml = null;
+    /** The ml. A static reference */
+    static MainFrameLauncher ml = null;
 
-  /** The handler manages Amazon S3 */
-  static S3Manager handler = null;
+    /** The handler manages Amazon S3 */
+    static S3Manager handler = null;
 
-  /**
-   * The constructor.
-   */
-  public MainFrameLauncher() {
-  }
-
-  /**
-   * 
-   */
-  public void launchMF(final S3Manager s3m) {
-    handler = s3m;
-
-    System.out.println("launchMF");
-
-    if (null == ml) {
-      ml = new MainFrameLauncher();
+    /**
+     * The constructor.
+     */
+    public MainFrameLauncher() {
     }
-    EventQueue.invokeLater(new Runnable() {
 
-      @Override
-      public void run() {
-        try {
-          @SuppressWarnings("unused")
-          final MainFrame window = new MainFrame(ml, handler);
+    /**
+     * 
+     */
+    public void launchMF(final S3Manager s3m) {
+        handler = s3m;
 
-        } catch (final Exception e) {
-          e.printStackTrace();
+        System.out.println("launchMF");
+
+        if (null == ml) {
+            ml = new MainFrameLauncher();
         }
-      }
-    });
-  }
+        EventQueue.invokeLater(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    @SuppressWarnings("unused")
+                    final MainFrame window = new MainFrame(ml, handler);
+
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
 
 }

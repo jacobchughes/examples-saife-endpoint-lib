@@ -1,68 +1,51 @@
 # C++
 The following instructions are relative to the cpp directory.
 
-### Build
+## Build
 
-# Install the SAIFE libs and headers from their zip file. Check the include and lib directories for the libraries and header files.
-<code>
-unzip <latest libsaife zip file>
-</code>
+### Install the SAIFE libs and headers from their zip file. Check the include and lib directories for the libraries and header files.
+    unzip <latest libsaife zip file>
 
-# Create the output directory.
-<code>
-mkdir bin
-</code>
+### Create the output directory.
+    mkdir bin
 
-# Create the storage directory.  The name must match the code.
-<code>
-mkdir black_data
-</code>
+### Create the storage directory.  The name must match the code.
+    mkdir black_data
 
-# Compile and set up library path
+## Compile and set up library path
 
-# For Linux:
-<code>
-~$ SAIFE_HOME=\<path to cpp lib\>; g++ -std=c++11 -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o bin/SAIFENS src/SAIFENS.cpp -l saife -l CecCryptoEngine -l roxml
-~$ export LD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife:${LD_LIBRARY_PATH}
-</code>
+### For Linux:
+    ~$ SAIFE_HOME=\<path to cpp lib\>; g++ -std=c++11 -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o bin/SAIFENS src/SAIFENS.cpp -l saife -l CecCryptoEngine -l roxml
+    ~$ export LD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife:${LD_LIBRARY_PATH}
 
-# For Darwin:
-<code>
-~$ SAIFE_HOME=\<path to cpp lib\>; clang++ -std=c++11 -stdlib=libc++ -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o bin/SAIFENS src/SAIFENS.cpp -l saife -l CecCryptoEngine -l roxml
-~$ export DYLD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife:${DYLD_LIBRARY_PATH}
-</code>
+### For Darwin:
+    ~$ SAIFE_HOME=\<path to cpp lib\>; clang++ -std=c++11 -stdlib=libc++ -I$SAIFE_HOME/include -L$SAIFE_HOME/lib/saife -o bin/SAIFENS src/SAIFENS.cpp -l saife -l CecCryptoEngine -l roxml
+    ~$ export DYLD_LIBRARY_PATH=\<path to cpp lib\>/lib/saife:${DYLD_LIBRARY_PATH}
 
-### To Run
+## To Run
 
-# 1. Create the keystore.
-<code>
-./bin/SAIFENS  
-</code>
+### 1. Create the keystore.
+    ./bin/SAIFENS
 
-# 2. Provision ./.SaifeStore/newkey.smcsr at the SAIFE dashboard.
+### 2. Provision ./.SaifeStore/newkey.smcsr at the SAIFE dashboard.
 
-# 3. Encrypt and store a file in the black_data directory.
-<code>
-./bin/SAIFENS -i <a_file_to_store> -s
-</code>
+### 3. Encrypt and store a file in the black_data directory.
+    ./bin/SAIFENS -i <a_file_to_store> -s
 
-# 4. Retrieve an encrypted file.
-<code>
-./bin/SAIFENS -i <a_file_to_retrieve> -o <the_new_file_name>
-</code>
+### 4. Retrieve an encrypted file.
+    ./bin/SAIFENS -i <a_file_to_retrieve> -o <the_new_file_name>
 
 
 
 
 # JAVA
-# Dependencies
-[ The JARS listed below ]
+## Dependencies
 	gson-2.3.1.jar 
 	base64-2.3.8.jar
 	quava-11.0.jar
 	java-lib-2.1.0.jar 
 	simple-xml-2.3.2.jar
-# the following are for AWS/S3
+### the following are for AWS/S3
 	spring-core-3.0.7.jar
 	spring-beans-3.0.7.jar
 	spring-context-3.0.7.jar
@@ -84,29 +67,26 @@ mkdir black_data
 	aws-java-sdk-1.10.26.jar
 
 
-[Contact SAIFE to obtain SAIFE Endpoint Library.]
-[SAIFE Management Dashboard](https://dashboard.saifeinc.com/) account with <i/>at least one</i> organization and group
-[ AWS libraries are available from Amazon ]
+[Contact SAIFE to obtain SAIFE Endpoint Library.](http://saifeinc.com/company/contact_us/)
 
-# Java
+[SAIFE Management Dashboard](https://dashboard.saifeinc.com/) account with <i/>at least one</i> organization and group
+
+[AWS libraries are available from Amazon](https://aws.amazon.com/sdk-for-java/)
+
 All commands are relative to the java or java_swing directory.
 
-### Build
-<code>
-# add needed libraries to java class path.  For example:
-~$ export SAIFE_HOME=\<path to java lib\>
-~$ export MY_CP="$SAIFE_HOME/jars/gson-2.3.1.jar:$SAIFE_HOME/jars/base64-2.3.8.jar: ... :$SAIFE_HOME/jars/aws-java-sdk-1.10.26.jar"
-~$ javac -d bin -cp $MY_CP src/com/saife/sample/S3Sample.java
-</code>
+## Build
+### add needed libraries to java class path.  For example:
+    # create the bin directory, if it does not exist
+    ~$ mkdir bin/
+    ~$ export SAIFE_HOME=\<path to java lib\>
+    ~$ export MY_CP="$SAIFE_HOME/jars/gson-2.3.1.jar:$SAIFE_HOME/jars/base64-2.3.8.jar: ... :$SAIFE_HOME/jars/aws-java-sdk-1.10.26.jar"
+    ~$ javac -d bin -cp $MY_CP src/com/saife/sample/S3Sample.java
 
-### Run
-<code>
-~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
+## Run
+    ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
 
-# After running once, you will need to provision the newkey.smcsr at the Saife Dashboard.  
-# run again to excersize the S3 library
+    # After running once, you will need to provision the newkey.smcsr at the Saife Dashboard.  
+    # run again to excersize the S3 library
 
-~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
-</code>
-
-</code>
+    ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
