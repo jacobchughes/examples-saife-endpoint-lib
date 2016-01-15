@@ -401,8 +401,9 @@ public class SaifeManager {
    */
   public boolean excludeMemberFromShare(final String name) {
     try {
-      final Contact c = saife.getContactByName(name);
-      ns.removeMember(c);
+        List<Contact> cl = saife.getContactsByName(name);
+        Contact c = cl.get(0);
+      ns.removeMember(c.getFingerprint());
     } catch (final NoSuchContactException e) {
       return false;
     } catch (final InvalidManagementStateException e) {
