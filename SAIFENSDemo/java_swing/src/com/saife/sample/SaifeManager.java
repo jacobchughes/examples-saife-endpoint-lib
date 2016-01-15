@@ -510,7 +510,7 @@ public class SaifeManager {
     saife = SaifeFactory.constructSaife(logMgr);
 
     // Set SAIFE logging level
-    saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+    saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
     /**
      * SAIFE initialization
      */
