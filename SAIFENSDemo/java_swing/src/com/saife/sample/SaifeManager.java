@@ -576,6 +576,16 @@ public class SaifeManager {
     final Thread t = new Thread(new SaifeUpdater());
     t.start();
 
+    // Unlock SAIFE library with user's credential
+    try {
+      saife.unlock(defaultPassword);
+    } catch (final InvalidCredentialException e1) {
+      e1.printStackTrace();
+    } catch (final InvalidManagementStateException e1) {
+      e1.printStackTrace();
+    }
+
+    // Update SAIFE after library is unlocked
     while (!saifeUpdated) {
       try {
         System.out.println("Waiting for SAIFE update.");
@@ -587,15 +597,6 @@ public class SaifeManager {
 
     // we will need our contact info for the groups
     saife.subscribe();
-
-    // Unlock SAIFE library with user's credential
-    try {
-      saife.unlock(defaultPassword);
-    } catch (final InvalidCredentialException e1) {
-      e1.printStackTrace();
-    } catch (final InvalidManagementStateException e1) {
-      e1.printStackTrace();
-    }
 
     // Start a PersistentStore so the network share can do its reads and writes
     blackDataHandler = newPersister();
