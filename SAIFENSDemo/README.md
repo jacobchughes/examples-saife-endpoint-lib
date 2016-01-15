@@ -77,6 +77,8 @@ All commands are relative to the java or java_swing directory.
 
 ## Build
 ### add needed libraries to java class path.  For example:
+    # create the bin directory, if it does not exist
+    ~$ mkdir bin/
     ~$ export SAIFE_HOME=\<path to java lib\>
     ~$ export MY_CP="$SAIFE_HOME/jars/gson-2.3.1.jar:$SAIFE_HOME/jars/base64-2.3.8.jar: ... :$SAIFE_HOME/jars/aws-java-sdk-1.10.26.jar"
     ~$ javac -d bin -cp $MY_CP src/com/saife/sample/S3Sample.java
