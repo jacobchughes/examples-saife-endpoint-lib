@@ -50,8 +50,8 @@ public class S3Manager {
    * Downloads an object from S3, decrypts it using the SAIFE library, and saves it. Note: Some S3 operations have
    * financial penalties.
    * 
-   * @param fname the file to store
-   * @param outName the data stream to read from
+   * @param fname the file to retrieve from S3
+   * @param outName the file to save to
    * @return true if download works
    */
   @SuppressWarnings({ "null", "unused" })
@@ -70,7 +70,7 @@ public class S3Manager {
     FileOutputStream os = null;
     File f = null;
     try {
-      f = new File(fname);
+      f = new File(oName);
       is = saifeManager.getNS().getDecryptStream(saifeManager.getPersister().getInputStream(bucketName, fname));
       os = new FileOutputStream(f);
 
