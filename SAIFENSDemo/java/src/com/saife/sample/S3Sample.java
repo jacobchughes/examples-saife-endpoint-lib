@@ -20,10 +20,7 @@
 package com.saife.sample;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
-
-import com.saife.dar.NetworkShare;
 
 /**
  * The S3Sample. Uses SAIFE NetworkShare and Amazon S3 as a back end.
@@ -40,10 +37,7 @@ public class S3Sample {
     static S3Manager s3m;
 
     /** The Persister to handle encryption */
-    static SaifeManager.Persister blackDataHandler;
-
-    /** The network share. */
-    static NetworkShare ns;
+    // static SaifeManager.Persister blackDataHandler;
 
     /**
      * The default password to unlock the SAIFE private key. In practice a user is always prompted for this input.
@@ -93,7 +87,7 @@ public class S3Sample {
             s3m.upload(file);
 
             // Download the file via the S3Manager
-            s3m.download(fileNameUp, null);
+            s3m.download(fileNameUp, fileNameDown);
         } else {
             System.out.println("File not found!");
         }
