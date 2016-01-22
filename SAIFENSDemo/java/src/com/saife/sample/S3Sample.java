@@ -73,7 +73,9 @@ public class S3Sample {
 
         // with S3 initialized the SAIFE manager can start
         saifeManager = new SaifeManager(s3m, defaultPassword);
-        saifeManager.saifeInit();
+        if(!saifeManager.saifeInit()) {
+            return;
+        }
 
         saifeManager.runNS();
 
@@ -94,7 +96,7 @@ public class S3Sample {
             s3m.download(fileNameUp, null);
         }
 
-        System.out.println("Gooodbye");
+        System.out.println("Goodbye");
 
         
     }
