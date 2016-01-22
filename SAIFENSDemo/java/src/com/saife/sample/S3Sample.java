@@ -54,7 +54,7 @@ import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.gson.Gson;
 import com.saife.Saife;
 import com.saife.SaifeFactory;
-import com.saife.crypto.internal.InvalidCredentialException;
+import com.saife.crypto.InvalidCredentialException;
 import com.saife.dar.NetworkShare;
 import com.saife.dar.NetworkShareDoesNotExistException;
 import com.saife.dar.NetworkShareExistsException;
@@ -428,15 +428,6 @@ public class S3Sample {
     final Thread t = new Thread(new saifeUpdater());
     t.start();
 
-    while (!saifeUpdated) {
-      try {
-        System.out.println("Waiting for SAIFE update.");
-        Thread.sleep(5000);
-      } catch (final InterruptedException e) {
-
-      }
-    }
-
     // Unlock SAIFE library with user's credential
     try {
       saife.unlock(defaultPassword);
@@ -444,6 +435,15 @@ public class S3Sample {
       e1.printStackTrace();
     } catch (final InvalidManagementStateException e1) {
       e1.printStackTrace();
+    }
+
+    while (!saifeUpdated) {
+      try {
+        System.out.println("Waiting for SAIFE update.");
+        Thread.sleep(5000);
+      } catch (final InterruptedException e) {
+
+      }
     }
 
     // Start a PersistentStore so the network share can do its reads and writes
@@ -605,7 +605,8 @@ public class S3Sample {
    */
   private void initS3() {
     // S3 credential identity
-    final String me = "john.curtis@saife-tiprnet";
+    // change if stored in a different section in AWS credentials
+    final String me = "default";
 
     AWSCredentials credentials = null;
     try {
@@ -634,6 +635,10 @@ public class S3Sample {
           System.out.println("Found Test Bucket:" + bucket.getName());
         }
       }
+
+      // TODO remove when push to develop
+      bucketName = "gersztyn-test-001";
+      System.out.println("Forcing bucket name to " + bucketName);
 
       /*
        * Create a globally unique bucket name if needed.
