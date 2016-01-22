@@ -308,6 +308,10 @@ public class SaifeManager {
             for (final PersistedObject po : releaseObjects) {
                 try {
                     final AnObject test = (AnObject) po;
+                    if (null == test.s3Data) {
+                        System.out.println("Object's S3Data is null");
+                        throw new NullPointerException();
+                    }
                     test.s3Data.close();
                 } catch (final IOException e) {
                     System.out.println("releaseObjects: failed to close " + po.getName());
@@ -431,7 +435,6 @@ public class SaifeManager {
             List<Contact> list = saife.getContactsByName(name);
             final Contact c = list.get(0);
             ns.addMember(c);
-
         } catch (final NoSuchContactException e) {
             return false;
         } catch (final InvalidManagementStateException e) {
@@ -512,8 +515,8 @@ public class SaifeManager {
         saife = SaifeFactory.constructSaife(logMgr);
 
         // Set SAIFE logging level
-        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
-        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
         /**
          * SAIFE initialization
          */
