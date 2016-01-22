@@ -94,6 +94,8 @@ public class S3Sample {
 
             // Download the file via the S3Manager
             s3m.download(fileNameUp, null);
+        } else {
+            System.out.println("File not found!");
         }
 
         System.out.println("Goodbye");
