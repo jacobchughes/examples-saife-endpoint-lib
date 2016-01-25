@@ -616,7 +616,7 @@ public class SaifeManager {
         //
         // This will load a NetworkShare, including the network share keys. In this example,
         // blackDataHandler is used by the network share to interact with S3. If a share with
-        // the given bucketName does not exist, getNetowrkShare will throw an exception
+        // the given bucketName does not exist, getNetworkShare will throw an exception
         //
 
         try {
