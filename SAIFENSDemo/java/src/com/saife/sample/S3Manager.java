@@ -317,7 +317,8 @@ public class S3Manager {
         }
       }
 
-      //replacing bucketname
+      // replacing bucketname
+      // @TODO remove before pushing
       bucketName = "gersztyn-test-001";
       System.out.println("Overwritting buckentName to " + bucketName);
 

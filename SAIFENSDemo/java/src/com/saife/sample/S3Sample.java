@@ -27,17 +27,11 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
  */
 public class S3Sample {
 
-    /** The bucketName */
-    static String bucketName;
-
     /** The saifeManager */
     static SaifeManager saifeManager;
 
     /** The S3Manager */
     static S3Manager s3m;
-
-    /** The Persister to handle encryption */
-    // static SaifeManager.Persister blackDataHandler;
 
     /**
      * The default password to unlock the SAIFE private key. In practice a user is always prompted for this input.
