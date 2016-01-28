@@ -81,7 +81,7 @@ All commands are relative to the java or java_swing directory.
     ~$ mkdir bin/
     ~$ export SAIFE_HOME=\<path to java lib\>
     ~$ export MY_CP="$SAIFE_HOME/jars/gson-2.3.1.jar:$SAIFE_HOME/jars/base64-2.3.8.jar: ... :$SAIFE_HOME/jars/aws-java-sdk-1.10.26.jar"
-    ~$ javac -d bin -cp $MY_CP src/com/saife/sample/S3Sample.java
+    ~$ javac -d bin -cp $MY_CP src/com/saife/sample/*.java
 
 ## Run
     ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
