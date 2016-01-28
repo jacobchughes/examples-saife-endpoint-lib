@@ -98,7 +98,7 @@ public class S3Sample {
             System.out.println("Trying to download as " + fileNameDown + "...");
             // Download the file via the S3Manager
             if (s3m.download(fileNameUp, fileNameDown)) { 
-                System.out.println("File " + fileNameDown + "downloaded");
+                System.out.println("File " + fileNameDown + " downloaded");
             }
         } else {
             System.out.println("File not found!");
