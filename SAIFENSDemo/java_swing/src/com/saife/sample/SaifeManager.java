@@ -402,8 +402,9 @@ public class SaifeManager {
     public boolean excludeMemberFromShare(final String name) {
         try {
             List<Contact> cl = saife.getContactsByName(name);
-            Contact c = cl.get(0);
-            ns.removeMember(c.getFingerprint());
+            for (final Contact c : cl) {
+                ns.removeMember(c.getFingerprint());
+            }
         } catch (final NoSuchContactException e) {
             return false;
         } catch (final InvalidManagementStateException e) {
@@ -427,8 +428,10 @@ public class SaifeManager {
      */
     public boolean addToShare(final String name) {
         try {
-            final Contact c = saife.getContactByName(name);
-            ns.addMember(c);
+            List<Contact> cl = saife.getContactsByName(name);
+            for (final Contact c : cl) {
+                ns.addMember(c);
+            }
 
         } catch (final NoSuchContactException e) {
             return false;
