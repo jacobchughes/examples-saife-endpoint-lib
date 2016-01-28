@@ -68,27 +68,6 @@ public class S3Sample {
 
         saifeManager.runNS();
 
-        File file = null;
-
-        try {
-            file = new File(fileNameUp);
-        } catch (NullPointerException e) {
-            System.out.println("File was not found");
-            e.printStackTrace();
-        }
-
-        if (null != file && file.exists()) {
-            // Upload the file via the S3Manager
-            s3m.upload(file);
-
-            // Download the file via the S3Manager
-            s3m.download(fileNameUp, fileNameDown);
-        } else {
-            System.out.println("File not found!");
-        }
-
-        System.out.println("Goodbye");
-
         
     }
 
@@ -98,5 +77,34 @@ public class S3Sample {
     @SuppressWarnings("unused")
     public static void main(String[] args) {
         final S3Sample s = new S3Sample();
+
+        File file = null;
+
+        try {
+            file = new File(fileNameUp);
+        } catch (NullPointerException e) {
+            System.out.println("File was not found");
+            e.printStackTrace();
+        }
+
+        System.out.println("Trying to upload file " + file + "...");
+
+        if (null != file && file.exists()) {
+            // Upload the file via the S3Manager
+            if (s3m.upload(file)) { 
+                System.out.println("File " + file + " uploaded.");
+            }
+
+            System.out.println("Trying to download as " + fileNameDown + "...");
+            // Download the file via the S3Manager
+            if (s3m.download(fileNameUp, fileNameDown)) { 
+                System.out.println("File " + fileNameDown + "downloaded");
+            }
+        } else {
+            System.out.println("File not found!");
+        }
+
+        System.out.println("Goodbye");
+
     }
 }
