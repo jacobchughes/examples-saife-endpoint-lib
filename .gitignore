@@ -12,3 +12,5 @@ SAIFENSDemo/java/lib
 .DS_Store
 
 .SaifeStore/
+
+bin/
