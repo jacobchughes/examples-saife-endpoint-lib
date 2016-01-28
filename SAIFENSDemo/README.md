@@ -73,20 +73,41 @@ The following instructions are relative to the cpp directory.
 
 [AWS libraries are available from Amazon](https://aws.amazon.com/sdk-for-java/)
 
-All commands are relative to the java or java_swing directory.
+All commands are relative to the java or java_swing directory.  For ease of use,
+these commands can be put into scripts.  See documentation for your specific OS
+for more information.
+
+## Amazon Web Services(AWS) Credentials
+The libraries used for accessing AWS expect credentials in the
+`~/.aws/credentials` file.  For more information on AWS credentials, please view 
+[Amazon's Documentation](http://docs.aws.amazon.com/AWSSdkDocsJava/latest/DeveloperGuide/credentials.html).
+
+## Implementations
+This repository comes with 2 versions of the Saife Network Share demo: a
+Graphical User Interface(GUI) implementation, and a Command Line Interface(CLI)
+implementation.  The GUI version is found in the `java_swing/` directory, and
+the CLI version is found in the `java/` directory.  Compilation is the same for
+either version, but running is slightly different.
 
 ## Build
-### add needed libraries to java class path.  For example:
     # create the bin directory, if it does not exist
     ~$ mkdir bin/
+    # add needed libraries to java class path
     ~$ export SAIFE_HOME=\<path to java lib\>
     ~$ export MY_CP="$SAIFE_HOME/jars/gson-2.3.1.jar:$SAIFE_HOME/jars/base64-2.3.8.jar: ... :$SAIFE_HOME/jars/aws-java-sdk-1.10.26.jar"
+    # compile
     ~$ javac -d bin -cp $MY_CP src/com/saife/sample/*.java
 
 ## Run
+If you have run this program before, but want to start from a clean slate, make
+sure you have no Certificate Signing Request(CSR) in the .SaifeStore directory,
+and that the AWS S3 bucket you are using has no Network Share Keys(NSK). If this
+is the first time, then run the program using the following command:
+
     ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
 
-    # After running once, you will need to provision the newkey.smcsr at the Saife Dashboard.  
-    # run again to excersize the S3 library
+If you are running the GUI client, you need to select a Network Share to prompt
+the creation of a new CSR. After running once, you will need to provision the newkey.smcsr at the Saife 
+Dashboard.  Run again to exercise the S3 library.
 
     ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
