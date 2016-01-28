@@ -10,3 +10,5 @@ SAIFENSDemo/java/jars
 SAIFENSDemo/java/lib
 
 .DS_Store
+
+.SaifeStore/
