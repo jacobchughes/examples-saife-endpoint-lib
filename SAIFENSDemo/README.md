@@ -100,9 +100,9 @@ either version, but running is slightly different.
 
 ## Run
 If you have run this program before, but want to start from a clean slate, make
-sure you have no Certificate Signing Request(CSR) in the .SaifeStore directory,
-and that the AWS S3 bucket you are using has no Network Share Keys(NSK). If this
-is the first time, then run the program using the following command:
+sure you delete the .SaifeStore directory, and that the AWS S3 bucket you are 
+using has no Network Share Keys(NSK). If this is the first time, then run the 
+program using the following command:
 
     ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
 
