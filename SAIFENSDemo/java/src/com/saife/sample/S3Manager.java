@@ -320,48 +320,6 @@ public class S3Manager {
         // define a bucket name
         bucketName = null;
 
-        try {
-
-            /*
-             * List the buckets in your account
-             */
-            for (final Bucket bucket : s3.listBuckets()) {
-                if (bucket.getName().startsWith("saife-test-bucket")) {
-                    bucketName = bucket.getName();
-                    System.out.println("Found Test Bucket:" + bucket.getName());
-                }
-            }
-
-            // replacing bucketname
-            // @TODO remove before pushing
-            bucketName = "gersztyn-test-001";
-            System.out.println("Overwritting buckentName to " + bucketName);
-
-            /*
-             * Create a globally unique bucket name if needed.
-             */
-            if (null == bucketName) {
-                bucketName = "saife-test-bucket" + UUID.randomUUID();
-                System.out.println("Creating bucket " + bucketName + "\n");
-                s3.createBucket(bucketName);
-            }
-        } catch (final AmazonServiceException ase) {
-            System.out.println("Caught an AmazonServiceException, which means "
-                    + "your request made it to Amazon S3, but was rejected "
-                    + "with an error response for some reason.");
-            System.out.println("Error Message:    " + ase.getMessage());
-            System.out.println("HTTP Status Code: " + ase.getStatusCode());
-            System.out.println("AWS Error Code:   " + ase.getErrorCode());
-            System.out.println("Error Type:       " + ase.getErrorType());
-            System.out.println("Request ID:       " + ase.getRequestId());
-        } catch (final AmazonClientException ace) {
-            System.out.println("Caught an AmazonClientException, which means "
-                    + "the client encountered a serious internal problem while "
-                    + "trying to communicate with S3, such as not being able "
-                    + "to access the network.");
-            System.out.println("Error Message: " + ace.getMessage());
-        }
-
         System.out.println("S3 services are enabled.");
     }
 

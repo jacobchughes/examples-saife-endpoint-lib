@@ -20,6 +20,7 @@ package com.saife.sample;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -53,17 +54,14 @@ public class S3Sample {
         s3m = new S3Manager();
         s3m.initS3();
 
-        System.out.println("Initializing NetworkShare in bucket " 
-                + s3m.getBucket());
-
         // with S3 initialized the SAIFE manager can start
-        saifeManager = new SaifeManager(s3m, defaultPassword);
-        if(!saifeManager.saifeInit()) {
-            // SAIFE failed to initialize, stop the program
-            return;
-        }
+        // saifeManager = new SaifeManager(s3m, defaultPassword);
+        // if(!saifeManager.saifeInit()) {
+        //     // SAIFE failed to initialize, stop the program
+        //     return;
+        // }
 
-        saifeManager.runNS();
+        // saifeManager.runNS();
 
 
     }
@@ -175,6 +173,11 @@ public class S3Sample {
     private static void listShares()
     {
         System.out.println("Pretend that shares are being listed here");
+        List<String> buckets = s3m.listBuckets();
+        System.out.println(">>detected buckets:");
+        for (String b : buckets) {
+            System.out.println("    " + b);
+        }
     }
 
     /**
@@ -200,6 +203,34 @@ public class S3Sample {
     }
 
     /**
+     * method to list the files within a network share
+     *
+     * @param share     the network share to list files in
+     */
+    private static void listFiles(String share) {
+        System.out.println("Pretend that files are being listed here");
+        s3m.setBucket(share);
+        
+        saifeManager = new SaifeManager(s3m, defaultPassword);
+        if(!saifeManager.saifeInit()) {
+            // SAIFE failed to initialize, stop the program
+            return;
+        }
+
+        saifeManager.runNS();
+
+        List<String> files = s3m.listObjects();
+        System.out.println("Detected files:");
+        for (String f : files) {
+            System.out.println("    " + f);
+        }
+
+        // kill the manager, so we can create a new one later
+        saifeManager = null;
+
+    }
+
+    /**
      * method to push one or more files to a network share
      *
      * @param share     the network share to push to
@@ -221,15 +252,6 @@ public class S3Sample {
     private static boolean pullFiles(String share, String[] files) {
         System.out.println("Pretend that files are being pulledd here");
         return true;
-    }
-
-    /**
-     * method to list the files within a network share
-     *
-     * @param share     the network share to list files in
-     */
-    private static void listFiles(String share) {
-        System.out.println("Pretend that files are being listed here");
     }
 
     /**
