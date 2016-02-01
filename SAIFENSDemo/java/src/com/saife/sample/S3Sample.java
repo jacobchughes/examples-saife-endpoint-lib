@@ -65,7 +65,7 @@ public class S3Sample {
 
         saifeManager.runNS();
 
-        
+
     }
 
     /**
@@ -93,13 +93,13 @@ public class S3Sample {
 
         // close the scanner
         keyboard.close();
-        
+
     }
 
     // below here are helper methods to create command line behaviors
-    
 
-    
+
+
     /**
      * method to print the help dialog for the create command
      */
@@ -136,7 +136,8 @@ public class S3Sample {
     private static void helpList() {
         System.out.println("usage: ns list|files <share>");
         System.out.println("");
-        System.out.println("lists all the files in the provided network share");
+        System.out.println("lists all the files in the provided network "
+                + "share");
         System.out.println("   <share>     the name of the network share to "
                 + "list, will print error if it already exists");
     }
@@ -147,11 +148,12 @@ public class S3Sample {
     private static void helpPush() {
         System.out.println("usage: ns push <share> <files>");
         System.out.println("");
-        System.out.println("pushes all the files in the provided network share");
+        System.out.println("pushes all the files in the provided network "
+                + "share");
         System.out.println("   <share>     the name of the network share to "
                 + "list, will print error if it already exists");
         System.out.println("   <files>     the names of the files you want to "
-            + "push into the given network share");
+                + "push into the given network share");
     }
 
     /**
@@ -164,7 +166,7 @@ public class S3Sample {
         System.out.println("   <share>     the name of the network share to "
                 + "list, will print error if it already exists");
         System.out.println("   <files>     the names of the files you want to "
-            + "pull into the given network share");
+                + "pull into the given network share");
     }
 
     /**
@@ -175,7 +177,7 @@ public class S3Sample {
         System.out.println("");
         System.out.println("enables interpreter mode");
         System.out.println("from this mode, you can enter any of the above "
-            + "commands in a single session, without the program prefix");
+                + "commands in a single session, without the program prefix");
     }
 
     /**
