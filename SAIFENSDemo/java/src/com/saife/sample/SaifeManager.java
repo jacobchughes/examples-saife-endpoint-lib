@@ -213,7 +213,8 @@ public class SaifeManager {
             }
 
             final Listener l = new Listener();
-            saife.addContactListUpdateListener(l);
+            // @TODO fix this, giving a Google preconditions erro
+            // saife.addContactListUpdateListener(l);
         }
 
         @Override

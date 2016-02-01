@@ -19,6 +19,7 @@
 package com.saife.sample;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 
@@ -79,14 +80,20 @@ public class S3Sample {
 
         if (args.length == 0) {
             // print usage help if no arguments
-            helpUsage();
+            help(null);
         } else {
 
             if ("interp".equalsIgnoreCase(args[0])) {
                 String[] newargs;
+                isInterp = true;
                 do {
+                    System.out.print("ns-cli> ");
                     newargs = keyboard.nextLine().split(" ");
-                } while ("exit".equalsIgnoreCase(newargs[0]));
+                    // runCommands(newargs, saifeManager, s3m);
+                    runCommands(newargs);
+                } while (!"exit".equalsIgnoreCase(newargs[0]));
+            } else {
+                runCommands(args);
             }
         }
 
@@ -97,6 +104,171 @@ public class S3Sample {
 
     // below here are helper methods to create command line behaviors
 
+
+    /**
+     * A method used to run commands given via the command line
+     *
+     * @param args  arguments from command line
+     */
+    public static void runCommands(String[] args) {
+        final int argslen = args.length;
+
+        switch (args[0]) {
+            case "help":
+                if (argslen < 2) {
+                    help(null);
+                } else {
+                    help(args[1]);
+                }
+                break;
+            case "shares":
+                listShares();
+                break;
+            case "create":
+                if (argslen < 2) {
+                    help("create");
+                } else {
+                    createShare(args[1]);
+                }
+                break;
+            case "delete":
+                if (argslen < 2 ) { 
+                    help("delete");
+                } else {
+                    deleteShare(args[1]);
+                }
+                break;
+            case "push":
+                if (argslen < 3) {
+                    help("push");
+                } else {
+                    pushFiles(args[1], Arrays.copyOfRange(args, 2, argslen-1));
+                }
+                break;
+            case "pull":
+                if (argslen < 3) {
+                    help("pull");
+                } else {
+                    pullFiles(args[1], Arrays.copyOfRange(args, 2, argslen-1));
+                }
+                break;
+            case "list":
+            case "files":
+                if (argslen < 2) {
+                    help("list");
+                } else {
+                    listFiles(args[1]);
+                }
+                break;
+            case "exit":
+                break;
+            default:
+                System.out.println("Unkown option:    " + args[0]);
+                break;
+        }
+    }
+
+    /**
+     * method to list the shares
+     *
+     */
+    private static void listShares()
+    {
+        System.out.println("Pretend that shares are being listed here");
+    }
+
+    /**
+     * method to create one or more network shares
+     *
+     * @param share    name of share to create
+     * @return  true if success
+     */
+    private static boolean createShare(String share) {
+        System.out.println("Pretend that shares are being created here");
+        return true;
+    }
+
+    /**
+     * method to delete a network share
+     *
+     * @param share     name of share to delete
+     * @return  true if success
+     */
+    private static boolean deleteShare(String share) {
+        System.out.println("Pretend that shares are being deleted here");
+        return true;
+    }
+
+    /**
+     * method to push one or more files to a network share
+     *
+     * @param share     the network share to push to
+     * @param files     the list of files to push
+     * @return  true if success
+     */
+    private static boolean pushFiles(String share, String[] files) {
+        System.out.println("Pretend that files are being pushed here");
+        return true;
+    }
+
+    /**
+     * method to pull one or more files form a network share
+     *
+     * @param share     the network share to pull from
+     * @param files     the list of files to pull
+     * @return  true if success
+     */
+    private static boolean pullFiles(String share, String[] files) {
+        System.out.println("Pretend that files are being pulledd here");
+        return true;
+    }
+
+    /**
+     * method to list the files within a network share
+     *
+     * @param share     the network share to list files in
+     */
+    private static void listFiles(String share) {
+        System.out.println("Pretend that files are being listed here");
+    }
+
+    /**
+     * method to display different help pages
+     *
+     * @param arg   the command to view help with
+     */
+    private static void help(String arg) {
+        if (null == arg) {
+            helpUsage();
+        } else {
+            switch (arg) {
+                case "create":
+                    helpCreate();
+                    break;
+                case "delete":
+                    helpDelete();
+                    break;
+                case "shares":
+                    helpShares();
+                    break;
+                case "push":
+                    helpPush();
+                    break;
+                case "pull":
+                    helpPull();
+                    break;
+                case "list":
+                case "files":
+                    helpList();
+                    break;
+                case "interp":
+                    helpInterp();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
 
 
     /**
@@ -180,23 +352,35 @@ public class S3Sample {
     }
 
     /**
+     * private value for interpreter based help
+     */
+    private static boolean isInterp = false;
+
+    /**
      * method to print the usage dialog for the program
+     *
      */
     private static void helpUsage() {
-        System.out.println("usage: ns <command> [<args>]");
+        if (!isInterp) {
+            System.out.println("usage: ns <command> [<args>]");
+        } else {
+            System.out.println("usage: <command> [<args>]");
+        }
         System.out.println("");
         System.out.println("These are the available commands:");
         System.out.println("");
         System.out.println("commands that deal with shares");
-        System.out.println("   create      creates a NetworkShare");
-        System.out.println("   delete      deletes a NetworkShare");
         System.out.println("   shares      lists all the shares connected "
                 + "to your current credentials");
-        System.out.println("   list        lists all the shares connected "
-                + "to your current credentials");
+        System.out.println("   create      creates a NetworkShare");
+        System.out.println("   delete      deletes a NetworkShare");
         System.out.println("");
         System.out.println("commands that deal with files inside of "
                 + "shares");
+        System.out.println("   list        lists all the shares connected "
+                + "to your current credentials");
+        System.out.println("   files       lists all the shares connected "
+                + "to your current credentials");
         System.out.println("   push        pushes the selected files into "
                 + "the selected share");
         System.out.println("   pull        pull the selected files from "
@@ -205,12 +389,16 @@ public class S3Sample {
         System.out.println("miscellaneous commands");
         System.out.println("   help        display the help screen, or "
                 + "help with a specific command");
-        System.out.println("   interp      load the Network Share demo in "
-                + "interpreter mode");
-        System.out.println("               from here, you can use the above"
-                + " commands in a single session");
-        System.out.println("               use 'exit' command to quit "
-                + "interpreter");
+        if (!isInterp) {
+            System.out.println("   interp      load the Network Share demo in "
+                    + "interpreter mode");
+            System.out.println("               from here, you can use the above"
+                    + " commands in a single session");
+            System.out.println("               use 'exit' command to quit "
+                    + "interpreter");
+        } else { 
+            System.out.println("   exit        exit interpreter mode");
+        }
     }
 }
 
