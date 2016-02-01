@@ -41,14 +41,14 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 /**
- * The S3Manager manages the AmazonS3 library for this application. Functions include Bucket creation, bucket deletion,
- * object up/download
+ * The S3Manager manages the AmazonS3 library for this application. Functions 
+ * include Bucket creation, bucket deletion, object up/download
  */
 public class S3Manager {
 
     /**
-     * Downloads an object from S3, decrypts it using the SAIFE library, and saves it. Note: Some S3 operations have
-     * financial penalties.
+     * Downloads an object from S3, decrypts it using the SAIFE library, and 
+     * saves it. Note: Some S3 operations have financial penalties.
      * 
      * @param fname the file to retrieve from S3
      * @param outName the file to save to
@@ -71,7 +71,8 @@ public class S3Manager {
             File f = null;
             try {
                 f = new File(oName);
-                is = saifeManager.getNS().getDecryptStream(saifeManager.getPersister().getInputStream(bucketName, fname));
+                is = saifeManager.getNS().getDecryptStream(saifeManager
+                        .getPersister().getInputStream(bucketName, fname));
                 os = new FileOutputStream(f);
 
                 final byte[] block = new byte[1024];
@@ -102,8 +103,8 @@ public class S3Manager {
         }
 
     /**
-     * Encrypts a file with the SAIFE library and then uploads it to Amazon S3 Note: some S3 operations have financial
-     * penalties.
+     * Encrypts a file with the SAIFE library and then uploads it to Amazon S3 
+     * Note: some S3 operations have financial penalties.
      * 
      * @param f the path to a file.
      * @return true if the write is completed
@@ -116,9 +117,11 @@ public class S3Manager {
         OutputStream os = null;
 
         try {
-            os = saifeManager.getNS().getEncryptStream(saifeManager.getNewS3Stream(f.getName()));
+            os = saifeManager.getNS().getEncryptStream(saifeManager
+                    .getNewS3Stream(f.getName()));
         } catch (final IOException e1) {
-            System.out.println(" Failed to open a new encryption stream for " + f.getName());
+            System.out.println(" Failed to open a new encryption stream for " 
+                    + f.getName());
         }
 
         try {
@@ -139,7 +142,8 @@ public class S3Manager {
                 try {
                     os.write(block, 0, size);
                 } catch (final IOException writefail) {
-                    System.out.println("Failed to write to output stream to create file: " + fname);
+                    System.out.println("Failed to write to output stream to "
+                            + "create file: " + fname);
                     break;
                 }
             }
@@ -181,16 +185,19 @@ public class S3Manager {
         final List<String> names = new Vector<String>();
 
         final ObjectListing objectListing = s3
-            .listObjects(new ListObjectsRequest().withBucketName(bucketName).withPrefix(""));
+            .listObjects(new ListObjectsRequest().withBucketName(bucketName)
+                    .withPrefix(""));
 
-        for (final S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
+        for (final S3ObjectSummary objectSummary : objectListing
+                .getObjectSummaries()) {
             names.add(objectSummary.getKey());
         }
         return names;
     }
 
     /**
-     * Looks for the buckets assigned to the current account. (According to the credentials used in this code.)
+     * Looks for the buckets assigned to the current account. (According to the
+     * credentials used in this code.)
      * 
      * @return a list of S3 bucket names.
      */
@@ -203,17 +210,19 @@ public class S3Manager {
             }
 
         } catch (final AmazonServiceException ase) {
-            System.out.println("Caught an AmazonServiceException, which means your request made it "
-                    + "to Amazon S3, but was rejected with an error response for some reason.");
+            System.out.println("Caught an AmazonServiceException, which means "
+                    + "your request made it to Amazon S3, but was rejected "
+                    + "with an error response for some reason.");
             System.out.println("Error Message:    " + ase.getMessage());
             System.out.println("HTTP Status Code: " + ase.getStatusCode());
             System.out.println("AWS Error Code:   " + ase.getErrorCode());
             System.out.println("Error Type:       " + ase.getErrorType());
             System.out.println("Request ID:       " + ase.getRequestId());
         } catch (final AmazonClientException ace) {
-            System.out.println("Caught an AmazonClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with S3, "
-                    + "such as not being able to access the network.");
+            System.out.println("Caught an AmazonClientException, which means "
+                    + "the client encountered a serious internal problem while "
+                    + "trying to communicate with S3, such as not being able "
+                    + "to access the network.");
             System.out.println("Error Message: " + ace.getMessage());
         }
 
@@ -230,7 +239,8 @@ public class S3Manager {
     AmazonS3 s3;
 
     /**
-     * This class doesn't wrap every trivial use of the saifeManager. Pass a handle to other classes for simple calls.
+     * This class doesn't wrap every trivial use of the saifeManager. Pass a 
+     * handle to other classes for simple calls.
      * 
      * @return a SAIFE handle
      */
@@ -248,8 +258,8 @@ public class S3Manager {
     }
 
     /**
-     * When the SaifeManager is initialized it gets a handle for this S3Manager. This class uses the saifeManager handle
-     * for crypto operations after that.
+     * When the SaifeManager is initialized it gets a handle for this S3Manager.
+     * This class uses the saifeManager handle for crypto operations after that.
      * 
      * @param sm a manager
      */
@@ -258,7 +268,8 @@ public class S3Manager {
     }
 
     /**
-     * This class doesn't wrap all the trivial S3 operations. provide a handle to s3 for that.
+     * This class doesn't wrap all the trivial S3 operations. Provide a handle 
+     * to s3 for that.
      * 
      * @return the direct handle to the Amazon S3 manager
      */
@@ -293,9 +304,11 @@ public class S3Manager {
         try {
             credentials = new ProfileCredentialsProvider(me).getCredentials();
         } catch (final Exception e) {
-            throw new AmazonClientException("Cannot load the credentials from the credential profiles file. "
-                    + "Please make sure that your credentials file is at the correct "
-                    + "location (/home/builder/.aws/credentials), and is in valid format.", e);
+            throw new AmazonClientException("Cannot load the credentials from "
+                    + "the credential profiles file. Please make sure that "
+                    + "your credentials file is at the correct location "
+                    + "(/home/builder/.aws/credentials), and is in valid "
+                    + "format.", e);
         }
 
         s3 = new AmazonS3Client(credentials);
@@ -331,17 +344,19 @@ public class S3Manager {
                 s3.createBucket(bucketName);
             }
         } catch (final AmazonServiceException ase) {
-            System.out.println("Caught an AmazonServiceException, which means your request made it "
-                    + "to Amazon S3, but was rejected with an error response for some reason.");
+            System.out.println("Caught an AmazonServiceException, which means "
+                    + "your request made it to Amazon S3, but was rejected "
+                    + "with an error response for some reason.");
             System.out.println("Error Message:    " + ase.getMessage());
             System.out.println("HTTP Status Code: " + ase.getStatusCode());
             System.out.println("AWS Error Code:   " + ase.getErrorCode());
             System.out.println("Error Type:       " + ase.getErrorType());
             System.out.println("Request ID:       " + ase.getRequestId());
         } catch (final AmazonClientException ace) {
-            System.out.println("Caught an AmazonClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with S3, "
-                    + "such as not being able to access the network.");
+            System.out.println("Caught an AmazonClientException, which means "
+                    + "the client encountered a serious internal problem while "
+                    + "trying to communicate with S3, such as not being able "
+                    + "to access the network.");
             System.out.println("Error Message: " + ace.getMessage());
         }
 
@@ -349,9 +364,11 @@ public class S3Manager {
     }
 
     /**
-     * Create a new S3 bucket for this user's account. Note: some of these operations have financial penalties.
+     * Create a new S3 bucket for this user's account. Note: some of these 
+     * operations have financial penalties.
      * 
-     * @param name is the name for a new bucket. a UUID is added to make it unique.
+     * @param name is the name for a new bucket. A UUID is added to make it 
+     * unique.
      */
     public void addNewBucket(final String name) {
         /*
@@ -364,17 +381,19 @@ public class S3Manager {
         try {
             s3.createBucket(aName);
         } catch (final AmazonServiceException ase) {
-            System.out.println("Caught an AmazonServiceException, which means your request made it "
-                    + "to Amazon S3, but was rejected with an error response for some reason.");
+            System.out.println("Caught an AmazonServiceException, which means "
+                    + "your request made it to Amazon S3, but was rejected "
+                    + "with an error response for some reason.");
             System.out.println("Error Message:    " + ase.getMessage());
             System.out.println("HTTP Status Code: " + ase.getStatusCode());
             System.out.println("AWS Error Code:   " + ase.getErrorCode());
             System.out.println("Error Type:       " + ase.getErrorType());
             System.out.println("Request ID:       " + ase.getRequestId());
         } catch (final AmazonClientException ace) {
-            System.out.println("Caught an AmazonClientException, which means the client encountered "
-                    + "a serious internal problem while trying to communicate with S3, "
-                    + "such as not being able to access the network.");
+            System.out.println("Caught an AmazonClientException, which means "
+                    + "the client encountered a serious internal problem while "
+                    + "trying to communicate with S3, such as not being able "
+                    + "to access the network.");
             System.out.println("Error Message: " + ace.getMessage());
         }
 

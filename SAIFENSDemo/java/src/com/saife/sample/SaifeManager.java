@@ -56,14 +56,16 @@ import com.saife.management.ManagementService.ManagementState;
 import com.saife.management.UnlockRequiredException;
 
 /**
- * The SaifeManager manages the SAIFE library and all the local classes needed to support a SAIFE NetworkShare,
- * including the PersistedObject and PersistentStore classes. This also supports any other SAIFE library calls needed by
- * the application.
+ * The SaifeManager manages the SAIFE library and all the local classes needed 
+ * to support a SAIFE NetworkShare, including the PersistedObject and 
+ * PersistentStore classes. This also supports any other SAIFE library calls 
+ * needed by the application.
  */
 public class SaifeManager {
 
     /**
-     * The S3OutputStream extends the output stream to handle S3 specific implementations.
+     * The S3OutputStream extends the output stream to handle S3 specific 
+     * implementations.
      */
     public class S3OutputStream extends OutputStream {
 
@@ -100,7 +102,8 @@ public class SaifeManager {
         }
 
         @Override
-        public void write(final byte[] b, final int off, final int len) throws IOException {
+        public void write(final byte[] b, final int off, final int len) 
+                throws IOException {
             objectData.write(b, off, len);
         }
 
@@ -125,17 +128,20 @@ public class SaifeManager {
 
             final File file = toFile();
             if (null != file) {
-                s3m.getS3Mgr().putObject(new PutObjectRequest(s3m.getBucket(), objectName, file));
+                s3m.getS3Mgr().putObject(new PutObjectRequest(s3m.getBucket(), 
+                            objectName, file));
                 file.delete();
             } else {
-                System.out.println("writeOut: Uploadable persistent object without a file.");
+                System.out.println("writeOut: Uploadable persistent object "
+                        + "without a file.");
             }
             objectData.reset();
         }
 
         /**
-         * S3 uploads entire files, so the easiest thing is to create a temp file and let Amazon handle it. The temp file is
-         * encrypted and secure, just like the data stored in S3. Also only temporary.
+         * S3 uploads entire files, so the easiest thing is to create a temp 
+         * file and let Amazon handle it. The temp file is encrypted and 
+         * secure, just like the data stored in S3. Also only temporary.
          * 
          * @return File. Deleted after use.
          */
@@ -154,7 +160,8 @@ public class SaifeManager {
             try {
                 os = new FileOutputStream(file);
             } catch (final FileNotFoundException e) {
-                System.out.println("getFile: could not create an output stream.");
+                System.out.println("getFile: could not create an output "
+                        + "stream.");
                 file.delete();
                 e.printStackTrace();
                 return null;
@@ -185,7 +192,8 @@ public class SaifeManager {
     }
 
     /**
-     * The saifeUpdater. The SAIFE library needs to updated successfully at least once. The thread can go away after that.
+     * The saifeUpdater. The SAIFE library needs to updated successfully at 
+     * least once. The thread can go away after that.
      */
     public class SaifeUpdater implements Runnable {
 
@@ -193,7 +201,8 @@ public class SaifeManager {
          * 
          */
         public void registerForContactupdates() {
-            class Listener implements ContactListUpdateListener, ContactListUpdateCallback {
+            class Listener implements ContactListUpdateListener, 
+                  ContactListUpdateCallback {
 
                 @Override
                 public void contactListUpdated() {
@@ -213,7 +222,8 @@ public class SaifeManager {
                     saife.updateSaifeData();
                     saifeUpdated = true;
                 } catch (final InvalidManagementStateException e) {
-                    System.out.println("saifeUpdater: InvalidManagementStateException.");
+                    System.out.println("saifeUpdater: "
+                            + "InvalidManagementStateException.");
                 } catch (final IOException e) {
                     System.out.println("saifeUpdater: IOException.");
                 }
@@ -228,12 +238,14 @@ public class SaifeManager {
     }
 
     /**
-     * The AnObject, This class derives PersistedObjects to track the local objects
+     * The AnObject, This class derives PersistedObjects to track the local 
+     * objects
      */
     public class AnObject implements PersistedObject {
 
         /**
-         * The objName. The persisted object name. In this example it maps to the S3 object name.
+         * The objName. The persisted object name. In this example it maps to 
+         * the S3 object name.
          */
         String objName;
 
@@ -274,7 +286,8 @@ public class SaifeManager {
     }
 
     /**
-     * The Persister. The PersistentStore manages the storage and retrieval of black data on behalf of the NetworkShare
+     * The Persister. The PersistentStore manages the storage and retrieval of
+     * black data on behalf of the NetworkShare
      * (Check SAIFE documentation for specifics)
      */
     public class Persister implements PersistentStore {
@@ -286,9 +299,11 @@ public class SaifeManager {
         }
 
         @Override
-        public List<PersistedObject> getObjects(final String storagePath, final String prefix) throws IOException {
+        public List<PersistedObject> getObjects(final String storagePath, 
+                final String prefix) throws IOException {
 
-            final List<PersistedObject> returnObjects = new Vector<PersistedObject>();
+            final List<PersistedObject> returnObjects = 
+                new Vector<PersistedObject>();
             returnObjects.clear();
 
             for (final String name : s3m.listObjects()) {
@@ -314,19 +329,23 @@ public class SaifeManager {
                     }
                     test.s3Data.close();
                 } catch (final IOException e) {
-                    System.out.println("releaseObjects: failed to close " + po.getName());
+                    System.out.println("releaseObjects: failed to close " 
+                            + po.getName());
                 } catch (final Exception e1) {
                     // should not get here.
-                    System.out.println("releaseObjects: Invalid err handling: " + po.getName());
+                    System.out.println("releaseObjects: Invalid err handling: "
+                            + po.getName());
                 }
             }
         }
 
         @SuppressWarnings("resource")
         @Override
-        public InputStream getInputStream(final PersistedObject object) throws IOException {
+        public InputStream getInputStream(final PersistedObject object) 
+                throws IOException {
 
-            final S3Object s3object = s3m.getS3Mgr().getObject(new GetObjectRequest(s3m.getBucket(), object.getName()));
+            final S3Object s3object = s3m.getS3Mgr().getObject(
+                    new GetObjectRequest(s3m.getBucket(), object.getName()));
 
             // This must be closed via the NS
             return s3object.getObjectContent();
@@ -334,10 +353,12 @@ public class SaifeManager {
 
         @SuppressWarnings("resource")
         @Override
-        public InputStream getInputStream(final String storagePath, final String name) throws IOException {
+        public InputStream getInputStream(final String storagePath, 
+                final String name) throws IOException {
 
             // ignoring storage path in this example everything is flat.
-            final S3Object s3object = s3m.getS3Mgr().getObject(new GetObjectRequest(s3m.getBucket(), name));
+            final S3Object s3object = s3m.getS3Mgr().getObject(
+                    new GetObjectRequest(s3m.getBucket(), name));
 
             // This must be closed via the NS
             return s3object.getObjectContent();
@@ -349,12 +370,14 @@ public class SaifeManager {
         }
 
         @Override
-        public OutputStream getOutputStream(final PersistedObject object) throws IOException {
+        public OutputStream getOutputStream(final PersistedObject object) 
+                throws IOException {
 
             // return the local object stream
             if (object instanceof AnObject) {
 
-                System.out.println("Found local object " + object.getName() + " returning local stream.");
+                System.out.println("Found local object " + object.getName() 
+                        + " returning local stream.");
                 final AnObject theObj = (AnObject) object;
                 return theObj.getStream();
 
@@ -365,7 +388,8 @@ public class SaifeManager {
         }
 
         @Override
-        public OutputStream getOutputStream(final String storagePath, final String name) throws IOException {
+        public OutputStream getOutputStream(final String storagePath, 
+                final String name) throws IOException {
             return new S3OutputStream(name);
         }
 
@@ -375,12 +399,14 @@ public class SaifeManager {
         }
 
         @Override
-        public void deleteObject(final PersistedObject object) throws IOException {
+        public void deleteObject(final PersistedObject object) 
+                throws IOException {
             s3m.deleteObject(object.getName());
         }
 
         @Override
-        public void deleteObject(final String storagePath, final String name) throws IOException {
+        public void deleteObject(final String storagePath, final String name) 
+                throws IOException {
             s3m.deleteObject(name);
         }
     }
@@ -509,9 +535,11 @@ public class SaifeManager {
      */
     public boolean saifeInit() {
         // The consoleSink logger, logs to console.
-        final LogSinkManager logMgr = LogSinkFactory.constructConsoleSinkManager();
+        final LogSinkManager logMgr = 
+            LogSinkFactory.constructConsoleSinkManager();
 
-        // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
+        // Create instance of SAIFE. A log manager may be optionally specified 
+        // to redirect SAIFE logging.
         saife = SaifeFactory.constructSaife(logMgr);
 
         // Set SAIFE logging level
@@ -524,32 +552,40 @@ public class SaifeManager {
         try {
             final ManagementState state = saife.initialize(defaultKeyStore);
             if (state == ManagementState.UNKEYED) {
-                // The UNKEYED state is returned when SAIFE doesn't have a public/private key pair.
+                // The UNKEYED state is returned when SAIFE doesn't have a 
+                // public/private key pair.
 
                 // Setup the DN attributes to be used in the X509 certificate.
                 final DistinguishedName dn = new DistinguishedName("SaifeEcho");
 
-                // Generate the public/private key pair and certificate signing request.
-                final CertificationSigningRequest csr = saife.generateSmCsr(dn, defaultPassword);
+                // Generate the public/private key pair and certificate 
+                // signing request.
+                final CertificationSigningRequest csr = saife.generateSmCsr(dn,
+                        defaultPassword);
 
-                // Add additional capabilities to the SAIFE capabilities list that convey the application specific capabilities.
+                // Add additional capabilities to the SAIFE capabilities list 
+                // that convey the application specific capabilities.
                 final List<String> capabilities = csr.getCapabilities();
                 capabilities.add("com::saife::demo::ns");
 
-                // Provide CSR and capabilities (JSON string) to user for provisioning.
+                // Provide CSR and capabilities (JSON string) to user for 
+                // provisioning.
                 // The application must restart from the UNKEYED state.
-                final PrintWriter f = new PrintWriter(defaultKeyStore + "/newkey.smcsr");
+                final PrintWriter f = new PrintWriter(defaultKeyStore 
+                        + "/newkey.smcsr");
                 f.println("CSR: " + csr.getEncodedCsr());
                 final Gson gson = new Gson();
                 f.println("CAPS: " + gson.toJson(capabilities));
                 f.close();
 
                 System.out.println("SAIFE generated " + defaultKeyStore
-                        + "/newkey.smcsr which contains a certificate and capabilities to provision at the SAIFE dashboard.");
+                        + "/newkey.smcsr which contains a certificate and "
+                        + "capabilities to provision at the SAIFE dashboard.");
                 return false;
             }
         } catch (final InvalidManagementStateException e) {
-            System.out.println("SAIFE entered an invalid or unrecoverable state.");
+            System.out.println("SAIFE entered an invalid or unrecoverable "
+                    + "state.");
         } catch (final FileNotFoundException e) {
             System.out.println("File Not Found (smcsr)");
             e.printStackTrace();
@@ -575,11 +611,13 @@ public class SaifeManager {
     }
 
     /**
-     * runNS() Starts a NetworkShare and uses it to upload/download encrypted content.
+     * runNS() Starts a NetworkShare and uses it to upload/download encrypted 
+     * content.
      */
     public void runNS() {
 
-        // SAIFE should be initialized by now. Make sure update completes before continuing.
+        // SAIFE should be initialized by now. Make sure update completes 
+        // before continuing.
         final Thread t = new Thread(new SaifeUpdater());
         t.start();
 
@@ -605,7 +643,8 @@ public class SaifeManager {
         // we will need our contact info for the groups
         saife.subscribe();
 
-        // Start a PersistentStore so the network share can do its reads and writes
+        // Start a PersistentStore so the network share can do its reads and 
+        // writes
         blackDataHandler = newPersister();
 
         //
@@ -614,9 +653,10 @@ public class SaifeManager {
         final NetworkShareManager mgr = new NetworkShareManager(saife);
 
         //
-        // This will load a NetworkShare, including the network share keys. In this example,
-        // blackDataHandler is used by the network share to interact with S3. If a share with
-        // the given bucketName does not exist, getNetworkShare will throw an exception
+        // This will load a NetworkShare, including the network share keys. In
+        // this example, blackDataHandler is used by the network share to 
+        // interact with S3. If a share with the given bucketName does not 
+        // exist, getNetworkShare will throw an exception
         //
 
         try {
@@ -625,25 +665,30 @@ public class SaifeManager {
             System.out.println("getNetworkShare IO exception!");
             return;
         } catch (final NetworkShareDoesNotExistException e1) {
-            System.out.println("NetworkShareDoesNotExistException.  Creating NetworkShare.");
+            System.out.println("NetworkShareDoesNotExistException.  Creating "
+                    + "NetworkShare.");
             try {
                 //
-                // This will create a new NetworkShare, network share keys are created and encrypted. blackDataHandler
-                // is used to save the resulting encrypted meta data to S3.
+                // This will create a new NetworkShare, network share keys are 
+                // created and encrypted. blackDataHandler is used to save the
+                // resulting encrypted meta data to S3.
                 //
-                ns = mgr.createNetworkShare(s3m.getBucket(), "/", blackDataHandler);
+                ns = mgr.createNetworkShare(s3m.getBucket(), "/", 
+                        blackDataHandler);
             } catch (final IOException e) {
                 System.out.println("CreateNetworkShare IOException");
                 e.printStackTrace();
                 return;
             } catch (final NetworkShareExistsException e) {
-                System.out.println("Unrecoverable NetworkShareExistsException, since GetNetworkShare also failed.");
+                System.out.println("Unrecoverable NetworkShareExistsException, "
+                        + "since GetNetworkShare also failed.");
                 return;
             }
         }
 
         /*
-         * SAIFE has set up the network share, now it can be used to encrypt and decrypt content
+         * SAIFE has set up the network share, now it can be used to encrypt 
+         * and decrypt content
          */
         return;
     }
