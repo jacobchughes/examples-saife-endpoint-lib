@@ -158,7 +158,7 @@ public class S3Sample {
             case "exit":
                 break;
             default:
-                System.out.println("Unknown option:    " + args[0]);
+                System.out.println("Unknown command:    " + args[0]);
                 break;
         }
     }
@@ -170,7 +170,10 @@ public class S3Sample {
     private static void listShares()
     {
         List<String> buckets = s3m.listBuckets();
-        System.out.println(">>detected buckets:");
+        if (buckets.size() == 0) {
+            System.out.println("");
+        }
+
         for (String b : buckets) {
             System.out.println("    " + b);
         }
@@ -190,6 +193,10 @@ public class S3Sample {
         }
 
         List<String> files = s3m.listFiles();
+        if (files.size() == 0) {
+            System.out.println("");
+        }
+
         for (String f : files) {
             System.out.println("    " + f);
         }
@@ -207,9 +214,14 @@ public class S3Sample {
         if (s3m.doesBucketExist(share)) {
             s3m.setBucket(share);
             saifeManager.setupNS();
-            for (String file : files) {
-                System.out.println("Uploading " + file + "...");
-                s3m.upload(new File(file));
+            for (String fileName : files) {
+                System.out.println("Uploading " + fileName + "...");
+                File file = new File(fileName);
+                if (file.exists()) {
+                    s3m.upload(file);
+                } else {
+                    System.out.println("File " + file + " does not exist");
+                }
             }
         } else {
             System.out.println("Bucket " + share + " does not exist");
@@ -243,6 +255,18 @@ public class S3Sample {
 
         // }
 
+        return true;
+    }
+
+    /**
+     * method to remove a file from a network share
+     *
+     * @param share     the network share to delete from
+     * @param files     the list of files to delete
+     * @return  true of success
+     */
+    public boolean removefiles(String share, String[] files) {
+        // @TODO implement removefiles;
         return true;
     }
 
