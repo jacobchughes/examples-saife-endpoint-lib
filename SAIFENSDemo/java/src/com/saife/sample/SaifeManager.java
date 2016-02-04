@@ -139,6 +139,7 @@ public class SaifeManager {
          * 
          * @return File. Deleted after use.
          */
+        @SuppressWarnings("resource")
         public File toFile() {
             File file;
             try {
@@ -307,6 +308,10 @@ public class SaifeManager {
             for (final PersistedObject po : releaseObjects) {
                 try {
                     final AnObject test = (AnObject) po;
+                    if (null == test.s3Data) {
+                        System.out.println("Object's S3Data is null");
+                        throw new NullPointerException();
+                    }
                     test.s3Data.close();
                 } catch (final IOException e) {
                     System.out.println("releaseObjects: failed to close " + po.getName());
@@ -402,9 +407,8 @@ public class SaifeManager {
     public boolean excludeMemberFromShare(final String name) {
         try {
             List<Contact> cl = saife.getContactsByName(name);
-            for (final Contact c : cl) {
-                ns.removeMember(c.getFingerprint());
-            }
+            Contact c = cl.get(0);
+            ns.removeMember(c.getFingerprint());
         } catch (final NoSuchContactException e) {
             return false;
         } catch (final InvalidManagementStateException e) {
@@ -428,11 +432,9 @@ public class SaifeManager {
      */
     public boolean addToShare(final String name) {
         try {
-            List<Contact> cl = saife.getContactsByName(name);
-            for (final Contact c : cl) {
-                ns.addMember(c);
-            }
-
+            List<Contact> list = saife.getContactsByName(name);
+            final Contact c = list.get(0);
+            ns.addMember(c);
         } catch (final NoSuchContactException e) {
             return false;
         } catch (final InvalidManagementStateException e) {
@@ -513,7 +515,9 @@ public class SaifeManager {
         saife = SaifeFactory.constructSaife(logMgr);
 
         // Set SAIFE logging level
+        // @TODO remove trace
         saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
         /**
          * SAIFE initialization
          */
@@ -612,7 +616,7 @@ public class SaifeManager {
         //
         // This will load a NetworkShare, including the network share keys. In this example,
         // blackDataHandler is used by the network share to interact with S3. If a share with
-        // the given bucketName does not exist, getNetowrkShare will throw an exception
+        // the given bucketName does not exist, getNetworkShare will throw an exception
         //
 
         try {
