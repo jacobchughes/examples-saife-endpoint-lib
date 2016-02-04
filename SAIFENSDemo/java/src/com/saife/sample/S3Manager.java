@@ -186,9 +186,8 @@ public class S3Manager {
     public List<String> listObjects() {
         final List<String> names = new Vector<String>();
 
-        // use `.NSK.` delimiter to hide NSKs from user
         final ListObjectsRequest objectRequest = new ListObjectsRequest()
-            .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
+            .withBucketName(bucketName).withPrefix("");
         final ObjectListing objectListing = s3.listObjects(objectRequest);
 
         for (final S3ObjectSummary objectSummary : objectListing
@@ -296,7 +295,7 @@ public class S3Manager {
     }
 
     /**
-     * Initialise the amazon S3 toolkit. Checks the credentials.
+     * Initialize the amazon S3 toolkit. Checks the credentials.
      */
     void initS3() {
         // S3 credential identity
@@ -359,4 +358,49 @@ public class S3Manager {
         }
 
     }
+
+    /**
+     * Wrapper method to check for bucket existence
+     *
+     * @param bucket    name of the bucket to check existence of
+     * @return  true if exists
+     */
+    public boolean doesBucketExist(String bucket) {
+        return this.s3.doesBucketExist(bucket);
+    }
+
+    /**
+     * Method to check the contents of a bucket, ignoring NSKs
+     *
+     * @param fileName  file to check of containment
+     * @return  true if contains
+     */
+    public boolean doesBucketContain(String fileName) {
+        final List<String> files = this.listFiles();
+        if (files.contains(fileName)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Searches for files in the current S3 bucket, ignoring NSKs
+     * 
+     * @return the object tags
+     */
+    public List<String> listFiles() {
+        final List<String> names = new Vector<String>();
+
+        // filter out NSKs by using `.NSK.` delimiter
+        final ListObjectsRequest objectRequest = new ListObjectsRequest()
+            .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
+        final ObjectListing objectListing = s3.listObjects(objectRequest);
+
+        for (final S3ObjectSummary objectSummary : objectListing
+                .getObjectSummaries()) {
+            names.add(objectSummary.getKey());
+        }
+        return names;
+    }
+
 }
