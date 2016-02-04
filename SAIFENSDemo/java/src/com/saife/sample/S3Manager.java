@@ -186,7 +186,7 @@ public class S3Manager {
     public List<String> listObjects() {
         final List<String> names = new Vector<String>();
 
-        // use .NKS. delimiter to hide NSKs from user
+        // use `.NSK.` delimiter to hide NSKs from user
         final ListObjectsRequest objectRequest = new ListObjectsRequest()
             .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
         final ObjectListing objectListing = s3.listObjects(objectRequest);
