@@ -186,9 +186,10 @@ public class S3Manager {
     public List<String> listObjects() {
         final List<String> names = new Vector<String>();
 
-        final ObjectListing objectListing = s3
-            .listObjects(new ListObjectsRequest().withBucketName(bucketName)
-                    .withPrefix(""));
+        // use .NKS. delimiter to hide NSKs from user
+        final ListObjectsRequest objectRequest = new ListObjectsRequest()
+            .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
+        final ObjectListing objectListing = s3.listObjects(objectRequest);
 
         for (final S3ObjectSummary objectSummary : objectListing
                 .getObjectSummaries()) {
