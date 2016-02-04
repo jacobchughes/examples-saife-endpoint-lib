@@ -698,31 +698,6 @@ public class SaifeManager {
     }
 
     /**
-     * Locks the SAIFE library for further access
-     *
-     * @return  true on success
-     */
-    public boolean saifeLock() {
-
-        try {
-            if (saife.isUnlocked()) {
-                saife.lock();
-            } else {
-                System.out.println("SAIFE lib is locked");
-            }
-
-            if (saife.isUnlocked()) {
-                System.out.println("SAIFE did not lock");
-            }
-        } catch (final InvalidManagementStateException e1) {
-            e1.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Does some preparation for running commands through SAIFE library
      */
     public void saifePrepare() {
