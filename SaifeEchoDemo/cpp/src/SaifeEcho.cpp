@@ -341,7 +341,7 @@ int main(int argc, char *argv[]) {
 
     // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
     SaifeFactory factory;
-    saife_ptr = factory.ConstructLocalSaife(NULL);
+    saife_ptr = factory.ConstructLocalSaife(logMgr);
 
     // Set SAIFE logging level
     saife_ptr->SetSaifeLogLevel(LogSinkInterface::SAIFE_LOG_WARNING);

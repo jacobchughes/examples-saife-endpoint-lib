@@ -61,9 +61,10 @@ public class SaifeManager implements PasswordResetListener {
    */
   public boolean init(String password, Context context) throws Exception {
     try {
+      final LogSinkManager logMgr = LogSinkFactory.constructConsoleSinkManager();
 
       // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
-      saife = SaifeFactory.constructSaife(null);
+      saife = SaifeFactory.constructSaife(logMgr);
 
       File saifeDir = context.getDir(DEFAULT_KEYSTORE, Context.MODE_WORLD_READABLE);
 

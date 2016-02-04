@@ -80,10 +80,10 @@ public class SaifeEcho implements Runnable {
     // Initialize SAIFE
     try {
       // final LogSinkManager logMgr = LogSinkFactory.constructFileSinkManager(defaultKeyStore + "/log");
-      // final LogSinkManager logMgr = LogSinkFactory.constructConsoleSinkManager();
+      final LogSinkManager logMgr = LogSinkFactory.constructConsoleSinkManager();
 
       // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
-      saife = SaifeFactory.constructSaife(null);
+      saife = SaifeFactory.constructSaife(logMgr);
 
       // Set SAIFE logging level
       saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
