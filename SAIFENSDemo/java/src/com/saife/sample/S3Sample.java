@@ -137,14 +137,14 @@ public class S3Sample {
                 if (argslen < 3) {
                     help("push");
                 } else {
-                    pushFiles(args[1], Arrays.copyOfRange(args, 2, argslen-1));
+                    pushFiles(args[1], Arrays.copyOfRange(args, 2, argslen));
                 }
                 break;
             case "pull":
                 if (argslen < 3) {
                     help("pull");
                 } else {
-                    pullFiles(args[1], Arrays.copyOfRange(args, 2, argslen-1));
+                    pullFiles(args[1], Arrays.copyOfRange(args, 2, argslen));
                 }
                 break;
             case "list":
@@ -177,6 +177,76 @@ public class S3Sample {
     }
 
     /**
+     * method to list the files within a network share
+     *
+     * @param share     the network share to list files in
+     */
+    private static void listFiles(String share) {
+        if (s3m.doesBucketExist(share)) {
+            s3m.setBucket(share);
+        } else {
+            System.out.println("Network Share " + share + " does not exist");
+            return;
+        }
+
+        List<String> files = s3m.listFiles();
+        for (String f : files) {
+            System.out.println("    " + f);
+        }
+
+    }
+
+    /**
+     * method to push one or more files to a network share
+     *
+     * @param share     the network share to push to
+     * @param files     the list of files to push
+     * @return  true if success
+     */
+    private static boolean pushFiles(String share, String[] files) {
+        if (s3m.doesBucketExist(share)) {
+            s3m.setBucket(share);
+            saifeManager.setupNS();
+            for (String file : files) {
+                System.out.println("Uploading " + file + "...");
+                s3m.upload(new File(file));
+            }
+        } else {
+            System.out.println("Bucket " + share + " does not exist");
+            return false; 
+        }
+        return true;
+    }
+
+    /**
+     * method to pull one or more files form a network share
+     *
+     * @param share     the network share to pull from
+     * @param files     the list of files to pull
+     * @return  true if success
+     */
+    private static boolean pullFiles(String share, String[] files) {
+        // if (s3m.doesBucketExist(share)) {
+        //     s3m.setBucket(share);
+        // } else {
+        //     System.out.println("Network Share " + share + " does not exist");
+        //     return false;
+        // }
+
+        // for (String file : files) {
+        //     if (s3m.doesBucketContain(file)) {
+        //         s3m.download(file, null);
+        //     } else {
+        //         System.out.println("Bucket " + share + " does not contain "
+        //             + "the file " + file);
+        //     }
+
+        // }
+
+        return true;
+    }
+
+    /**
      * method to create one or more network shares
      *
      * @param share    name of share to create
@@ -195,53 +265,6 @@ public class S3Sample {
      */
     private static boolean deleteShare(String share) {
         System.out.println("Pretend that shares are being deleted here");
-        return true;
-    }
-
-    /**
-     * method to list the files within a network share
-     *
-     * @param share     the network share to list files in
-     */
-    private static void listFiles(String share) {
-        List<String> buckets = s3m.listBuckets();
-        if (buckets.contains(share)) {
-            s3m.setBucket(share);
-        } else {
-            System.out.println("Network Share " + share + " does not exist");
-            return;
-        }
-
-        List<String> files = s3m.listObjects();
-        // @TODO do we want to list NSKs?
-        System.out.println("Detected files:");
-        for (String f : files) {
-            System.out.println("    " + f);
-        }
-
-    }
-
-    /**
-     * method to push one or more files to a network share
-     *
-     * @param share     the network share to push to
-     * @param files     the list of files to push
-     * @return  true if success
-     */
-    private static boolean pushFiles(String share, String[] files) {
-        System.out.println("Pretend that files are being pushed here");
-        return true;
-    }
-
-    /**
-     * method to pull one or more files form a network share
-     *
-     * @param share     the network share to pull from
-     * @param files     the list of files to pull
-     * @return  true if success
-     */
-    private static boolean pullFiles(String share, String[] files) {
-        System.out.println("Pretend that files are being pulled here");
         return true;
     }
 
