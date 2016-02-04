@@ -174,7 +174,7 @@ public class S3Manager {
         try {
             s3.deleteObject(bucketName, tag);
         } catch (final AmazonClientException e) {
-            System.out.println("Failed to delet file: " + tag);
+            System.out.println("Failed to delete file: " + tag);
         }
     }
 

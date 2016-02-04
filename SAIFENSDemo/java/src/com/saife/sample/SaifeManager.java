@@ -201,6 +201,7 @@ public class SaifeManager {
         /**
          * 
          */
+        @SuppressWarnings("unused")
         public void registerForContactupdates() {
             class Listener implements ContactListUpdateListener, 
                   ContactListUpdateCallback {
@@ -546,7 +547,8 @@ public class SaifeManager {
 
         // Set SAIFE logging level
         // @TODO remove trace
-        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
+        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
         // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
         /**
          * SAIFE initialization
@@ -596,7 +598,7 @@ public class SaifeManager {
             e.printStackTrace();
         }
 
-        System.out.println("SAIFE has abeen initialized correctly.");
+        System.out.println("SAIFE has been initialized correctly.");
         return true;
     }
 
@@ -693,6 +695,117 @@ public class SaifeManager {
          * and decrypt content
          */
         return;
+    }
+
+    /**
+     * Locks the SAIFE library for further access
+     *
+     * @return  true on success
+     */
+    public boolean saifeLock() {
+
+        try {
+            if (saife.isUnlocked()) {
+                saife.lock();
+            } else {
+                System.out.println("SAIFE lib is locked");
+            }
+
+            if (saife.isUnlocked()) {
+                System.out.println("SAIFE did not lock");
+            }
+        } catch (final InvalidManagementStateException e1) {
+            e1.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Does some preparation for running commands through SAIFE library
+     */
+    public void saifePrepare() {
+        // SAIFE should be initialized by now. Make sure update completes 
+        // before continuing.
+        final Thread t = new Thread(new SaifeUpdater());
+        t.start();
+
+        // Unlock SAIFE library with user's credential
+        try {
+            saife.unlock(defaultPassword);
+        } catch (final InvalidCredentialException e1) {
+            e1.printStackTrace();
+        } catch (final InvalidManagementStateException e1) {
+            e1.printStackTrace();
+        }
+
+        // Update SAIFE after library is unlocked
+        while (!saifeUpdated) {
+            try {
+                System.out.println("Waiting for SAIFE update.");
+                Thread.sleep(5000);
+            } catch (final InterruptedException e) {
+
+            }
+        }
+
+        // we will need our contact info for the groups
+        saife.subscribe();
+
+    }
+
+    /**
+     * Sets up a Network Share
+     *
+     * @return  true if successful
+     */
+    public boolean setupNS() {
+
+        // Start a PersistentStore so the network share can do its reads and 
+        // writes
+        blackDataHandler = newPersister();
+
+        //
+        // This creates a network share manager.
+        //
+        final NetworkShareManager mgr = new NetworkShareManager(saife);
+
+        //
+        // This will load a NetworkShare, including the network share keys. In
+        // this example, blackDataHandler is used by the network share to 
+        // interact with S3. If a share with the given bucketName does not 
+        // exist, getNetworkShare will throw an exception
+        //
+
+        try {
+            ns = mgr.getNetworkShare(s3m.getBucket(), "/", blackDataHandler);
+        } catch (final IOException e1) {
+            System.out.println("getNetworkShare IO exception!");
+            return false;
+        } catch (final NetworkShareDoesNotExistException e1) {
+            System.out.println("NetworkShareDoesNotExistException.  Creating "
+                    + "NetworkShare.");
+            try {
+                //
+                // This will create a new NetworkShare, network share keys are 
+                // created and encrypted. blackDataHandler is used to save the
+                // resulting encrypted meta data to S3.
+                //
+                ns = mgr.createNetworkShare(s3m.getBucket(), "/", 
+                        blackDataHandler);
+            } catch (final IOException e) {
+                System.out.println("CreateNetworkShare IOException");
+                e.printStackTrace();
+                return false;
+            } catch (final NetworkShareExistsException e) {
+                System.out.println("Unrecoverable NetworkShareExistsException, "
+                        + "since GetNetworkShare also failed.");
+                return false;
+            }
+        }
+
+        return true;
     }
 
 }

@@ -55,14 +55,13 @@ public class S3Sample {
         s3m.initS3();
 
         // with S3 initialized the SAIFE manager can start
-        // saifeManager = new SaifeManager(s3m, defaultPassword);
-        // if(!saifeManager.saifeInit()) {
-        //     // SAIFE failed to initialize, stop the program
-        //     return;
-        // }
+        saifeManager = new SaifeManager(s3m, defaultPassword);
+        if(!saifeManager.saifeInit()) {
+            // SAIFE failed to initialize, stop the program
+            return;
+        }
 
-        // saifeManager.runNS();
-
+        saifeManager.saifePrepare();
 
     }
 
@@ -80,14 +79,12 @@ public class S3Sample {
             // print usage help if no arguments
             help(null);
         } else {
-
             if ("interp".equalsIgnoreCase(args[0])) {
                 String[] newargs;
                 isInterp = true;
                 do {
                     System.out.print("ns-cli> ");
                     newargs = keyboard.nextLine().split(" ");
-                    // runCommands(newargs, saifeManager, s3m);
                     runCommands(newargs);
                 } while (!"exit".equalsIgnoreCase(newargs[0]));
             } else {
@@ -161,7 +158,7 @@ public class S3Sample {
             case "exit":
                 break;
             default:
-                System.out.println("Unkown option:    " + args[0]);
+                System.out.println("Unknown option:    " + args[0]);
                 break;
         }
     }
@@ -172,7 +169,6 @@ public class S3Sample {
      */
     private static void listShares()
     {
-        System.out.println("Pretend that shares are being listed here");
         List<String> buckets = s3m.listBuckets();
         System.out.println(">>detected buckets:");
         for (String b : buckets) {
@@ -208,25 +204,20 @@ public class S3Sample {
      * @param share     the network share to list files in
      */
     private static void listFiles(String share) {
-        System.out.println("Pretend that files are being listed here");
-        s3m.setBucket(share);
-        
-        saifeManager = new SaifeManager(s3m, defaultPassword);
-        if(!saifeManager.saifeInit()) {
-            // SAIFE failed to initialize, stop the program
+        List<String> buckets = s3m.listBuckets();
+        if (buckets.contains(share)) {
+            s3m.setBucket(share);
+        } else {
+            System.out.println("Network Share " + share + " does not exist");
             return;
         }
 
-        saifeManager.runNS();
-
         List<String> files = s3m.listObjects();
+        // @TODO do we want to list NSKs?
         System.out.println("Detected files:");
         for (String f : files) {
             System.out.println("    " + f);
         }
-
-        // kill the manager, so we can create a new one later
-        saifeManager = null;
 
     }
 
@@ -250,7 +241,7 @@ public class S3Sample {
      * @return  true if success
      */
     private static boolean pullFiles(String share, String[] files) {
-        System.out.println("Pretend that files are being pulledd here");
+        System.out.println("Pretend that files are being pulled here");
         return true;
     }
 
