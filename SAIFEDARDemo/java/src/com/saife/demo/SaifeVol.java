@@ -162,14 +162,6 @@ public class SaifeVol implements Runnable {
   @Override
   public void run() {
 
-    try {
-      saife.updateSaifeData();
-    } catch (final InvalidManagementStateException e) {
-      e.printStackTrace();
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-
     // Unlock SAIFE library with user's credential.
     try {
       saife.unlock(defaultPassword);
@@ -177,6 +169,14 @@ public class SaifeVol implements Runnable {
       e1.printStackTrace();
     } catch (final InvalidManagementStateException e1) {
       e1.printStackTrace();
+    }
+
+    try {
+      saife.updateSaifeData();
+    } catch (final InvalidManagementStateException e) {
+      e.printStackTrace();
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
 
     // Set the desired characteristics of the volume.
