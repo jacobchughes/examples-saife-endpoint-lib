@@ -174,9 +174,6 @@ public class S3Sample {
     private static void listShares()
     {
         List<String> buckets = s3m.listBuckets();
-        if (buckets.size() == 0) {
-            System.out.println("");
-        }
 
         for (String b : buckets) {
             System.out.println("    " + b);
@@ -191,18 +188,10 @@ public class S3Sample {
     private static void listFiles(String share) {
         if (s3m.doesBucketExist(share)) {
             s3m.setBucket(share);
+            s3m.printFiles();
         } else {
             System.out.println("Network Share " + share + " does not exist");
             return;
-        }
-
-        List<String> files = s3m.listFiles();
-        if (files.size() == 0) {
-            System.out.println("");
-        }
-
-        for (String f : files) {
-            System.out.println("    " + f);
         }
 
     }
