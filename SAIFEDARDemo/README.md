@@ -21,14 +21,20 @@ Request(CSR).
 ~$ SAIFE_HOME=\<path to java lib\>; java -cp bin:$SAIFE_HOME/java-lib-2.0.1.jar:$SAIFE_HOME/guava-11.0.jar:gson-2.3.1.jar  -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.saifeVol
 </code>
 
-Provision this CSR via the [SAIFE Dashboard](dashboard.saifeinc.com).
+Provision this CSR via the [SAIFE Dashboard](https://dashboard.saifeinc.com).
 
 Run the program with the following arguments:
 
-    # this will retrieve a file <stored-file-name> and store it locally as <output-file-name>
+To retrieve a file <stored-file-name> and store it locally as
+<output-file-name>, use
+
     -f <stored-file-name> -o<output-file-name> 
-    # this will store a local file <input-file-name>
-    # the file must be in the current directory
+
+To store a local file <input-file-name>, use
+
     -s -f <input-file-name>
-    # this will remove and recreate the volume
+**NOTE**: the file *must* be in the same directory
+
+To remove and recreate the volume, use
+
     -r
