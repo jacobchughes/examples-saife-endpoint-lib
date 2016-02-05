@@ -18,6 +18,7 @@
  */
 package com.saife.sample;
 
+// import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+// import java.io.PrintStream;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -395,6 +397,10 @@ public class S3Manager {
         final ListObjectsRequest objectRequest = new ListObjectsRequest()
             .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
         final ObjectListing objectListing = s3.listObjects(objectRequest);
+
+        // output stream and print stream for formatting
+        // ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        // PrintStream ps = new PrintStream(baos);
 
         for (final S3ObjectSummary objectSummary : objectListing
                 .getObjectSummaries()) {
