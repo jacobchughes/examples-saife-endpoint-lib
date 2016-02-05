@@ -18,7 +18,6 @@
  */
 package com.saife.sample;
 
-// import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -26,7 +25,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-// import java.io.PrintStream;
 import java.util.List;
 import java.util.UUID;
 import java.util.Vector;
@@ -43,6 +41,10 @@ import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+
+import org.joda.time.DateTime;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 
 /**
  * The S3Manager manages the AmazonS3 library for this application. Functions 
@@ -398,15 +400,53 @@ public class S3Manager {
             .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
         final ObjectListing objectListing = s3.listObjects(objectRequest);
 
-        // output stream and print stream for formatting
-        // ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        // PrintStream ps = new PrintStream(baos);
-
         for (final S3ObjectSummary objectSummary : objectListing
                 .getObjectSummaries()) {
             names.add(objectSummary.getKey());
         }
         return names;
     }
+
+    /**
+     * Pretty prints the files in the currently selected share
+     */
+    public void printFiles() {
+
+        int keyMax = 0;
+        int dateMax = 10;
+        int sizeMax = 0;
+
+        // filter out NSKs by using `.NSK.` delimiter
+        final ListObjectsRequest objectRequest = new ListObjectsRequest()
+            .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
+        final ObjectListing objectListing = s3.listObjects(objectRequest);
+        final DateTimeFormatter isofmt = ISODateTimeFormat.dateTime();
+
+        for (final S3ObjectSummary objectSummary : objectListing
+                .getObjectSummaries()) {
+
+            sizeMax = (objectSummary.getSize() > sizeMax) 
+                ? Long.toString(objectSummary.getSize()).length() : sizeMax;
+
+            keyMax = (objectSummary.getKey().length() > keyMax) 
+                ? objectSummary.getKey().length() : keyMax;
+            
+        }
+
+        for (final S3ObjectSummary objectSummary : objectListing
+                .getObjectSummaries()) {
+            final long size = objectSummary.getSize();
+            final DateTime dt = new DateTime(objectSummary.getLastModified());
+            final String date = isofmt.print(dt);
+            final String key = objectSummary.getKey();
+            // @TODO make this slightly less ISO
+            // e.g. yyyy-mm-dd HH:MM
+            System.out.format(bucketName + "  %" + sizeMax + "dB %" + dateMax
+                + "s %-" + keyMax + "s%n", size, date, key);
+
+        }
+
+    }
+
 
 }
