@@ -25,16 +25,16 @@ Provision this CSR via the [SAIFE Dashboard](https://dashboard.saifeinc.com).
 
 Run the program with the following arguments:
 
-- to retrieve a file `stored-file-name` and store it locally as 
+To retrieve a file `stored-file-name` and store it locally as 
   `output-file-name`, use
 
     -f <stored-file-name> -o<output-file-name>
 
-- to store a local file `input-file-name`, use
+To store a local file `input-file-name`, use
 
     -s -f <input-file-name>
 **NOTE**: the file *must* be in the same directory
 
-- to remove and recreate the volume, use
+To remove and recreate the volume, use
 
-<code>-r</code>
+    -r
