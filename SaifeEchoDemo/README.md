@@ -1,7 +1,7 @@
 # Dependencies
 [gson](https://github.com/google/gson) - gson-2.3.1.jar or newer
 
-[SAIFE Endpoint Library](http://saifeinc.com/developers/libraries/) - version 2.0.1 or newer.  Contact SAIFE to obtain SAIFE Endpoint Library.
+[SAIFE Endpoint Library](http://saifeinc.com/developers/libraries/) - version 2.1.0 or newer.  Contact SAIFE to obtain SAIFE Endpoint Library.
 
 [SAIFE Management Dashboard](https://dashboard.saifeinc.com/) account with <i/>at least one</i> organization and group
 
