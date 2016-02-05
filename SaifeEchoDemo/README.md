@@ -24,7 +24,7 @@ To run as a messenger, give the following arguments:
 
     -c<servername> -msg <list of messages>
 
-Where <servername> is the name of the provisioned cert and <list of messages> is
+Where `servername` is the name of the provisioned cert and `list of messages` is
 a series of strings to send to the server.
 
 e.g.
