@@ -28,11 +28,15 @@ Run the program with the following arguments:
 - to retrieve a file `<stored-file-name>` and store it locally as 
   `<output-file-name>`, use
 
-<code>-f <stored-file-name> -o<output-file-name></code> 
+<code>
+-f <stored-file-name> -o<output-file-name>
+</code> 
 
 - to store a local file `<input-file-name>`, use
 
-<code>-s -f <input-file-name></code>
+<code>
+-s -f <input-file-name>
+</code>
 **NOTE**: the file *must* be in the same directory
 
 - to remove and recreate the volume, use
