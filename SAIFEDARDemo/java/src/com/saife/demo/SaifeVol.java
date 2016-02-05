@@ -16,7 +16,6 @@ import com.saife.Address;
 import com.saife.SaifeFactory;
 import com.saife.crypto.InvalidCredentialException;
 import com.saife.logging.LogSink.LogLevel;
-import com.saife.management.AdminLockedException;
 import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
@@ -177,8 +176,6 @@ public class SaifeVol implements Runnable {
     } catch (final InvalidCredentialException e1) {
       e1.printStackTrace();
     } catch (final InvalidManagementStateException e1) {
-      e1.printStackTrace();
-    } catch (final AdminLockedException e1) {
       e1.printStackTrace();
     }
 
