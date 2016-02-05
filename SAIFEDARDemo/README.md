@@ -25,14 +25,14 @@ Provision this CSR via the [SAIFE Dashboard](https://dashboard.saifeinc.com).
 
 Run the program with the following arguments:
 
-- to retrieve a file `<stored-file-name>` and store it locally as 
-  `<output-file-name>`, use
+- to retrieve a file `stored-file-name` and store it locally as 
+  `output-file-name`, use
 
 <code>
 -f <stored-file-name> -o<output-file-name>
 </code> 
 
-- to store a local file `<input-file-name>`, use
+- to store a local file `input-file-name`, use
 
 <code>
 -s -f <input-file-name>
