@@ -16,6 +16,8 @@ import com.saife.Address;
 import com.saife.SaifeFactory;
 import com.saife.crypto.InvalidCredentialException;
 import com.saife.logging.LogSink.LogLevel;
+import com.saife.logging.LogSinkFactory;
+import com.saife.logging.LogSinkManager;
 import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
@@ -73,8 +75,11 @@ public class SaifeVol implements Runnable {
     // Initialize SAIFE
     try {
 
+        // Create a Logging Manager
+        final LogSinkManager logMgr = LogSinkFactory.constructConsoleSinkManager();
+
       // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
-      saife = SaifeFactory.constructSaife(null);
+      saife = SaifeFactory.constructSaife(logMgr);
 
       // Set SAIFE logging level
       saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
