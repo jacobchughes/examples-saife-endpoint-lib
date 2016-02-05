@@ -70,6 +70,10 @@ public class S3Sample {
      */
     @SuppressWarnings("unused")
     public static void main(String[] args) {
+        // create strings for output
+        final String shell = "ns-cli";
+        final String shellSep = ">";
+
         // create a scanner for keyboard input
         final Scanner keyboard = new Scanner(System.in);
 
