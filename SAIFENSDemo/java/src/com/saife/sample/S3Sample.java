@@ -218,7 +218,10 @@ public class S3Sample {
             return false; 
         }
 
-        saifeManager.setupNS();
+        if (!saifeManager.setupNS()) {
+            return false;
+        }
+
         for (String fileName : files) {
             System.out.println("Uploading " + fileName + "...");
             File file = new File(fileName);
@@ -247,7 +250,10 @@ public class S3Sample {
             return false;
         }
 
-        saifeManager.setupNS();
+        if (!saifeManager.setupNS()) {
+            return false;
+        }
+
         for (String file : files) {
             System.out.println("Downloading " + file + "...");
             if (s3m.doesBucketContain(file)) {
@@ -278,7 +284,9 @@ public class S3Sample {
             return false;
         }
 
-        saifeManager.setupNS();
+        if (!saifeManager.setupNS()) {
+            return false;
+        }
 
         for (String file : files) {
             System.out.println("Removing " + file + "...");
