@@ -16,7 +16,8 @@ import com.saife.Address;
 import com.saife.SaifeFactory;
 import com.saife.crypto.InvalidCredentialException;
 import com.saife.logging.LogSink.LogLevel;
-import com.saife.management.AdminLockedException;
+import com.saife.logging.LogSinkFactory;
+import com.saife.logging.LogSinkManager;
 import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
@@ -74,8 +75,11 @@ public class SaifeVol implements Runnable {
     // Initialize SAIFE
     try {
 
+        // Create a Logging Manager
+        final LogSinkManager logMgr = LogSinkFactory.constructConsoleSinkManager();
+
       // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
-      saife = SaifeFactory.constructSaife(null);
+      saife = SaifeFactory.constructSaife(logMgr);
 
       // Set SAIFE logging level
       saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
@@ -163,14 +167,6 @@ public class SaifeVol implements Runnable {
   @Override
   public void run() {
 
-    try {
-      saife.updateSaifeData();
-    } catch (final InvalidManagementStateException e) {
-      e.printStackTrace();
-    } catch (final IOException e) {
-      e.printStackTrace();
-    }
-
     // Unlock SAIFE library with user's credential.
     try {
       saife.unlock(defaultPassword);
@@ -178,8 +174,14 @@ public class SaifeVol implements Runnable {
       e1.printStackTrace();
     } catch (final InvalidManagementStateException e1) {
       e1.printStackTrace();
-    } catch (final AdminLockedException e1) {
-      e1.printStackTrace();
+    }
+
+    try {
+      saife.updateSaifeData();
+    } catch (final InvalidManagementStateException e) {
+      e.printStackTrace();
+    } catch (final IOException e) {
+      e.printStackTrace();
     }
 
     // Set the desired characteristics of the volume.

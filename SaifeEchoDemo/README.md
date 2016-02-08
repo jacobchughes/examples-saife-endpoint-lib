@@ -1,7 +1,7 @@
 # Dependencies
 [gson](https://github.com/google/gson) - gson-2.3.1.jar or newer
 
-[SAIFE Endpoint Library](http://saifeinc.com/developers/libraries/) - version 2.0.1 or newer.  Contact SAIFE to obtain SAIFE Endpoint Library.
+[SAIFE Endpoint Library](http://saifeinc.com/developers/libraries/) - version 2.1.0 or newer.  Contact SAIFE to obtain SAIFE Endpoint Library.
 
 [SAIFE Management Dashboard](https://dashboard.saifeinc.com/) account with <i/>at least one</i> organization and group
 
@@ -14,8 +14,23 @@ All commands are relative to the java directory.
 </code>
 
 ### Run
+To run as an echo server, do not provide any arguments:
+
 <code>
 ~$ SAIFE_HOME=\<path to java lib\>; java -cp bin:$SAIFE_HOME/java-lib-2.0.1.jar:$SAIFE_HOME/guava-11.0.jar:gson-2.3.1.jar  -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.SaifeEcho
+</code>
+
+To run as a messenger, give the following arguments:
+
+    -c<servername> -msg <list of messages>
+
+Where `servername` is the name of the provisioned cert and `list of messages` is
+a series of strings to send to the server.
+
+e.g.
+
+<code>
+~$ SAIFE_HOME=\<path to java lib\>; java -cp bin:$SAIFE_HOME/java-lib-2.0.1.jar:$SAIFE_HOME/guava-11.0.jar:gson-2.3.1.jar  -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.SaifeEcho -cServer1 -msg one two three
 </code>
 
 # C++

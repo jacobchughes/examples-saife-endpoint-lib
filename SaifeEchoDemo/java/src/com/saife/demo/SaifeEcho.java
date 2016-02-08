@@ -16,7 +16,8 @@ import com.saife.contacts.Contact;
 import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
 import com.saife.logging.LogSink.LogLevel;
-import com.saife.management.AdminLockedException;
+import com.saife.logging.LogSinkManager;
+import com.saife.logging.LogSinkFactory;
 import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
@@ -184,8 +185,6 @@ public class SaifeEcho implements Runnable {
     } catch (final InvalidCredentialException e1) {
       e1.printStackTrace();
     } catch (final InvalidManagementStateException e1) {
-      e1.printStackTrace();
-    } catch (final AdminLockedException e1) {
       e1.printStackTrace();
     }
 
@@ -468,12 +467,6 @@ public class SaifeEcho implements Runnable {
 
         } catch (final InvalidManagementStateException e) {
           e.printStackTrace();
-        } catch (final PresenceRequiredException e) {
-          System.out.println("Oops ... Looks like presence isn't ready.");
-          try {
-            Thread.sleep(500);
-          } catch (final InterruptedException e1) {
-          }
         } catch (final InvalidSessionState e) {
           e.printStackTrace();
         }
