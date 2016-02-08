@@ -151,6 +151,13 @@ public class S3Sample {
                     pullFiles(args[1], Arrays.copyOfRange(args, 2, argslen));
                 }
                 break;
+            case "remove":
+                if (argslen < 3) {
+                    help("remove");
+                } else {
+                    removeFiles(args[1], Arrays.copyOfRange(args, 2, argslen));
+                }
+                break;
             case "list":
             case "files":
                 if (argslen < 2) {
@@ -206,20 +213,22 @@ public class S3Sample {
     private static boolean pushFiles(String share, String[] files) {
         if (s3m.doesBucketExist(share)) {
             s3m.setBucket(share);
-            saifeManager.setupNS();
-            for (String fileName : files) {
-                System.out.println("Uploading " + fileName + "...");
-                File file = new File(fileName);
-                if (file.exists()) {
-                    s3m.upload(file);
-                } else {
-                    System.out.println("File " + file + " does not exist");
-                }
-            }
         } else {
             System.out.println("Bucket " + share + " does not exist");
             return false; 
         }
+
+        saifeManager.setupNS();
+        for (String fileName : files) {
+            System.out.println("Uploading " + fileName + "...");
+            File file = new File(fileName);
+            if (file.exists()) {
+                s3m.upload(file);
+            } else {
+                System.out.println("File " + file + " does not exist");
+            }
+        }
+
         return true;
     }
 
@@ -231,22 +240,25 @@ public class S3Sample {
      * @return  true if success
      */
     private static boolean pullFiles(String share, String[] files) {
-        // if (s3m.doesBucketExist(share)) {
-        //     s3m.setBucket(share);
-        // } else {
-        //     System.out.println("Network Share " + share + " does not exist");
-        //     return false;
-        // }
+        if (s3m.doesBucketExist(share)) {
+            s3m.setBucket(share);
+        } else {
+            System.out.println("Network Share " + share + " does not exist");
+            return false;
+        }
 
-        // for (String file : files) {
-        //     if (s3m.doesBucketContain(file)) {
-        //         s3m.download(file, null);
-        //     } else {
-        //         System.out.println("Bucket " + share + " does not contain "
-        //             + "the file " + file);
-        //     }
+        saifeManager.setupNS();
+        for (String file : files) {
+            System.out.println("Downloading " + file + "...");
+            if (s3m.doesBucketContain(file)) {
+                s3m.download(file, null);
+            } else {
+                System.out.println("Bucket " + share + " does not contain "
+                    + "the file " + file);
+                return false;
+            }
 
-        // }
+        }
 
         return true;
     }
@@ -258,8 +270,27 @@ public class S3Sample {
      * @param files     the list of files to delete
      * @return  true of success
      */
-    public boolean removefiles(String share, String[] files) {
-        // @TODO implement removefiles;
+    public static boolean removeFiles(String share, String[] files) {
+        if (s3m.doesBucketExist(share)) {
+            s3m.setBucket(share);
+        } else {
+            System.out.println("Bucket " + share + " does not exist");
+            return false;
+        }
+
+        saifeManager.setupNS();
+
+        for (String file : files) {
+            System.out.println("Removing " + file + "...");
+            if (s3m.doesBucketContain(file)) {
+                s3m.deleteObject(file);
+            } else {
+                System.out.println("Bucket " + share + " does not contain the "
+                    + "file " + file);
+                return false;
+            }
+
+        }
         return true;
     }
 
@@ -310,9 +341,11 @@ public class S3Sample {
                 case "pull":
                     helpPull();
                     break;
-                case "list":
+                case "remove":
+                    helpRemove();
+                    break;
                 case "files":
-                    helpList();
+                    helpFiles();
                     break;
                 case "interp":
                     helpInterp();
@@ -341,7 +374,7 @@ public class S3Sample {
         System.out.println("usage: ns delete <share>");
         System.out.println("");
         System.out.println("   <share>     the name of the network share to "
-                + "delete, will print error if it already exists");
+                + "delete, will print error if it does not exists");
     }
 
     /**
@@ -357,13 +390,13 @@ public class S3Sample {
     /**
      * method to print the help dialog for the list command
      */
-    private static void helpList() {
-        System.out.println("usage: ns list|files <share>");
+    private static void helpFiles() {
+        System.out.println("usage: ns files <share>");
         System.out.println("");
         System.out.println("lists all the files in the provided network "
                 + "share");
         System.out.println("   <share>     the name of the network share to "
-                + "list, will print error if it already exists");
+                + "list contents of, will print error if it already exists");
     }
 
     /**
@@ -372,12 +405,12 @@ public class S3Sample {
     private static void helpPush() {
         System.out.println("usage: ns push <share> <files>");
         System.out.println("");
-        System.out.println("pushes all the files in the provided network "
+        System.out.println("pushes the selected files to the provided network "
                 + "share");
         System.out.println("   <share>     the name of the network share to "
-                + "list, will print error if it already exists");
+                + "push into");
         System.out.println("   <files>     the names of the files you want to "
-                + "push into the given network share");
+                + "push");
     }
 
     /**
@@ -386,11 +419,26 @@ public class S3Sample {
     private static void helpPull() {
         System.out.println("usage: ns pull <share> <files>");
         System.out.println("");
-        System.out.println("pulls all the files in the provided network share");
+        System.out.println("pulls the selected files from the provided "
+                + "network share");
         System.out.println("   <share>     the name of the network share to "
-                + "list, will print error if it already exists");
+                + "pull from");
         System.out.println("   <files>     the names of the files you want to "
-                + "pull into the given network share");
+                + "pull");
+    }
+
+    /**
+     * method to print the help dialog for the remove command
+     */
+    private static void helpRemove() {
+        System.out.println("usage: ns remove <share> <files>");
+        System.out.println("");
+        System.out.println("removes the selected files from the provided "
+                + "network share");
+        System.out.println("   <share>     the name of the network share to "
+                + "remove from");
+        System.out.println("   <files>     the names of the files you want to "
+                + "remove");
     }
 
     /**
@@ -423,20 +471,20 @@ public class S3Sample {
         System.out.println("These are the available commands:");
         System.out.println("");
         System.out.println("commands that deal with shares");
-        System.out.println("   shares      lists all the shares connected "
+        System.out.println("   shares      list all the shares connected "
                 + "to your current credentials");
-        System.out.println("   create      creates a NetworkShare");
-        System.out.println("   delete      deletes a NetworkShare");
+        System.out.println("   create      create a network share");
+        System.out.println("   delete      delete a network share");
         System.out.println("");
         System.out.println("commands that deal with files inside of "
                 + "shares");
-        System.out.println("   list        lists all the shares connected "
-                + "to your current credentials");
-        System.out.println("   files       lists all the shares connected "
-                + "to your current credentials");
-        System.out.println("   push        pushes the selected files into "
+        System.out.println("   files       list all the files in the selected"
+                + "share");
+        System.out.println("   push        push the selected files into "
                 + "the selected share");
         System.out.println("   pull        pull the selected files from "
+                + "the selected share");
+        System.out.println("   remove      remove the selected files from "
                 + "the selected share");
         System.out.println("");
         System.out.println("miscellaneous commands");
