@@ -408,24 +408,28 @@ public class S3Manager {
     }
 
     /**
-     * Pretty prints the files in the currently selected share
+     * Pretty prints the files in the currently selected share, mimicking
+     * aws-cli's own `ls` command
      */
     public void printFiles() {
 
         int keyMax = 0;
         int dateMax = 10;
-        int sizeMax = 0;
+        int timeMax = 8;
+        int sizeMax = 10;
 
         // filter out NSKs by using `.NSK.` delimiter
         final ListObjectsRequest objectRequest = new ListObjectsRequest()
             .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
         final ObjectListing objectListing = s3.listObjects(objectRequest);
-        final DateTimeFormatter isofmt = ISODateTimeFormat.dateTime();
+        final DateTimeFormatter isodate = ISODateTimeFormat.date();
+        final DateTimeFormatter isotime = ISODateTimeFormat.timeNoMillis();
 
         for (final S3ObjectSummary objectSummary : objectListing
                 .getObjectSummaries()) {
 
-            sizeMax = (objectSummary.getSize() > sizeMax) 
+            sizeMax = 
+                (Long.toString(objectSummary.getSize()).length() > sizeMax) 
                 ? Long.toString(objectSummary.getSize()).length() : sizeMax;
 
             keyMax = (objectSummary.getKey().length() > keyMax) 
@@ -437,12 +441,12 @@ public class S3Manager {
                 .getObjectSummaries()) {
             final long size = objectSummary.getSize();
             final DateTime dt = new DateTime(objectSummary.getLastModified());
-            final String date = isofmt.print(dt);
+            final String date = isodate.print(dt);
+            final String time = isotime.print(dt).substring(0,8);
             final String key = objectSummary.getKey();
-            // @TODO make this slightly less ISO
-            // e.g. yyyy-mm-dd HH:MM
-            System.out.format(bucketName + "  %" + sizeMax + "dB %" + dateMax
-                + "s %-" + keyMax + "s%n", size, date, key);
+            System.out.format("%" + dateMax + "s %" + timeMax + "s %" 
+                    + sizeMax + "dB %-" + keyMax + "s%n", date, time, size,
+                    key);
 
         }
 
