@@ -41,6 +41,7 @@ import com.amazonaws.services.s3.model.Bucket;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 
 import org.joda.time.DateTime;
 import org.joda.time.format.DateTimeFormatter;
@@ -91,6 +92,9 @@ public class S3Manager {
                     }
                     os.write(block, 0, size);
                 }
+            } catch (final AmazonS3Exception as3e) {
+                System.out.println(as3e.getMessage());
+                result = false;
             } catch (final IOException io) {
                 System.out.println("IOException during download: " + fname);
                 result = false;
@@ -153,6 +157,9 @@ public class S3Manager {
                     break;
                 }
             }
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
+            return false;
         } catch (final FileNotFoundException e) {
             System.out.println("Failed to locate or open file: " + fname);
         } finally {
@@ -177,6 +184,8 @@ public class S3Manager {
     public void deleteObject(final String tag) {
         try {
             s3.deleteObject(bucketName, tag);
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
         } catch (final AmazonClientException e) {
             System.out.println("Failed to delete file: " + tag);
         }
@@ -190,14 +199,19 @@ public class S3Manager {
     public List<String> listObjects() {
         final List<String> names = new Vector<String>();
 
-        final ListObjectsRequest objectRequest = new ListObjectsRequest()
-            .withBucketName(bucketName).withPrefix("");
-        final ObjectListing objectListing = s3.listObjects(objectRequest);
+        try {
+            final ListObjectsRequest objectRequest = new ListObjectsRequest()
+                .withBucketName(bucketName).withPrefix("");
+            final ObjectListing objectListing = s3.listObjects(objectRequest);
 
-        for (final S3ObjectSummary objectSummary : objectListing
-                .getObjectSummaries()) {
-            names.add(objectSummary.getKey());
+            for (final S3ObjectSummary objectSummary : objectListing
+                    .getObjectSummaries()) {
+                names.add(objectSummary.getKey());
+            }
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
         }
+
         return names;
     }
 
@@ -344,6 +358,8 @@ public class S3Manager {
         System.out.println("Creating bucket " + aName + "\n");
         try {
             s3.createBucket(aName);
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
         } catch (final AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means "
                     + "your request made it to Amazon S3, but was rejected "
@@ -380,10 +396,11 @@ public class S3Manager {
      * @return  true if contains
      */
     public boolean doesBucketContain(String fileName) {
-        final List<String> files = this.listFiles();
+    final List<String> files = this.listFiles();
         if (files.contains(fileName)) {
             return true;
         }
+
         return false;
     }
 
@@ -395,14 +412,18 @@ public class S3Manager {
     public List<String> listFiles() {
         final List<String> names = new Vector<String>();
 
-        // filter out NSKs by using `.NSK.` delimiter
-        final ListObjectsRequest objectRequest = new ListObjectsRequest()
-            .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
-        final ObjectListing objectListing = s3.listObjects(objectRequest);
+        try {
+            // filter out NSKs by using `.NSK.` delimiter
+            final ListObjectsRequest objectRequest = new ListObjectsRequest()
+                .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
+            final ObjectListing objectListing = s3.listObjects(objectRequest);
 
-        for (final S3ObjectSummary objectSummary : objectListing
-                .getObjectSummaries()) {
-            names.add(objectSummary.getKey());
+            for (final S3ObjectSummary objectSummary : objectListing
+                    .getObjectSummaries()) {
+                names.add(objectSummary.getKey());
+            }
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
         }
         return names;
     }
@@ -418,36 +439,40 @@ public class S3Manager {
         int timeMax = 8;
         int sizeMax = 10;
 
-        // filter out NSKs by using `.NSK.` delimiter
-        final ListObjectsRequest objectRequest = new ListObjectsRequest()
-            .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
-        final ObjectListing objectListing = s3.listObjects(objectRequest);
-        final DateTimeFormatter isodate = ISODateTimeFormat.date();
-        final DateTimeFormatter isotime = ISODateTimeFormat.timeNoMillis();
+        try {
+            // filter out NSKs by using `.NSK.` delimiter
+            final ListObjectsRequest objectRequest = new ListObjectsRequest()
+                .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
+            final ObjectListing objectListing = s3.listObjects(objectRequest);
+            final DateTimeFormatter isodate = ISODateTimeFormat.date();
+            final DateTimeFormatter isotime = ISODateTimeFormat.timeNoMillis();
 
-        for (final S3ObjectSummary objectSummary : objectListing
-                .getObjectSummaries()) {
+            for (final S3ObjectSummary objectSummary : objectListing
+                    .getObjectSummaries()) {
 
-            sizeMax = 
-                (Long.toString(objectSummary.getSize()).length() > sizeMax) 
-                ? Long.toString(objectSummary.getSize()).length() : sizeMax;
+                sizeMax = 
+                    (Long.toString(objectSummary.getSize()).length() > sizeMax) 
+                    ? Long.toString(objectSummary.getSize()).length() : sizeMax;
 
-            keyMax = (objectSummary.getKey().length() > keyMax) 
-                ? objectSummary.getKey().length() : keyMax;
-            
-        }
+                keyMax = (objectSummary.getKey().length() > keyMax) 
+                    ? objectSummary.getKey().length() : keyMax;
+                
+            }
 
-        for (final S3ObjectSummary objectSummary : objectListing
-                .getObjectSummaries()) {
-            final long size = objectSummary.getSize();
-            final DateTime dt = new DateTime(objectSummary.getLastModified());
-            final String date = isodate.print(dt);
-            final String time = isotime.print(dt).substring(0,8);
-            final String key = objectSummary.getKey();
-            System.out.format("%" + dateMax + "s %" + timeMax + "s %" 
-                    + sizeMax + "dB %-" + keyMax + "s%n", date, time, size,
-                    key);
+            for (final S3ObjectSummary objectSummary : objectListing
+                    .getObjectSummaries()) {
+                final long size = objectSummary.getSize();
+                final DateTime dt = new DateTime(objectSummary.getLastModified());
+                final String date = isodate.print(dt);
+                final String time = isotime.print(dt).substring(0,8);
+                final String key = objectSummary.getKey();
+                System.out.format("%" + dateMax + "s %" + timeMax + "s %" 
+                        + sizeMax + "dB %-" + keyMax + "s%n", date, time, size,
+                        key);
 
+            }
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
         }
 
     }
