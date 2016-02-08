@@ -771,7 +771,8 @@ public class SaifeManager {
                         blackDataHandler);
             } catch (final IOException e) {
                 System.out.println("CreateNetworkShare IOException");
-                e.printStackTrace();
+                System.out.println(e.getMessage());
+                // e.printStackTrace();
                 return false;
             } catch (final NetworkShareExistsException e) {
                 System.out.println("Unrecoverable NetworkShareExistsException, "
