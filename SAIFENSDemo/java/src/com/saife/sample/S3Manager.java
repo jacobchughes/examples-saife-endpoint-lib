@@ -61,7 +61,7 @@ public class S3Manager {
      * @param outName the file to save to
      * @return true if download works
      */
-    @SuppressWarnings({ "null", "unused" })
+    @SuppressWarnings({ "null" })
         public boolean download(final String fname, final String outName) {
 
             // in real code oName should be used.

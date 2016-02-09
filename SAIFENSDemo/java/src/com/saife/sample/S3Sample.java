@@ -158,10 +158,9 @@ public class S3Sample {
                     removeFiles(args[1], Arrays.copyOfRange(args, 2, argslen));
                 }
                 break;
-            case "list":
             case "files":
                 if (argslen < 2) {
-                    help("list");
+                    help("files");
                 } else {
                     listFiles(args[1]);
                 }
@@ -358,7 +357,16 @@ public class S3Sample {
                 case "interp":
                     helpInterp();
                     break;
+                case "help":
+                    helpHelp();
+                    break;
+                case "exit":
+                    System.out.println("usage: exit");
+                    System.out.println("exit interpreter mode");
+                    break;
                 default:
+                    System.out.println("Unknown command " + arg);
+                    System.out.println("");
                     break;
             }
         }
@@ -366,11 +374,25 @@ public class S3Sample {
 
 
     /**
+     * private value for interpreter based help
+     */
+    private static boolean isInterp = false;
+
+    /**
+     * method to print the help dialog for the help command
+     */
+    private static void helpHelp() {
+        System.out.printf("usage:%s help%n", isInterp ? "" : " ns");
+        System.out.println("display the help dialog");
+    }
+
+    /**
      * method to print the help dialog for the create command
      */
     private static void helpCreate() {
-        System.out.println("usage: ns create <share>");
-        System.out.println("");
+        System.out.printf("usage:%s create <share>%n", isInterp ? "" : " ns");
+        System.out.println("create a new network share, provided you have "
+                + "permission and the share does not exist");
         System.out.println("   <share>     the name of the network share to "
                 + "create, will print error if it already exists");
     }
@@ -379,8 +401,9 @@ public class S3Sample {
      * method to print the help dialog for the delete command
      */
     private static void helpDelete() {
-        System.out.println("usage: ns delete <share>");
-        System.out.println("");
+        System.out.printf("usage:%s delete <share>%n", isInterp ? "" : " ns");
+        System.out.println("delete an existing network share, provided you "
+                + "have permission and the share exists");
         System.out.println("   <share>     the name of the network share to "
                 + "delete, will print error if it does not exists");
     }
@@ -389,30 +412,26 @@ public class S3Sample {
      * method to print the help dialog for the shares command
      */
     private static void helpShares() {
-        System.out.println("usage: ns shares");
-        System.out.println("");
-        System.out.println("lists all the network shares accessible via your "
-                + "current credentials");
+        System.out.printf("usage:%s shares%n", isInterp ? "" : " ns");
+        System.out.println("list the available shares");
     }
 
     /**
-     * method to print the help dialog for the list command
+     * method to print the help dialog for the files command
      */
     private static void helpFiles() {
-        System.out.println("usage: ns files <share>");
-        System.out.println("");
+        System.out.printf("usage:%s files <share>%n", isInterp ? "" : " ns");
         System.out.println("lists all the files in the provided network "
                 + "share");
-        System.out.println("   <share>     the name of the network share to "
-                + "list contents of, will print error if it already exists");
+        System.out.println("   <share>     the name of the network share");
     }
 
     /**
      * method to print the help dialog for the push command
      */
     private static void helpPush() {
-        System.out.println("usage: ns push <share> <files>");
-        System.out.println("");
+        System.out.printf("usage:%s push <share> <files>%n", isInterp ? "" 
+                : " ns");
         System.out.println("pushes the selected files to the provided network "
                 + "share");
         System.out.println("   <share>     the name of the network share to "
@@ -425,8 +444,8 @@ public class S3Sample {
      * method to print the help dialog for the pull command
      */
     private static void helpPull() {
-        System.out.println("usage: ns pull <share> <files>");
-        System.out.println("");
+        System.out.printf("usage:%s pull <share> <files>%n", isInterp ? "" 
+                : " ns");
         System.out.println("pulls the selected files from the provided "
                 + "network share");
         System.out.println("   <share>     the name of the network share to "
@@ -439,8 +458,9 @@ public class S3Sample {
      * method to print the help dialog for the remove command
      */
     private static void helpRemove() {
-        System.out.println("usage: ns remove <share> <files>");
         System.out.println("");
+        System.out.printf("usage:%s remove <share> <files>%n", isInterp ? "" 
+                : " ns");
         System.out.println("removes the selected files from the provided "
                 + "network share");
         System.out.println("   <share>     the name of the network share to "
@@ -454,27 +474,17 @@ public class S3Sample {
      */
     private static void helpInterp() {
         System.out.println("usage: ns interp");
-        System.out.println("");
         System.out.println("enables interpreter mode");
         System.out.println("from this mode, you can enter any of the above "
                 + "commands in a single session, without the program prefix");
     }
 
     /**
-     * private value for interpreter based help
-     */
-    private static boolean isInterp = false;
-
-    /**
      * method to print the usage dialog for the program
      *
      */
     private static void helpUsage() {
-        if (!isInterp) {
-            System.out.println("usage: ns <command> [<args>]");
-        } else {
-            System.out.println("usage: <command> [<args>]");
-        }
+        System.out.printf("usage:%s <command> [args]%n", isInterp ? "" : " ns");
         System.out.println("");
         System.out.println("These are the available commands:");
         System.out.println("");
