@@ -380,6 +380,85 @@ public class S3Manager {
     }
 
     /**
+     * Create a new S3 bucket for this user's account. Note: some of these 
+     * operations have financial penalties.
+     * 
+     * @param name is the name for a new bucket.
+     * @return  true if success
+     */
+    public boolean createBucket(final String name) {
+        if (doesBucketExist(name)) {
+            System.out.println("Bucket " + name + " already exists");
+            return false;
+        }   
+
+        try { 
+            s3.createBucket(name);
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
+            return false;
+        } catch (final AmazonServiceException ase) {
+            System.out.println("Caught an AmazonServiceException, which means "
+                    + "your request made it to Amazon S3, but was rejected "
+                    + "with an error response for some reason.");
+            System.out.println("Error Message:    " + ase.getMessage());
+            System.out.println("HTTP Status Code: " + ase.getStatusCode());
+            System.out.println("AWS Error Code:   " + ase.getErrorCode());
+            System.out.println("Error Type:       " + ase.getErrorType());
+            System.out.println("Request ID:       " + ase.getRequestId());
+            return false;
+        } catch (final AmazonClientException ace) {
+            System.out.println("Caught an AmazonClientException, which means "
+                    + "the client encountered a serious internal problem while "
+                    + "trying to communicate with S3, such as not being able "
+                    + "to access the network.");
+            System.out.println("Error Message: " + ace.getMessage());
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Delete an existing S3 bucket for this user's account.
+     *
+     * @param name  name of the bucket to delete
+     * @return  true of success
+     */
+    public boolean deleteBucket(final String name) {
+        if (!doesBucketExist(name)) {
+            System.out.println("Bucket " + name + " does not exist");
+            return false;
+        }
+
+        try {
+            s3.deleteBucket(name);
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
+            return false;
+        } catch (final AmazonServiceException ase) {
+            System.out.println("Caught an AmazonServiceException, which means "
+                    + "your request made it to Amazon S3, but was rejected "
+                    + "with an error response for some reason.");
+            System.out.println("Error Message:    " + ase.getMessage());
+            System.out.println("HTTP Status Code: " + ase.getStatusCode());
+            System.out.println("AWS Error Code:   " + ase.getErrorCode());
+            System.out.println("Error Type:       " + ase.getErrorType());
+            System.out.println("Request ID:       " + ase.getRequestId());
+            return false;
+        } catch (final AmazonClientException ace) {
+            System.out.println("Caught an AmazonClientException, which means "
+                    + "the client encountered a serious internal problem while "
+                    + "trying to communicate with S3, such as not being able "
+                    + "to access the network.");
+            System.out.println("Error Message: " + ace.getMessage());
+            return false;
+        }
+        
+        return true;
+    }
+
+    /**
      * Wrapper method to check for bucket existence
      *
      * @param bucket    name of the bucket to check existence of
