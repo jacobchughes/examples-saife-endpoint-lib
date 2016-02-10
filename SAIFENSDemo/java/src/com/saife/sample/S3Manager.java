@@ -217,7 +217,8 @@ public class S3Manager {
 
     /**
      * Looks for the buckets assigned to the current account. (According to the
-     * credentials used in this code.)
+     * credentials used in this code.) Catch AmazonS3Exception for invalid
+     * permissions.
      * 
      * @return a list of S3 bucket names.
      */
@@ -228,7 +229,6 @@ public class S3Manager {
             for (final Bucket bucket : s3.listBuckets()) {
                 names.add(bucket.getName());
             }
-
         } catch (final AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means "
                     + "your request made it to Amazon S3, but was rejected "
@@ -343,7 +343,8 @@ public class S3Manager {
 
     /**
      * Create a new S3 bucket for this user's account. Note: some of these 
-     * operations have financial penalties.
+     * operations have financial penalties. Catch AmazonS3Exception for invalid
+     * permissions.
      * 
      * @param name is the name for a new bucket. A UUID is added to make it 
      * unique.
@@ -381,7 +382,8 @@ public class S3Manager {
 
     /**
      * Create a new S3 bucket for this user's account. Note: some of these 
-     * operations have financial penalties.
+     * operations have financial penalties. Catch AmazonS3Exception for invalid
+     * permissions.
      * 
      * @param name is the name for a new bucket.
      * @return  true if success
@@ -420,7 +422,8 @@ public class S3Manager {
     }
 
     /**
-     * Delete an existing S3 bucket for this user's account.
+     * Delete an existing S3 bucket for this user's account. Catch
+     * AmazonS3Exception for invalid permissions.
      *
      * @param name  name of the bucket to delete
      * @return  true of success
@@ -484,7 +487,8 @@ public class S3Manager {
     }
 
     /**
-     * Searches for files in the current S3 bucket, ignoring NSKs
+     * Searches for files in the current S3 bucket, ignoring NSKs. Catch
+     * AmazonS3Exception for invalid permissions
      * 
      * @return the object tags
      */
@@ -509,7 +513,8 @@ public class S3Manager {
 
     /**
      * Pretty prints the files in the currently selected share, mimicking
-     * aws-cli's own `ls` command
+     * aws-cli's own `ls` command. Catch AmazonS3Exception for invalid
+     * permissions
      */
     public void printFiles() {
 
