@@ -79,6 +79,11 @@ public class S3Sample {
 
         final S3Sample s = new S3Sample();
 
+        // @TODO add documentation on how bucket names work
+        // mention UUID
+        // only need to enter enough characters to be unique WITHIN THE BUCKETS
+        // YOU CAN SEE WITH YOUR CREDENTIALS
+
         if (args.length == 0) {
             // print usage help if no arguments
             help(null);
@@ -192,11 +197,12 @@ public class S3Sample {
      * @param share     the network share to list files in
      */
     private static void listFiles(String share) {
+        System.out.println(s3m.doesBucketExist(share));
         if (s3m.doesBucketExist(share)) {
-            s3m.setBucket(share);
+            s3m.setBucket(s3m.findBucket(share));
             s3m.printFiles();
         } else {
-            System.out.println("Network Share " + share + " does not exist");
+            System.out.println("Error listing files for share " + share);
             return;
         }
 
@@ -211,9 +217,9 @@ public class S3Sample {
      */
     private static boolean pushFiles(String share, String[] files) {
         if (s3m.doesBucketExist(share)) {
-            s3m.setBucket(share);
+            s3m.setBucket(s3m.findBucket(share));
         } else {
-            System.out.println("Bucket " + share + " does not exist");
+            System.out.println("Error pushing files into " + share);
             return false; 
         }
 
@@ -243,9 +249,9 @@ public class S3Sample {
      */
     private static boolean pullFiles(String share, String[] files) {
         if (s3m.doesBucketExist(share)) {
-            s3m.setBucket(share);
+            s3m.setBucket(s3m.findBucket(share));
         } else {
-            System.out.println("Network Share " + share + " does not exist");
+            System.out.println("Error pulling files from " + share);
             return false;
         }
 
@@ -277,7 +283,7 @@ public class S3Sample {
      */
     public static boolean removeFiles(String share, String[] files) {
         if (s3m.doesBucketExist(share)) {
-            s3m.setBucket(share);
+            s3m.setBucket(s3m.findBucket(share));
         } else {
             System.out.println("Bucket " + share + " does not exist");
             return false;
@@ -308,7 +314,10 @@ public class S3Sample {
      * @return  true if success
      */
     private static boolean createShare(String share) {
-        System.out.println("Pretend that shares are being created here");
+        if (s3m.doesBucketExist(share)) {
+            System.out.println("Bucket " + share + " already exists");
+            return false;
+        }
         return true;
     }
 
@@ -319,8 +328,8 @@ public class S3Sample {
      * @return  true if success
      */
     private static boolean deleteShare(String share) {
-        System.out.println("Pretend that shares are being deleted here");
-        return true;
+        System.out.println(share);
+        return s3m.deleteBucket(share);
     }
 
     /**

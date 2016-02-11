@@ -381,47 +381,6 @@ public class S3Manager {
     }
 
     /**
-     * Create a new S3 bucket for this user's account. Note: some of these 
-     * operations have financial penalties. Catch AmazonS3Exception for invalid
-     * permissions.
-     * 
-     * @param name is the name for a new bucket.
-     * @return  true if success
-     */
-    public boolean createBucket(final String name) {
-        if (doesBucketExist(name)) {
-            System.out.println("Bucket " + name + " already exists");
-            return false;
-        }   
-
-        try { 
-            s3.createBucket(name);
-        } catch (final AmazonS3Exception as3e) {
-            System.out.println(as3e.getMessage());
-            return false;
-        } catch (final AmazonServiceException ase) {
-            System.out.println("Caught an AmazonServiceException, which means "
-                    + "your request made it to Amazon S3, but was rejected "
-                    + "with an error response for some reason.");
-            System.out.println("Error Message:    " + ase.getMessage());
-            System.out.println("HTTP Status Code: " + ase.getStatusCode());
-            System.out.println("AWS Error Code:   " + ase.getErrorCode());
-            System.out.println("Error Type:       " + ase.getErrorType());
-            System.out.println("Request ID:       " + ase.getRequestId());
-            return false;
-        } catch (final AmazonClientException ace) {
-            System.out.println("Caught an AmazonClientException, which means "
-                    + "the client encountered a serious internal problem while "
-                    + "trying to communicate with S3, such as not being able "
-                    + "to access the network.");
-            System.out.println("Error Message: " + ace.getMessage());
-            return false;
-        }
-
-        return true;
-    }
-
-    /**
      * Delete an existing S3 bucket for this user's account. Catch
      * AmazonS3Exception for invalid permissions.
      *
@@ -462,13 +421,54 @@ public class S3Manager {
     }
 
     /**
-     * Wrapper method to check for bucket existence
+     * Checks if a bucket exists within the subset of buckets that the current
+     * account has access to.  Allows for easier searching by ignoring UUIDs if
+     * they have one.
      *
-     * @param bucket    name of the bucket to check existence of
+     * @param name    name of the bucket to check existence of
      * @return  true if exists
      */
-    public boolean doesBucketExist(String bucket) {
-        return this.s3.doesBucketExist(bucket);
+    public boolean doesBucketExist(String name) {
+        boolean found = false;
+        String fullName = findBucket(name);
+
+        if (fullName.equals("")) {
+            System.out.println("Bucket " + name + " does not exist");
+        } else if (fullName.equals("_")) {
+            System.out.println("Name too ambiguous, more than one match");
+        } else {
+            found = true;
+        }
+
+        return found;
+    }
+
+    /**
+     * Helps select the proper bucket
+     *
+     * @param name  name of the bucket to find, minimalistic
+     * @return  the full name of the bucket, empty string if not found, _ if
+     * duplicates
+     */
+    public String findBucket(String name) {
+        String fullName = "";
+        boolean found = false;
+
+        List<String> buckets = listBuckets();
+
+        for (String bucket : buckets) {
+            if ( name.length() <= bucket.length() 
+                    && name.equals(bucket.substring(0,name.length()))) {
+                if (found) {
+                    fullName = "_";
+                } else {
+                    fullName = bucket;
+                    found = true;
+                }
+            }
+        }
+
+        return fullName;
     }
 
     /**
