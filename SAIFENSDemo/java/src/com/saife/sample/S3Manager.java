@@ -62,55 +62,50 @@ public class S3Manager {
      * @return true if download works
      */
     @SuppressWarnings({ "null" })
-        public boolean download(final String fname, final String outName) {
+    public boolean download(final String fname, final String outName) {
 
-            // in real code oName should be used.
-            String oName = outName;
+        // in real code oName should be used.
+        String oName;
+        oName = (null == outName) ? fname : outName;
 
-            if (null == outName) {
-                // only local assignment
-                oName = fname;
+        InputStream is = null;
+        boolean result = true;
+        FileOutputStream os = null;
+        File f = null;
+        try {
+            f = new File(oName);
+            is = saifeManager.getNS().getDecryptStream(saifeManager
+                    .getPersister().getInputStream(bucketName, fname));
+            os = new FileOutputStream(f);
+
+            final byte[] block = new byte[1024];
+
+            int size = 0;
+            while (true) {
+                size = is.read(block);
+                if (size <= 0) {
+                    break;
+                }
+                os.write(block, 0, size);
             }
-
-            InputStream is = null;
-            boolean result = true;
-            FileOutputStream os = null;
-            File f = null;
+        } catch (final AmazonS3Exception as3e) {
+            System.out.println(as3e.getMessage());
+            result = false;
+        } catch (final IOException io) {
+            System.out.println("IOException during download: " + fname);
+            result = false;
+        } finally {
             try {
-                f = new File(oName);
-                is = saifeManager.getNS().getDecryptStream(saifeManager
-                        .getPersister().getInputStream(bucketName, fname));
-                os = new FileOutputStream(f);
+                os.close();
+            } catch (final Exception e) {}
 
-                final byte[] block = new byte[1024];
-
-                int size = 0;
-                while (true) {
-                    size = is.read(block);
-                    if (size <= 0) {
-                        break;
-                    }
-                    os.write(block, 0, size);
-                }
-            } catch (final AmazonS3Exception as3e) {
-                System.out.println(as3e.getMessage());
-                result = false;
-            } catch (final IOException io) {
-                System.out.println("IOException during download: " + fname);
-                result = false;
-            } finally {
-                try {
-                    os.close();
-                } catch (final Exception e) {
-                }
-                try {
-                    is.close();
-                } catch (final Exception e) {
-                }
-            }
-
-            return result;
+            try {
+                is.close();
+            } catch (final Exception e) {}
         }
+
+        return result;
+    }
 
     /**
      * Encrypts a file with the SAIFE library and then uploads it to Amazon S3 
@@ -335,9 +330,6 @@ public class S3Manager {
         final Region usWest2 = Region.getRegion(Regions.US_WEST_2);
         s3.setRegion(usWest2);
 
-        // define a bucket name
-        bucketName = null;
-
         System.out.println("S3 services are enabled.");
     }
 
@@ -353,6 +345,9 @@ public class S3Manager {
         /*
          * Create a globally unique bucket name if needed.
          */
+        // @TODO do we want the user to be able to create more than one bucket
+        // with the same simple name? Adding the UUID allows this, but it might
+        // be sloppy or a poor decision
         String aName = null;
 
         aName = name + UUID.randomUUID();
@@ -388,16 +383,16 @@ public class S3Manager {
      * @return  true of success
      */
     public boolean deleteBucket(final String name) {
-        if (!doesBucketExist(name)) {
-            System.out.println("Bucket " + name + " does not exist");
-            return false;
-        }
+        boolean ret = true;
+        final String fullName = findBucket(name);
 
         try {
-            s3.deleteBucket(name);
+            if (null != fullName) {
+                s3.deleteBucket(fullName);
+            }
         } catch (final AmazonS3Exception as3e) {
             System.out.println(as3e.getMessage());
-            return false;
+            ret = false;
         } catch (final AmazonServiceException ase) {
             System.out.println("Caught an AmazonServiceException, which means "
                     + "your request made it to Amazon S3, but was rejected "
@@ -407,68 +402,66 @@ public class S3Manager {
             System.out.println("AWS Error Code:   " + ase.getErrorCode());
             System.out.println("Error Type:       " + ase.getErrorType());
             System.out.println("Request ID:       " + ase.getRequestId());
-            return false;
+            ret = false;
         } catch (final AmazonClientException ace) {
             System.out.println("Caught an AmazonClientException, which means "
                     + "the client encountered a serious internal problem while "
                     + "trying to communicate with S3, such as not being able "
                     + "to access the network.");
             System.out.println("Error Message: " + ace.getMessage());
-            return false;
+            ret = false;
         }
-        
-        return true;
+
+        return ret;
     }
 
     /**
-     * Checks if a bucket exists within the subset of buckets that the current
-     * account has access to.  Allows for easier searching by ignoring UUIDs if
-     * they have one.
+     * Search through all visible buckets and return the full name of the
+     * bucket, returns null if none or more than one
      *
-     * @param name    name of the bucket to check existence of
-     * @return  true if exists
-     */
-    public boolean doesBucketExist(String name) {
-        boolean found = false;
-        String fullName = findBucket(name);
-
-        if (fullName.equals("")) {
-            System.out.println("Bucket " + name + " does not exist");
-        } else if (fullName.equals("_")) {
-            System.out.println("Name too ambiguous, more than one match");
-        } else {
-            found = true;
-        }
-
-        return found;
-    }
-
-    /**
-     * Helps select the proper bucket
-     *
-     * @param name  name of the bucket to find, minimalistic
-     * @return  the full name of the bucket, empty string if not found, _ if
-     * duplicates
+     * @param name  name of the bucket to find, has to be minimal String to
+     * identify a visible bucket
+     * @return  the full name of the bucket, null if not found or more than one
      */
     public String findBucket(String name) {
-        String fullName = "";
         boolean found = false;
+        String fullName = null;
 
-        List<String> buckets = listBuckets();
+        final List<String> buckets = listBuckets();
 
-        for (String bucket : buckets) {
+        for (final String bucket : buckets) {
             if ( name.length() <= bucket.length() 
                     && name.equals(bucket.substring(0,name.length()))) {
-                if (found) {
-                    fullName = "_";
-                } else {
+                if (!found) {
                     fullName = bucket;
                     found = true;
+                } else {
+                    System.out.println("More than one bucket for name " + name);
+                    fullName = null;
+                    break;
                 }
             }
         }
+        
+        if (!found)
+        {
+            System.out.println("No bucket " + name + " found");
+        }
 
         return fullName;
+    }
+
+    /**
+     * Checks for existence of fully named bucket, used for pre-creation exists
+     * checking
+     *
+     * @param name  full name of bucket to search for
+     * @return  true of exists
+     */
+    public boolean doesBucketExist(final String name) {
+        final List<String> buckets = listBuckets();
+
+        return buckets.contains(name);
     }
 
     /**
@@ -498,7 +491,8 @@ public class S3Manager {
         try {
             // filter out NSKs by using `.NSK.` delimiter
             final ListObjectsRequest objectRequest = new ListObjectsRequest()
-                .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
+                .withBucketName(bucketName).withPrefix("")
+                .withDelimiter(".NSK.");
             final ObjectListing objectListing = s3.listObjects(objectRequest);
 
             for (final S3ObjectSummary objectSummary : objectListing
@@ -526,7 +520,8 @@ public class S3Manager {
         try {
             // filter out NSKs by using `.NSK.` delimiter
             final ListObjectsRequest objectRequest = new ListObjectsRequest()
-                .withBucketName(bucketName).withPrefix("").withDelimiter(".NSK.");
+                .withBucketName(bucketName).withPrefix("")
+                .withDelimiter(".NSK.");
             final ObjectListing objectListing = s3.listObjects(objectRequest);
             final DateTimeFormatter isodate = ISODateTimeFormat.date();
             final DateTimeFormatter isotime = ISODateTimeFormat.timeNoMillis();
@@ -546,11 +541,12 @@ public class S3Manager {
             for (final S3ObjectSummary objectSummary : objectListing
                     .getObjectSummaries()) {
                 final long size = objectSummary.getSize();
-                final DateTime dt = new DateTime(objectSummary.getLastModified());
+                final DateTime dt = new DateTime(objectSummary
+                        .getLastModified());
                 final String date = isodate.print(dt);
                 final String time = isotime.print(dt).substring(0,8);
                 final String key = objectSummary.getKey();
-                System.out.format("%" + dateMax + "s %" + timeMax + "s %" 
+                System.out.format(bucketName + " %" + dateMax + "s %" + timeMax + "s %" 
                         + sizeMax + "dB %-" + keyMax + "s%n", date, time, size,
                         key);
 
