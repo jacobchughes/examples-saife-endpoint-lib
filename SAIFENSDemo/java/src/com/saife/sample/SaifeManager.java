@@ -326,11 +326,9 @@ public class SaifeManager {
             for (final PersistedObject po : releaseObjects) {
                 try {
                     final AnObject test = (AnObject) po;
-                    if (null == test.s3Data) {
-                        System.out.println("Object's S3Data is null");
-                        throw new NullPointerException();
+                    if (null != test.s3Data) {
+                        test.s3Data.close();
                     }
-                    test.s3Data.close();
                 } catch (final IOException e) {
                     System.out.println("releaseObjects: failed to close " 
                             + po.getName());
