@@ -74,6 +74,7 @@ public class S3Sample {
         final String shell = "ns-cli";
         final String shellSep = ">";
 
+
         // create a scanner for keyboard input
         final Scanner keyboard = new Scanner(System.in);
 
@@ -182,12 +183,11 @@ public class S3Sample {
      * method to list the shares
      *
      */
-    private static void listShares()
-    {
+    private static void listShares() {
         List<String> buckets = s3m.listBuckets();
 
         for (String b : buckets) {
-            System.out.println("    " + b);
+            System.out.println(b);
         }
     }
 
@@ -197,9 +197,9 @@ public class S3Sample {
      * @param share     the network share to list files in
      */
     private static void listFiles(String share) {
-        System.out.println(s3m.doesBucketExist(share));
-        if (s3m.doesBucketExist(share)) {
-            s3m.setBucket(s3m.findBucket(share));
+        final String fullName = s3m.findBucket(share);
+        if (null != fullName) {
+            s3m.setBucket(fullName);
             s3m.printFiles();
         } else {
             System.out.println("Error listing files for share " + share);
@@ -216,8 +216,9 @@ public class S3Sample {
      * @return  true if success
      */
     private static boolean pushFiles(String share, String[] files) {
-        if (s3m.doesBucketExist(share)) {
-            s3m.setBucket(s3m.findBucket(share));
+        final String fullName = s3m.findBucket(share);
+        if (null != fullName) {
+            s3m.setBucket(fullName);
         } else {
             System.out.println("Error pushing files into " + share);
             return false; 
@@ -248,8 +249,9 @@ public class S3Sample {
      * @return  true if success
      */
     private static boolean pullFiles(String share, String[] files) {
-        if (s3m.doesBucketExist(share)) {
-            s3m.setBucket(s3m.findBucket(share));
+        final String fullName = s3m.findBucket(share);
+        if (null != fullName) {
+            s3m.setBucket(fullName);
         } else {
             System.out.println("Error pulling files from " + share);
             return false;
@@ -282,8 +284,9 @@ public class S3Sample {
      * @return  true of success
      */
     public static boolean removeFiles(String share, String[] files) {
-        if (s3m.doesBucketExist(share)) {
-            s3m.setBucket(s3m.findBucket(share));
+        final String fullName = s3m.findBucket(share);
+        if (null != fullName) {
+            s3m.setBucket(fullName);
         } else {
             System.out.println("Bucket " + share + " does not exist");
             return false;
@@ -318,6 +321,10 @@ public class S3Sample {
             System.out.println("Bucket " + share + " already exists");
             return false;
         }
+
+        System.out.println("Creating bucket " + share);
+        // s3m.addNewBucket(share);
+        
         return true;
     }
 
@@ -328,8 +335,16 @@ public class S3Sample {
      * @return  true if success
      */
     private static boolean deleteShare(String share) {
-        System.out.println(share);
-        return s3m.deleteBucket(share);
+        final String fullName = s3m.findBucket(share);
+        if (null == fullName) {
+            System.out.println("Bucket " + share + " does not exist");
+            return false;
+        }
+
+        System.out.println("Removing bucket " + fullName);
+        // s3m.deleteBucket(fullName);
+
+        return true;
     }
 
     /**
@@ -373,6 +388,9 @@ public class S3Sample {
                     System.out.println("usage: exit");
                     System.out.println("exit interpreter mode");
                     break;
+                case "share":
+                    helpShareComp();
+                    break;
                 default:
                     System.out.println("Unknown command " + arg);
                     System.out.println("");
@@ -403,7 +421,15 @@ public class S3Sample {
         System.out.println("create a new network share, provided you have "
                 + "permission and the share does not exist");
         System.out.println("   <share>     the name of the network share to "
-                + "create, will print error if it already exists");
+                + "create");
+        System.out.println("               currently, this will print an error "
+            + "if there is a share with this exact name: a UUID will not be "
+            + "generated and added on the back");
+        System.out.println("               if the share does not exist "
+                + "verbatim, a new share will be created with a UUID added "
+                + "to the end to ensure uniqueness within S3");
+        System.out.println("               type `help share` for more "
+            + "information");
     }
 
     /**
@@ -415,6 +441,10 @@ public class S3Sample {
                 + "have permission and the share exists");
         System.out.println("   <share>     the name of the network share to "
                 + "delete, will print error if it does not exists");
+        System.out.println("               delete will provide some "
+            + "inferential detection of the bucket name");
+        System.out.println("               type `help share` for more "
+            + "information");
     }
 
     /**
@@ -433,6 +463,10 @@ public class S3Sample {
         System.out.println("lists all the files in the provided network "
                 + "share");
         System.out.println("   <share>     the name of the network share");
+        System.out.println("               files will provide some "
+            + "inferential detection of the bucket name");
+        System.out.println("               type `help share` for more "
+            + "information");
     }
 
     /**
@@ -447,6 +481,10 @@ public class S3Sample {
                 + "push into");
         System.out.println("   <files>     the names of the files you want to "
                 + "push");
+        System.out.println("               push will provide some "
+            + "inferential detection of the bucket name");
+        System.out.println("               type `help share` for more "
+            + "information");
     }
 
     /**
@@ -461,13 +499,16 @@ public class S3Sample {
                 + "pull from");
         System.out.println("   <files>     the names of the files you want to "
                 + "pull");
+        System.out.println("               pull will provide some "
+            + "inferential detection of the bucket name");
+        System.out.println("               type `help share` for more "
+            + "information");
     }
 
     /**
      * method to print the help dialog for the remove command
      */
     private static void helpRemove() {
-        System.out.println("");
         System.out.printf("usage:%s remove <share> <files>%n", isInterp ? "" 
                 : " ns");
         System.out.println("removes the selected files from the provided "
@@ -476,6 +517,10 @@ public class S3Sample {
                 + "remove from");
         System.out.println("   <files>     the names of the files you want to "
                 + "remove");
+        System.out.println("               remove will provide some "
+            + "inferential detection of the bucket name");
+        System.out.println("               type `help share` for more "
+            + "information");
     }
 
     /**
@@ -486,6 +531,51 @@ public class S3Sample {
         System.out.println("enables interpreter mode");
         System.out.println("from this mode, you can enter any of the above "
                 + "commands in a single session, without the program prefix");
+    }
+
+    /**
+     * provide extra documentation on the semantic/inferential completion of
+     * bucket names
+     */
+    private static void helpShareComp() {
+        System.out.println("Notes when dealing with <share>");
+        System.out.println("This program allows you easier input of share "
+            + "by inferring the intended share based on the entered string");
+        System.out.println("This means you only have to enter enough "
+                + "characters to uniquely identify any of the buckets attached "
+                + "to your account");
+        System.out.println("For example, say you had these buckets:");
+        System.out.println("    `test-bucket-001`");
+        System.out.println("    `test-bucket-0011`");
+        System.out.println("    `test-bucket-002`");
+        System.out.println("    `test-logs`");
+        System.out.println("    `actual-logs-current`");
+        System.out.println("To select the bucket `test-logs`, you would only "
+                + "need to enter `test-l` as the share name.");
+        System.out.println("The program knows that there are no other buckets "
+                + "that share those leading characters.");
+        System.out.println("To access the bucket `actual-logs-current`, you "
+                + "would need even less: entering just `a` will find the "
+                + "correct bucket.");
+        System.out.println("However, to access `test-bucket-002`, you would "
+                + "need to enter the whole bucket name because "
+                + "`test-bucket-001` shares all but the last character.");
+        System.out.println("Conversely, if you wish to access "
+                + "`test-bucket-0011` you must enter the whole name, because "
+                + "just entering `test-bucket-001` will retrieve that bucket "
+                + "instead.");
+        System.out.println("This comes in handy when buckets have an attached "
+                + "UUID: given uniqueness, you do not not have to enter the "
+                + "full bucket name.");
+        System.out.println("**NOTE** the create command does NOT follow this "
+                + "inferential pattern.");
+        System.out.println("If you have a bucket `test-001` and go to create "
+                + "a new bucket `test-00`, it will let you.");
+        System.out.println("This will also append a UUID to the bucket name, "
+                + "ensuring uniqueness within S3.");
+        System.out.println("This bucket will then be accessed by the string "
+                + "`test=00_`, where `_` is the first character of the UUID, "
+                + "provided that character is not `1`.");
     }
 
     /**
