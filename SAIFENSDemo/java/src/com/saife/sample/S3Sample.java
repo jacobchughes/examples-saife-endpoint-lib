@@ -296,7 +296,7 @@ public class S3Sample {
             if (s3m.doesBucketContain(file)) {
                 s3m.deleteObject(file);
             } else {
-                System.out.println("Bucket " + share + " does not contain the "
+                System.out.println("Bucket " + fullName + " does not contain the "
                     + "file " + file);
                 return false;
             }
