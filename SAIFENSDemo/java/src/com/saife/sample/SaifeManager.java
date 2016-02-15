@@ -214,7 +214,7 @@ public class SaifeManager {
             }
 
             final Listener l = new Listener();
-            // @TODO fix this, giving a Google preconditions erro
+            // @TODO fix this, giving a Google preconditions error
             // saife.addContactListUpdateListener(l);
         }
 

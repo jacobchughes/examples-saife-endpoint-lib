@@ -80,11 +80,6 @@ public class S3Sample {
 
         final S3Sample s = new S3Sample();
 
-        // @TODO add documentation on how bucket names work
-        // mention UUID
-        // only need to enter enough characters to be unique WITHIN THE BUCKETS
-        // YOU CAN SEE WITH YOUR CREDENTIALS
-
         if (args.length == 0) {
             // print usage help if no arguments
             help(null);
@@ -322,8 +317,7 @@ public class S3Sample {
             return false;
         }
 
-        System.out.println("Creating bucket " + share);
-        // s3m.addNewBucket(share);
+        s3m.addNewBucket(share);
         
         return true;
     }
@@ -342,7 +336,7 @@ public class S3Sample {
         }
 
         System.out.println("Removing bucket " + fullName);
-        // s3m.deleteBucket(fullName);
+        s3m.deleteBucket(fullName);
 
         return true;
     }
@@ -405,8 +399,138 @@ public class S3Sample {
      */
     private static boolean isInterp = false;
 
-    // @TODO take all the strings I perfectly crafted and move them into a
-    // private static(?) class, called like Strings.HELPCREATE or something
+    /**
+     * private class to hold all help method strings
+     */
+    private class HelpStrings { 
+        /** 
+         * string for create command
+         */
+        public static final String CREATE = "Create a new network share, "
+            + "provided you have permission and the share does not "
+            + "%nexist.%n%n   <share>     The name of the network share to "
+            + "create. Currently, this will %n               "
+            + "print an error if there is a share with this exact name: a "
+            + "%n               UUID will not be generated and added on the "
+            + "back. If the share %n               does not exist verbatim, a "
+            + "new share will be created with a %n               "
+            + "UUID added to the end to ensure uniqueness within S3."
+            + "%n               Use the command `help share` for more "
+            + "information.%n";
+
+        /**
+         * string for delete command
+         */
+        public static final String DELETE = "Delete an existing network share, "
+            + "provided you have permission and the share %nexists.%n   "
+            + "<share>     The name of the network share to delete. Will "
+            + "print error if it %n               does not exist. Delete will "
+            + "provide some inferential detection %n               of the "
+            + "bucket name.%n               Use the command `help share` for "
+            + "more information.%n";
+
+        /**
+         * string for files command
+         */
+        public static final String FILES = "Lists all the files in the "
+            + "provided network share.%n%n   <share>     The name of the "
+            + "network share to list the files in. Files will "
+            + "%n               provide some inferential detection of the "
+            + "bucket name. %n               Use the command `help share` for "
+            + "more information%n";
+
+        /**
+         * help string for push command
+         */
+        public static final String PUSH = "Pushes the selected files to the "
+            + "provided network share.%n%n   <share>     The name of the "
+            + "network share to push into. Push will provide %n               "
+            + "some inferential detection of the bucket name. %n               "
+            + "Use the command `help share` for more information.%n   "
+            + "<files>     The names of the files you want to push. %n";
+
+        /**
+         * help string for pull command
+         */
+        public static final String PULL = "Pulls the selected files from the "
+            + "provided network share.%n%n   <share>     The name of the "
+            + "network share to pull from. Pull will provide %n               "
+            + "some inferential detection of the bucket name. %n               "
+            + "Use the command `help share` for more information.%n   "
+            + "<files>     The names of the files you want to pull.%n";
+
+        /**
+         * help string for remove command
+         */
+        public static final String REMOVE = "Removes the selected files from "
+            + "the provided network share.%n%n   <share>     The name of the "
+            + "network share to remove from. Remove will %n               "
+            + "provide some inferential detection of the bucket name. "
+            + "%n               Use the command `help share` for more "
+            + "information.%n   <files>     The names of the files you want to "
+            + "remove.%n";
+
+        /**
+         * help string for share help
+         */
+        public static final String SHARE = "%nNotes when dealing with "
+            + "<share>:%n%nThis program allows for easier inputting of share "
+            + "names by inferring the %nintended share based on the entered "
+            + "string. This means you only have to enter %nenough characters "
+            + "to uniquely identify any of the buckets attached to your "
+            + "%naccount. For example, say you had these buckets:%n    "
+            + "`test-bucket-001`%n    `test-bucket-0011`%n    "
+            + "`test-bucket-002`%n    `test-logs`%n    `actual-logs-current`"
+            + "%nTo select the bucket `test-logs`, you would only need to "
+            + "enter `test-l` as the %nshare name. The program knows that "
+            + "there are no other buckets that share those %nleading "
+            + "characters. To access the bucket `actual-logs-current`, you "
+            + "would need %neven less: entering just `a` will find the correct "
+            + "bucket. However, to access %n`test-bucket-002`, you would need "
+            + "to enter the whole bucket name because %n`test-bucket-001` "
+            + "shares all but the last character. Conversely, if you wish to "
+            + "%naccess `test-bucket-0011` you must enter the whole name, "
+            + "because just entering %n`test-bucket-001` will retrieve that "
+            + "bucket instead. This comes in handy when %nbuckets have an "
+            + "attached UUID: given uniqueness, you do not not have to enter "
+            + "%nthe full bucket name. %n**NOTE** the create command does NOT "
+            + "follow this %ninferential pattern. If you have a bucket "
+            + "`test-001` and go to create a new %nbucket `test-00`, it will "
+            + "let you. This will also append a UUID to the bucket %nname, "
+            + "ensuring uniqueness within S3. This bucket will then be "
+            + "accessed by the %nstring `test=00_`, where `_` is the first "
+            + "character of the UUID, provided that %ncharacter is not `1`."
+            + "%nHere are some example commands using the above sample buckets:"
+            + "%n%n  ns-cli$ shares%n  test-bucket-001%n  test-bucket-0011%n  "
+            + "test-bucket-002%n  test-logs%n  actual-logs-current%n  ns-cli$ "
+            + "delete test-bucket  error: multiple matches, share name too "
+            + "vague%n  ns-cli$ delete test-l%n  deleting bucket test-logs..."
+            + "%n  ns-cli$ files a%n  actual-logs 2016-01-01 09:22:15 255B "
+            + "log_2016-01-01%n  actual-logs 2016-01-02 07:30:22  19B "
+            + "log_2016-01-02%n  actual-logs 2016-01-05 15:45:51 853B "
+            + "log_2016-01-05%n  ns-cli$ push test-bucket-001 myFile%n  "
+            + "uploading myFile to test-bucket-001...%n  ns-cli$ pull "
+            + "test-bucket-0011 otherFile%n  downloading otherFile from "
+            + "test-bucket-0011%n  ns-cli$ create test-logs%n  creating "
+            + "bucket   test-logs2a797781-58aa-4b9a-b8b9-cd873c40b80b%n  "
+            + "ns-cli$ delete a%n  deleting actual-logs-current...%n";
+
+        /**
+         * help string for usage
+         */
+        public static final String USAGE = "%nThese are the available commands:"
+            + "%n%ncommands that deal with shares%n  shares      list all the "
+            + "shares connected to your current credentials%n  create      "
+            + "create a network share%n  delete      delete a network share%n"
+            + "%ncommands that deal with files inside of shares%n  files      "
+            + "list all the files in the selected share%n  push      push the "
+            + "selected files into the specified share%n  pull      pull the "
+            + "selected files from the specified share%n  remove      remove "
+            + "the selected files from the specified share%n%nmiscellaneous "
+            + "commands:%n  help      display the help screen, or help with a "
+            + "specific command%n";
+
+    }
 
     /**
      * method to print the help dialog for the help command
@@ -421,17 +545,7 @@ public class S3Sample {
      */
     private static void helpCreate() {
         System.out.printf("usage:%s create <share>%n", isInterp ? "" : " ns");
-        System.out.printf("Create a new network share, provided you have "
-                + "permission and the share does not %nexist.%n%n"
-                + "   <share>     The name of the network share to create. "
-                + "Currently, this will %n               print an error if "
-                + "there is a share with this exact name: a %n               "
-                + "UUID will not be generated and added on the back. If the "
-                + "share %n               does not exist verbatim, a new share "
-                + "will be created with a %n               UUID added to the "
-                + "end to ensure uniqueness within S3.%n"
-                + "               Use the command `help share` for more "
-                + "information.%n");
+        System.out.printf(HelpStrings.CREATE);
     }
 
     /**
@@ -439,13 +553,7 @@ public class S3Sample {
      */
     private static void helpDelete() {
         System.out.printf("usage:%s delete <share>%n", isInterp ? "" : " ns");
-        System.out.printf("delete an existing network share, provided you "
-                + "have permission and the share %nexists%n%n"
-                + "   <share>     The name of the network share to delete. "
-                + "Will print error if it %n               does not exist. "
-                + "Delete will provide some inferential detection of the "
-                + "bucket %n               name.%n               Use the "
-                + "command `help share` for more information.%n");
+        System.out.printf(HelpStrings.DELETE);
     }
 
     /**
@@ -461,11 +569,7 @@ public class S3Sample {
      */
     private static void helpFiles() {
         System.out.printf("usage:%s files <share>%n", isInterp ? "" : " ns");
-        System.out.printf("Lists all the files in the provided network share."
-                + "%n%n   <share>     The name of the network share to list "
-                + "the files in. Files will %n               provide some "
-                + "inferential detection of the bucket name. %n               "
-                + "Use the command `help share` for more information%n");
+        System.out.printf(HelpStrings.FILES);
     }
 
     /**
@@ -474,13 +578,7 @@ public class S3Sample {
     private static void helpPush() {
         System.out.printf("usage:%s push <share> <files>%n", isInterp ? "" 
                 : " ns");
-        System.out.printf("Pushes the selected files to the provided network "
-                + "share.%n%n   <share>     The name of the network share to "
-                + "push into. Push will provide %n               "
-                + "some inferential detection of the bucket name. %n"
-                + "               Use the command `help share` for more "
-                + "information.%n   <files>     The names of the files you "
-                + "want to push. %n");
+        System.out.printf(HelpStrings.PUSH);
     }
 
     /**
@@ -489,12 +587,7 @@ public class S3Sample {
     private static void helpPull() {
         System.out.printf("usage:%s pull <share> <files>%n", isInterp ? "" 
                 : " ns");
-        System.out.printf("Pulls the selected files from the provided network "
-                + "share.%n%n   <share>     The name of the network share to "
-                + "pull from. Pull will provide %n               some "
-                + "inferential detection of the bucket name. %n               "
-                + "Use the command `help share` for more information.%n   "
-                + "<files>     The names of the files you want to pull.%n");
+        System.out.printf(HelpStrings.PULL);
     }
 
     /**
@@ -503,23 +596,16 @@ public class S3Sample {
     private static void helpRemove() {
         System.out.printf("usage:%s remove <share> <files>%n", isInterp ? "" 
                 : " ns");
-        System.out.printf("Removes the selected files from the provided "
-                + "network share.%n%n   <share>     The name of the network "
-                + "share to remove from. Remove will %n               "
-                + "provide some inferential detection of the bucket name. "
-                + "%n               Use the command `help share` for more "
-                + "information.%n   <files>     The names of the files you "
-                + "want to remove.%n");
+        System.out.printf(HelpStrings.REMOVE);
     }
 
     /**
      * method to print the help dialog for the interp command
      */
     private static void helpInterp() {
-        System.out.println("usage: ns interp");
-        System.out.println("enables interpreter mode");
-        System.out.println("from this mode, you can enter any of the above "
-                + "commands in a single session, without the program prefix");
+        System.out.println("usage: ns interp %nEnables interpreter mode. From "
+                + "this mode, you can enter any of the above %ncommands in a "
+                + "single session, without the program prefix");
     }
 
     /**
@@ -527,62 +613,7 @@ public class S3Sample {
      * bucket names
      */
     private static void helpShareComp() {
-        System.out.printf("%nNotes when dealing with <share>:%n%n"
-                + "This program allows for easier inputting of share names by "
-                + "inferring the %nintended share based on the entered string. "
-                + "This means you only have to enter %nenough characters to "
-                + "uniquely identify any of the buckets attached to your "
-                + "%naccount. For example, say you had these buckets:%n"
-                + "    `test-bucket-001`%n"
-                + "    `test-bucket-0011`%n"
-                + "    `test-bucket-002`%n"
-                + "    `test-logs`%n"
-                + "    `actual-logs-current`%n"
-                + "To select the bucket `test-logs`, you would only need to "
-                + "enter `test-l` as the %nshare name. The program knows that "
-                + "there are no other buckets that share those %nleading "
-                + "characters. To access the bucket `actual-logs-current`, "
-                + "you would need %neven less: entering just `a` will find the "
-                + "correct bucket. However, to access %n`test-bucket-002`, you "
-                + "would need to enter the whole bucket name because "
-                + "%n`test-bucket-001` shares all but the last character. "
-                + "Conversely, if you wish to %naccess `test-bucket-0011` you "
-                + "must enter the whole name, because just entering "
-                + "%n`test-bucket-001` will retrieve that bucket instead. This "
-                + "comes in handy when %nbuckets have an attached UUID: given "
-                + "uniqueness, you do not not have to enter %nthe full bucket "
-                + "name. %n**NOTE** the create command does NOT follow this "
-                + "%ninferential pattern. If you have a bucket `test-001` and "
-                + "go to create a new %nbucket `test-00`, it will let you. "
-                + "This will also append a UUID to the bucket %nname, ensuring "
-                + "uniqueness within S3. This bucket will then be accessed by "
-                + "the %nstring `test=00_`, where `_` is the first character "
-                + "of the UUID, provided that %ncharacter is not `1`.%n"
-                + "Here are some example commands using the above sample "
-                + "buckets:%n%n"
-                + "  ns-cli$ shares%n"
-                + "  test-bucket-001%n"
-                + "  test-bucket-0011%n"
-                + "  test-bucket-002%n"
-                + "  test-logs%n"
-                + "  actual-logs-current%n"
-                + "  ns-cli$ delete test-bucket"
-                + "  error: multiple matches, share name too vague%n"
-                + "  ns-cli$ delete test-l%n"
-                + "  deleting bucket test-logs...%n"
-                + "  ns-cli$ files a%n"
-                + "  actual-logs 2016-01-01 09:22:15 255B log_2016-01-01%n"
-                + "  actual-logs 2016-01-02 07:30:22  19B log_2016-01-02%n"
-                + "  actual-logs 2016-01-05 15:45:51 853B log_2016-01-05%n"
-                + "  ns-cli$ push test-bucket-001 myFile%n"
-                + "  uploading myFile to test-bucket-001...%n"
-                + "  ns-cli$ pull test-bucket-0011 otherFile%n"
-                + "  downloading otherFile from test-bucket-0011%n"
-                + "  ns-cli$ create test-logs%n"
-                + "  creating bucket "
-                + "  test-logs2a797781-58aa-4b9a-b8b9-cd873c40b80b%n"
-                + "  ns-cli$ delete a%n"
-                + "  deleting actual-logs-current...%n");
+        System.out.printf(HelpStrings.SHARE);
     }
 
     /**
@@ -591,38 +622,14 @@ public class S3Sample {
      */
     private static void helpUsage() {
         System.out.printf("usage:%s <command> [args]%n", isInterp ? "" : " ns");
-        System.out.println("");
-        System.out.println("These are the available commands:");
-        System.out.println("");
-        System.out.println("commands that deal with shares");
-        System.out.println("   shares      list all the shares connected "
-                + "to your current credentials");
-        System.out.println("   create      create a network share");
-        System.out.println("   delete      delete a network share");
-        System.out.println("");
-        System.out.println("commands that deal with files inside of "
-                + "shares");
-        System.out.println("   files       list all the files in the selected"
-                + "share");
-        System.out.println("   push        push the selected files into "
-                + "the selected share");
-        System.out.println("   pull        pull the selected files from "
-                + "the selected share");
-        System.out.println("   remove      remove the selected files from "
-                + "the selected share");
-        System.out.println("");
-        System.out.println("miscellaneous commands");
-        System.out.println("   help        display the help screen, or "
-                + "help with a specific command");
+        System.out.printf(HelpStrings.USAGE);
         if (!isInterp) {
-            System.out.println("   interp      load the Network Share demo in "
-                    + "interpreter mode");
-            System.out.println("               from here, you can use the above"
-                    + " commands in a single session");
-            System.out.println("               use 'exit' command to quit "
-                    + "interpreter");
+            System.out.printf("  interp    Load the Network Share demo in "
+                    + "interpreter mode. From here, you %n            can use "
+                    + "the above commands in a single session%n            "
+                    + "use 'exit' command to quit interpreter%n");
         } else { 
-            System.out.println("   exit        exit interpreter mode");
+            System.out.println("  exit      exit interpreter mode");
         }
     }
 }

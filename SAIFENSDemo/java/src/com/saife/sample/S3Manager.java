@@ -388,6 +388,7 @@ public class S3Manager {
 
         try {
             if (null != fullName) {
+                System.out.println("Deleting bucket " + fullName);
                 s3.deleteBucket(fullName);
             }
         } catch (final AmazonS3Exception as3e) {
