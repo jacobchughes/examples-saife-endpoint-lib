@@ -111,3 +111,10 @@ the creation of a new CSR. After running once, you will need to provision the ne
 Dashboard.  Run again to exercise the S3 library.
 
     ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
+
+If you are running the CLI version, run the program with no options or a `help` option to list the
+commands available.
+
+    ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java help
+    
+You can run any of these commands at launch by supplying the program with the proper arguments.
