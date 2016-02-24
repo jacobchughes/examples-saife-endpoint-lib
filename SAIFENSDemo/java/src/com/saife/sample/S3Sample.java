@@ -58,7 +58,7 @@ public class S3Sample {
         saifeManager = new SaifeManager(s3m, defaultPassword);
         if(!saifeManager.saifeInit()) {
             // SAIFE failed to initialize, stop the program
-            return;
+            System.exit(0);
         }
 
         saifeManager.saifePrepare();
