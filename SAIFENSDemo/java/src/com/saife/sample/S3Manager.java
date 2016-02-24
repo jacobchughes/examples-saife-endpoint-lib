@@ -547,9 +547,10 @@ public class S3Manager {
                 final String date = isodate.print(dt);
                 final String time = isotime.print(dt).substring(0,8);
                 final String key = objectSummary.getKey();
-                System.out.format(bucketName + " %" + dateMax + "s %" + timeMax + "s %" 
-                        + sizeMax + "dB %-" + keyMax + "s%n", date, time, size,
-                        key);
+                // @TODO change bucketName to owner or add owner field
+                System.out.format("%s %" + dateMax + "s %" + timeMax + "s %" 
+                        + sizeMax + "dB %-" + keyMax + "s%n", bucketName,
+                        date, time, size, key);
 
             }
         } catch (final AmazonS3Exception as3e) {
