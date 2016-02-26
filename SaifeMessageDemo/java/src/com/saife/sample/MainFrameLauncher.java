@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 SAIFE, Inc.  All Rights Reserved.
+ * Copyright (c) 2016 SAIFE, Inc.  All Rights Reserved.
  *
  * This software is proprietary to, and a valuable trade secret of, SAIFE, Inc.
  *
@@ -26,6 +26,9 @@ public class MainFrameLauncher {
     /** The ml. A static reference */
     static MainFrameLauncher ml = null;
 
+    /** The handler manages SAIFE */
+    static SaifeManager handler = null;
+
     /**
      * The constructor.
      */
@@ -33,9 +36,11 @@ public class MainFrameLauncher {
     }
 
     /**
-     * 
+     * @param sm    the SAIFE library manager
      */
-    public void launchMF() {
+    public void launchMF(final SaifeManager sm) {
+        handler = sm;
+
         System.out.println("launchMF");
 
         if (null == ml) {
@@ -47,7 +52,7 @@ public class MainFrameLauncher {
             public void run() {
                 try {
                     @SuppressWarnings("unused")
-                    final MainFrame window = new MainFrame(ml);
+                    final MainFrame window = new MainFrame(ml, handler);
 
                 } catch (final Exception e) {
                     e.printStackTrace();

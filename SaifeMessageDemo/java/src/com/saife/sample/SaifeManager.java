@@ -226,8 +226,8 @@ public class SaifeManager {
 
     /**
      * method to prepare the SAIFE library for actions
-     * 
-     * @return  true if successful
+     *
+     * @return  true if success
      */
     public boolean saifePrepare() {
         final Thread t = new Thread(new SaifeUpdater());

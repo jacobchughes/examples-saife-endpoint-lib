@@ -17,19 +17,17 @@
  */
 package com.saife.sample;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JTextArea;
+import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-
 
 /**
  * The main Java Swing frame
@@ -38,6 +36,9 @@ public class MainFrame {
 
     /** reference to the SAIFE manager */
     SaifeManager saife;
+
+    /** reference to the main frame launcher */
+    MainFrameLauncher ml;
 
     /** the main frame */
     private final JFrame mainFrame = new JFrame();
@@ -48,10 +49,7 @@ public class MainFrame {
     /** list of omnigroups */
     List<String> omnigroups = new Vector<String>();
 
-    /** 
-     * name of the currently selected omnigorup 
-     * max 30 characters
-     */
+    /** name of the currently selected omnigorup max 30 characters */
     String omnigroupName = null;
 
     /** default list model handles everything */
@@ -73,7 +71,7 @@ public class MainFrame {
     JTextField selectedName;
 
     /** text area to display messages */
-    JTextPane recievedMessages;
+    JTextPane messages;
 
     /** text field for sending a message */
     JTextField messageToSend;
@@ -82,26 +80,15 @@ public class MainFrame {
     JButton sendMsg;
 
     /**
-     * The MainFrameLauncher
-     */
-    MainFrameLauncher ml;
-
-    /**
-     * constructor, creates the MainFrame
+     * constructor, creates the Main Frame with SaifeManager instance
      *
-     * @param saife     the SAIFE manager
+     * @param saife  the SaifeManager
+     * @param ml  the MainFrameLauncher
      */
-    public MainFrame(SaifeManager saife) {
+    public MainFrame(final MainFrameLauncher ml, final SaifeManager saife) {
+        this.ml = ml;
         this.saife = saife;
-        // if (saife.saifeInit() && saife.saifePrepare()) {
-        //     initialize();
-        // } else {
-        //     // saife failed to initialize
-        //     System.out.println("SAIFE failed to initialize");
-        //     System.out.println("Please check that your CSR has been "
-        //             + "provisioned");
-        //     popError();
-        // }
+
         initialize();
     }
 
@@ -111,30 +98,82 @@ public class MainFrame {
     void initialize() {
         // @TODO things
         mainFrame.setTitle("Secure Messaging Demo");
-        mainFrame.setBounds(120, 120, 650, 450);
+        mainFrame.setBounds(120, 120, 700, 450);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainFrame.setResizable(false);
         mainFrame.getContentPane().setLayout(null);
 
         // list of omnigroups
+        JLabel omniLabel = new JLabel("Messaging Groups");
+        omniLabel.setBounds(20, 0, 130, 25);
+        mainFrame.getContentPane().add(omniLabel);
         listModel = new DefaultListModel<String>();
         omnigroupsList = new JList<String>(listModel);
-        omnigroupsList.setBounds(10, 10, 200, 300);
+        omnigroupsList.setBounds(15, 25, 200, 330);
         mainFrame.getContentPane().add(omnigroupsList);
 
-        // new, edit, delete, select buttons
+        // select, new, edit, delete buttons
         selMsgGroup = new JButton("Select");
-        selMsgGroup.setBounds(10, 425, 200, 50);
-        selMsgGroup.setVisible(true);
+        selMsgGroup.setBounds(15, 360, 200, 30);
         mainFrame.getContentPane().add(selMsgGroup);
 
         newMsgGroup = new JButton("New");
-        newMsgGroup.setBounds(10, 450, 100, 50);
-        newMsgGroup.setVisible(true);
+        newMsgGroup.setBounds(15, 390, 60, 30);
         mainFrame.getContentPane().add(newMsgGroup);
+
+        editMsgGroup = new JButton("Edit");
+        editMsgGroup.setBounds(70, 390, 60, 30);
+        mainFrame.getContentPane().add(editMsgGroup);
+
+        delMsgGroup = new JButton("Delete");
+        delMsgGroup.setBounds(130, 390, 80, 30);
+        mainFrame.getContentPane().add(delMsgGroup);
+
+        // message window
+        JLabel msgLabel = new JLabel("Messages:");
+        msgLabel.setBounds(270, 0, 300, 25);
+        mainFrame.getContentPane().add(msgLabel);
+        messages = new JTextPane();
+        messages.setEditable(false);
+        JScrollPane msgScroll = new JScrollPane(messages);
+        msgScroll.setBounds(270, 45, 410, 340);
+        mainFrame.getContentPane().add(msgScroll);
+
+        // selected group name
+        JTextField groupDesig = new JTextField("Selected Group:");
+        groupDesig.setEnabled(false);
+        groupDesig.setEditable(false);
+        groupDesig.setBounds(265, 25, 110, 20);
+        mainFrame.getContentPane().add(groupDesig);
+        selectedName = new JTextField();
+        selectedName.setBounds(370, 25, 313, 20);
+        selectedName.setEditable(false);
+        mainFrame.getContentPane().add(selectedName);
+
+        // message box
+        messageToSend = new JTextField();
+        messageToSend.setBounds(270, 390, 360, 30);
+        mainFrame.getContentPane().add(messageToSend);
+        sendMsg = new JButton("Send");
+        sendMsg.setBounds(626, 390, 60, 30);
+        mainFrame.getContentPane().add(sendMsg);
+
+        System.out.println("    doing group stuff");
+        // populateGroups();
 
         mainFrame.setVisible(true);
     }
 
+    /**
+     * method to populate the current secure messaging group list
+     */
+    void populateGroups() {
+        String[] groups = saife.getGroups();
+        listModel.clear();
+        for (String group : groups) {
+            listModel.addElement(group);
+        }
+    }
     /**
      * method to show an error pop up
      */
