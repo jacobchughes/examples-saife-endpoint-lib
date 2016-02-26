@@ -37,20 +37,12 @@ public class GroupMsgSample {
     /**
      * Default constructor, launches GUI and initializes SAIFE
      */
+    @SuppressWarnings("unused")
     public GroupMsgSample() {
-        launchGUI();
-
         saifeManager = new SaifeManager(defaultPassword);
         saifeManager.saifeInit();
 
-    }
-
-    /**
-     * Launches the GUI windows
-     */
-    public static void launchGUI() {
-        final MainFrameLauncher mf = new MainFrameLauncher();
-        mf.launchMF();
+        final MainFrame mf = new MainFrame(saifeManager);
     }
 
     /**
@@ -59,7 +51,6 @@ public class GroupMsgSample {
      */
     @SuppressWarnings("unused")
     public static void main(final String args[]) {
-        System.out.println("This is just a test");
         GroupMsgSample s = new GroupMsgSample();
     }
 }

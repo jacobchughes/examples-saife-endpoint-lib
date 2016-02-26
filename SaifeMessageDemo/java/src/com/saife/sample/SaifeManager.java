@@ -25,13 +25,11 @@ import java.util.Vector;
 
 import com.google.gson.Gson;
 import com.saife.InsufficientEntropyException;
-import com.saife.NotAllowedException;
 import com.saife.Saife;
 import com.saife.SaifeFactory;
 import com.saife.contacts.Contact;
 import com.saife.contacts.ContactListUpdateCallback;
 import com.saife.contacts.ContactListUpdateListener;
-import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
 import com.saife.logging.LogSink.LogLevel;
 import com.saife.logging.LogSinkFactory;
@@ -40,7 +38,6 @@ import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
 import com.saife.management.ManagementService.ManagementState;
-import com.saife.management.UnlockRequiredException;
 
 /**
  * Class used to manage the Saife Library's calls and methods
@@ -122,6 +119,19 @@ public class SaifeManager {
         }
     }
 
+    @SuppressWarnings("javadoc")
+    public String[] getGroups() {
+        String[] groupNames;
+        final List<String> groups = saife.ListGroups();
+        groupNames = new String[groups.size()];
+
+        for (int i = 0; i < groups.size(); i++) {
+            groupNames[i] = groups.get(i);
+        }
+
+        return groupNames;
+    }
+
     /**
      * @return a list of contact names
      */
@@ -152,7 +162,8 @@ public class SaifeManager {
         saife = SaifeFactory.constructSaife(logMgr);
 
         // Set SAIFE logging level
-        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
+        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
         /**
          * SAIFE initialization
          */
@@ -194,18 +205,58 @@ public class SaifeManager {
         } catch (final InsufficientEntropyException e) {
             System.out.println("The SAIFE library does not have sufficient "
                     + "entropy");
+            return false;
         } catch (final InvalidManagementStateException e) {
             System.out.println("SAIFE entered an invalid or unrecoverable "
                     + "state.");
+            return false;
         } catch (final FileNotFoundException e) {
             System.out.println("File Not Found (smcsr)");
             e.printStackTrace();
+            return false;
         } catch (final InvalidCredentialException e) {
             System.out.println("Invalid credentials");
             e.printStackTrace();
+            return false;
         }
 
-        System.out.println("SAIFE has abeen initialized correctly.");
+        System.out.println("SAIFE has been initialized correctly.");
+        return true;
+    }
+
+    /**
+     * method to prepare the SAIFE library for actions
+     * 
+     * @return  true if successful
+     */
+    public boolean saifePrepare() {
+        final Thread t = new Thread(new SaifeUpdater());
+        t.start();
+
+        // Unlock SAIFE library with user's credential
+        try {
+            saife.unlock(defaultPassword);
+        } catch (final InvalidCredentialException e1) {
+            e1.printStackTrace();
+        } catch (final InvalidManagementStateException e1) {
+            e1.printStackTrace();
+            return false;
+        }
+
+        // Update SAIFE after library is unlocked
+        while (!saifeUpdated) {
+            try {
+                System.out.println("Waiting for SAIFE update.");
+                Thread.sleep(5000);
+            } catch (final InterruptedException e) {
+
+            }
+        }
+
+        // we will need our contact info for the groups
+        saife.subscribe();
+
+        System.out.println("SAIFE has been prepared");
         return true;
     }
 }
