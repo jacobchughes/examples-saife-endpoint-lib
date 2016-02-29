@@ -16,9 +16,40 @@
  */
 package com.saife.sample;
 
+import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JList;
+
 /**
  * Swing frame to handle the creating of a Secure Messaging Group
  */
 public class NewMsgGroupFrame {
+
+    /** reference to the SAIFE manager */
+    SaifeManager saife;
+
+    /** the main frame */
+    private final JFrame mainFrame = new JFrame();
+
+    /** title for omnigroup list */
+    JLabel omniLabel;
+
+    /** GUI list of omnigroups */
+    JList<String> omnigroupsList;
+
+    /** data list of omnigroups */
+    List<String> omnigroups;
+
+    /** create button */
+    JButton createGroup;
+
+    /** cancel button */
+    JButton cancelButton;
+
+
+
     
 }

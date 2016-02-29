@@ -17,6 +17,7 @@
  */
 package com.saife.sample;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -30,6 +31,8 @@ import com.saife.SaifeFactory;
 import com.saife.contacts.Contact;
 import com.saife.contacts.ContactListUpdateCallback;
 import com.saife.contacts.ContactListUpdateListener;
+import com.saife.contacts.GroupInfo;
+import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
 import com.saife.logging.LogSink.LogLevel;
 import com.saife.logging.LogSinkFactory;
@@ -120,13 +123,25 @@ public class SaifeManager {
     }
 
     @SuppressWarnings("javadoc")
-    public String[] getGroups() {
-        String[] groupNames;
-        final List<String> groups = saife.ListGroups();
-        groupNames = new String[groups.size()];
+    public List<String> getOmnigroups() {
+        List<String> groupNames = new Vector<String>();
 
-        for (int i = 0; i < groups.size(); i++) {
-            groupNames[i] = groups.get(i);
+        try {
+            List<Contact> contacts = saife.getAllContacts();
+
+            for (Contact c : contacts) {
+                List<GroupInfo> groups = c.getGroupList();
+                for (GroupInfo g : groups) {
+                    if (!groupNames.contains(g.getGroupName()) 
+                            && "omni".equalsIgnoreCase(g.getGroupKind())) {
+                        groupNames.add(g.getGroupName());
+                    }
+                }
+            }
+
+        } catch (InvalidManagementStateException e) {
+            e.printStackTrace();
+            return null;
         }
 
         return groupNames;
@@ -176,6 +191,31 @@ public class SaifeManager {
                 // Setup the DN attributes to be used in the X509 certificate.
                 final DistinguishedName dn = 
                     new DistinguishedName("SaifeGroupMsg");
+
+                // Add the required amount of entropy
+                // @TODO 
+                // @TODO currently using /dev/urandom
+                // @TODO not platform agnostic
+                // @TODO good solution?
+                // @TODO 
+                // @TODO 
+                final FileInputStream fin 
+                    = new FileInputStream("/dev/urandom");
+
+                byte[] b = new byte[256];
+                try {
+                    fin.read(b);
+                    
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    return false;
+                } finally {
+                        try {
+                            fin.close();
+                        } catch (IOException e) {}
+                }
+
+                saife.AddEntropy(b, 8);
 
                 // Generate the public/private key pair and certificate 
                 // signing request.

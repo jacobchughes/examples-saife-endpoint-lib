@@ -17,6 +17,8 @@
  */
 package com.saife.sample;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.Vector;
 
@@ -43,14 +45,18 @@ public class MainFrame {
     /** the main frame */
     private final JFrame mainFrame = new JFrame();
 
-    /** list of the current contact's omnigroups */
-    JList<String> omnigroupsList;
+    /** list of the current secure messaging groups */
+    JList<String> secmsggroupsList;
 
-    /** list of omnigroups */
-    List<String> omnigroups = new Vector<String>();
+    /** list of secure messaging groups */
+    List<String> secmsggroups = new Vector<String>();
 
-    /** name of the currently selected omnigorup max 30 characters */
-    String omnigroupName = null;
+    /** button to refresh secure messaging groups list */
+    JButton refreshGroups;
+
+    /** name of the currently selected secure messaging group max 30 
+     * characters */
+    String secmsggroupName = null;
 
     /** default list model handles everything */
     DefaultListModel<String> listModel = null;
@@ -58,7 +64,7 @@ public class MainFrame {
     /** button to open new secure messaging group dialog box */
     JButton newMsgGroup;
 
-    /** button to select omnigroup */
+    /** button to select secure messaging group */
     JButton selMsgGroup;
 
     /** button to open edit secure messaging group dialog box */
@@ -67,7 +73,7 @@ public class MainFrame {
     /** button to delete a secure messaging group */
     JButton delMsgGroup;
 
-    /** text area to store current omnigroup name */
+    /** text area to store current secure messaging group name */
     JTextField selectedName;
 
     /** text area to display messages */
@@ -103,14 +109,25 @@ public class MainFrame {
         mainFrame.setResizable(false);
         mainFrame.getContentPane().setLayout(null);
 
-        // list of omnigroups
-        JLabel omniLabel = new JLabel("Messaging Groups");
-        omniLabel.setBounds(20, 0, 130, 25);
-        mainFrame.getContentPane().add(omniLabel);
+        // list of secure messaging groups
+        JLabel secmsgLabel = new JLabel("Messaging Groups");
+        secmsgLabel.setBounds(20, 0, 130, 25);
+        mainFrame.getContentPane().add(secmsgLabel);
         listModel = new DefaultListModel<String>();
-        omnigroupsList = new JList<String>(listModel);
-        omnigroupsList.setBounds(15, 25, 200, 330);
-        mainFrame.getContentPane().add(omnigroupsList);
+        secmsggroupsList = new JList<String>(listModel);
+        secmsggroupsList.setBounds(15, 25, 200, 330);
+        mainFrame.getContentPane().add(secmsggroupsList);
+
+        // refresh button
+        refreshGroups = new JButton("refresh");
+        refreshGroups.setBounds(145, 0, 70, 25);
+        refreshGroups.addActionListener( new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                populateGroups();
+            }
+        });
+        mainFrame.getContentPane().add(refreshGroups);
 
         // select, new, edit, delete buttons
         selMsgGroup = new JButton("Select");
@@ -158,17 +175,22 @@ public class MainFrame {
         sendMsg.setBounds(626, 390, 60, 30);
         mainFrame.getContentPane().add(sendMsg);
 
+        System.out.println("Preparing SAIFE");
+        saife.saifePrepare();
+
         System.out.println("    doing group stuff");
-        // populateGroups();
+        populateGroups();
 
         mainFrame.setVisible(true);
     }
 
     /**
      * method to populate the current secure messaging group list
+     * @TODO change to messaging groups and not omnigroups
      */
     void populateGroups() {
-        String[] groups = saife.getGroups();
+        // List<String> groups = saife.getContacts();
+        List<String> groups = saife.getOmnigroups();
         listModel.clear();
         for (String group : groups) {
             listModel.addElement(group);
