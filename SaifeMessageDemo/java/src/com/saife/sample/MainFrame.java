@@ -30,6 +30,7 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.ListSelectionModel;
 
 /**
  * The main Java Swing frame
@@ -50,6 +51,9 @@ public class MainFrame {
 
     /** list of secure messaging groups */
     List<String> secmsggroups = new Vector<String>();
+
+    /** scroll pane for group list */
+    JScrollPane secmsggroupScroll;
 
     /** button to refresh secure messaging groups list */
     JButton refreshGroups;
@@ -78,6 +82,9 @@ public class MainFrame {
 
     /** text area to display messages */
     JTextPane messages;
+
+    /** scroll pane for messages */
+    JScrollPane msgScroll;
 
     /** text field for sending a message */
     JTextField messageToSend;
@@ -115,13 +122,15 @@ public class MainFrame {
         mainFrame.getContentPane().add(secmsgLabel);
         listModel = new DefaultListModel<String>();
         secmsggroupsList = new JList<String>(listModel);
-        secmsggroupsList.setBounds(15, 25, 200, 330);
-        mainFrame.getContentPane().add(secmsggroupsList);
+        secmsggroupsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        secmsggroupScroll = new JScrollPane(secmsggroupsList);
+        secmsggroupScroll.setBounds(15, 25, 200, 330);
+        mainFrame.getContentPane().add(secmsggroupScroll);
 
         // refresh button
         refreshGroups = new JButton("refresh");
         refreshGroups.setBounds(145, 0, 70, 25);
-        refreshGroups.addActionListener( new ActionListener() {
+        refreshGroups.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 populateGroups();
@@ -136,6 +145,12 @@ public class MainFrame {
 
         newMsgGroup = new JButton("New");
         newMsgGroup.setBounds(15, 390, 60, 30);
+        newMsgGroup.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                new NewMsgGroupFrame(saife);
+            }
+        });
         mainFrame.getContentPane().add(newMsgGroup);
 
         editMsgGroup = new JButton("Edit");
@@ -152,7 +167,7 @@ public class MainFrame {
         mainFrame.getContentPane().add(msgLabel);
         messages = new JTextPane();
         messages.setEditable(false);
-        JScrollPane msgScroll = new JScrollPane(messages);
+        msgScroll = new JScrollPane(messages);
         msgScroll.setBounds(270, 45, 410, 340);
         mainFrame.getContentPane().add(msgScroll);
 
