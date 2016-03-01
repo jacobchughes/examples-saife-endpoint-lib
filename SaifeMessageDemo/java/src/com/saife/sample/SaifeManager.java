@@ -199,28 +199,52 @@ public class SaifeManager {
                 // @TODO good solution?
                 // @TODO 
                 // @TODO 
+                boolean entropic = false;
+
+                CertificationSigningRequest csr = null;
+
                 final FileInputStream fin 
                     = new FileInputStream("/dev/urandom");
 
-                byte[] b = new byte[256];
-                try {
-                    fin.read(b);
-                    
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    return false;
-                } finally {
-                        try {
-                            fin.close();
-                        } catch (IOException e) {}
+                byte[] b;
+
+                while (!entropic) {
+                    try {
+                        b = new byte[32];
+                        fin.read(b);
+
+                        System.out.println("adding entropy to SAIFE library");
+                        saife.AddEntropy(b, 4);
+
+                        csr = saife.generateSmCsr(dn, defaultPassword);
+
+                        entropic = true;
+
+
+                    } catch (final InsufficientEntropyException e) {
+                        System.out.println(e.getMessage());
+                        entropic = false;
+                    } catch (final IOException e) {
+                        e.printStackTrace();
+                    }
+                    // } finally {
+                    //     try {
+                    //         fin.close();
+                    //     } catch (final IOException e) {}
+                    // }
+
                 }
 
-                saife.AddEntropy(b, 8);
+                try {
+                    fin.close();
+                } catch (final IOException e) {}
+
+                if (null == csr) {
+                    return false;
+                }
 
                 // Generate the public/private key pair and certificate 
                 // signing request.
-                final CertificationSigningRequest csr = saife.generateSmCsr(dn,
-                        defaultPassword);
 
                 // Add additional capabilities to the SAIFE capabilities list 
                 // that convey the application specific capabilities.
@@ -242,10 +266,10 @@ public class SaifeManager {
                         + "capabilities to provision at the SAIFE dashboard.");
                 return false;
             }
-        } catch (final InsufficientEntropyException e) {
-            System.out.println("The SAIFE library does not have sufficient "
-                    + "entropy");
-            return false;
+        // } catch (final InsufficientEntropyException e) {
+        //     System.out.println("The SAIFE library does not have sufficient "
+        //             + "entropy");
+        //     return false;
         } catch (final InvalidManagementStateException e) {
             System.out.println("SAIFE entered an invalid or unrecoverable "
                     + "state.");
