@@ -193,12 +193,6 @@ public class SaifeManager {
                     new DistinguishedName("SaifeGroupMsg");
 
                 // Add the required amount of entropy
-                // @TODO 
-                // @TODO currently using /dev/urandom
-                // @TODO not platform agnostic
-                // @TODO good solution?
-                // @TODO 
-                // @TODO 
                 boolean entropic = false;
 
                 CertificationSigningRequest csr = null;

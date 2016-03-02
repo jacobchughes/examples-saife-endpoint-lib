@@ -92,6 +92,9 @@ public class MainFrame {
     /** button to send the message */
     JButton sendMsg;
 
+    /** new messaging group window */
+    NewMsgGroupFrame newMsgGroupFrame;
+
     /**
      * constructor, creates the Main Frame with SaifeManager instance
      *
@@ -109,7 +112,6 @@ public class MainFrame {
      * initialize the contents of the frame
      */
     void initialize() {
-        // @TODO things
         mainFrame.setTitle("Secure Messaging Demo");
         mainFrame.setBounds(120, 120, 700, 450);
         mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -148,7 +150,11 @@ public class MainFrame {
         newMsgGroup.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                new NewMsgGroupFrame(saife);
+                if (null == newMsgGroupFrame) {
+                    newMsgGroupFrame = new NewMsgGroupFrame(saife);
+                } else {
+                    newMsgGroupFrame.focus();
+                }
             }
         });
         mainFrame.getContentPane().add(newMsgGroup);
@@ -204,7 +210,6 @@ public class MainFrame {
      * @TODO change to messaging groups and not omnigroups
      */
     void populateGroups() {
-        // List<String> groups = saife.getContacts();
         List<String> groups = saife.getOmnigroups();
         listModel.clear();
         for (String group : groups) {
