@@ -317,4 +317,29 @@ public class SaifeManager {
         System.out.println("SAIFE has been prepared");
         return true;
     }
+
+    /** 
+     * wrapper function to get a contact by name
+     * 
+     * @param name  name of the contact to get
+     * @throws NoSuchContactException   if there does not exist a contact
+     * @throws InvalidManagementStateException  if the state is not valid
+     * @return  the first match contact
+     */
+    public Contact getContact(String name) throws NoSuchContactException,
+        InvalidManagementStateException {
+        return saife.getContactsByName(name).get(0);
+        
+    }
+
+    /**
+     * create a new secure messaging group
+     *
+     * @param name  name of the new group
+     * @param members  list of the members to add
+     * @return  true if success
+     */
+    public boolean createMsgGroup(String name, List<Contact> members) {
+        return false;
+    }
 }

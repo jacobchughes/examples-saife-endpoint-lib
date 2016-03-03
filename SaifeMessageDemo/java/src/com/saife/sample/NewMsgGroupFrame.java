@@ -28,6 +28,13 @@ import javax.swing.JList;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
+
+import com.saife.contacts.Contact;
+import com.saife.contacts.GroupInfo;
+import com.saife.contacts.NoSuchContactException;
+import com.saife.management.InvalidManagementStateException;
 
 /**
  * Swing frame to handle the creating of a Secure Messaging Group
@@ -111,6 +118,14 @@ public class NewMsgGroupFrame {
         omnigroupListModel = new DefaultListModel<String>();
         omnigroupList = new JList<String>(omnigroupListModel);
         omnigroupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        omnigroupList.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                if (omnigroupList.getSelectedIndex() != -1) {
+                    populateContacts(omnigroupList.getSelectedValue());
+                }
+            }
+        });
         omnigroupScroll = new JScrollPane(omnigroupList);
         omnigroupScroll.setBounds(15, 25, 150, 300);
         mainFrame.getContentPane().add(omnigroupScroll);
@@ -152,6 +167,7 @@ public class NewMsgGroupFrame {
      * bring the new message window to focus
      */
     public void focus() {
+        contactListModel.clear();
         mainFrame.setVisible(true);
         populateOmnigroups();
     }
@@ -174,12 +190,27 @@ public class NewMsgGroupFrame {
      */
     void populateContacts(String omnigroupName) {
         // @TODO populate contacts from selected omnigroup
+        System.out.println("Getting group info for " + omnigroupName);
         List<String> cons = saife.getContacts();
         contactListModel.clear();
-        // do a for loop through contacts gotten from saife to check if they are
-        // in the omnigroup
+
         for (String con : cons) {
-            contactListModel.addElement(con);
+            try {
+                Contact c = saife.getContact(con);
+                System.out.println("Contact " + c.getName());
+                List<GroupInfo> gl = c.getGroupList();
+                for (GroupInfo in : gl) {
+                    if (omnigroupName.equals(in.getGroupName())) {
+                        System.out.println("Adding contact " + c.getName());
+                        contactListModel.addElement(c.getName());
+                    }
+                }
+
+            } catch (NoSuchContactException e) {
+                System.out.println("No contact " + con);
+            } catch (InvalidManagementStateException e) {
+                e.printStackTrace();
+            }
         }
     }
     
