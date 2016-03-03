@@ -47,10 +47,10 @@ public class MainFrame {
     private final JFrame mainFrame = new JFrame();
 
     /** list of the current secure messaging groups */
-    JList<String> secmsggroupsList;
+    JList<String> secmsggroupList;
 
     /** list of secure messaging groups */
-    List<String> secmsggroups = new Vector<String>();
+    List<String> secmsggropu = new Vector<String>();
 
     /** scroll pane for group list */
     JScrollPane secmsggroupScroll;
@@ -121,12 +121,15 @@ public class MainFrame {
         // list of secure messaging groups
         JLabel secmsgLabel = new JLabel("Messaging Groups");
         secmsgLabel.setBounds(20, 0, 130, 25);
+
         mainFrame.getContentPane().add(secmsgLabel);
+
         listModel = new DefaultListModel<String>();
-        secmsggroupsList = new JList<String>(listModel);
-        secmsggroupsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        secmsggroupScroll = new JScrollPane(secmsggroupsList);
+        secmsggroupList = new JList<String>(listModel);
+        secmsggroupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        secmsggroupScroll = new JScrollPane(secmsggroupList);
         secmsggroupScroll.setBounds(15, 25, 200, 330);
+
         mainFrame.getContentPane().add(secmsggroupScroll);
 
         // refresh button
@@ -138,11 +141,13 @@ public class MainFrame {
                 populateGroups();
             }
         });
+
         mainFrame.getContentPane().add(refreshGroups);
 
         // select, new, edit, delete buttons
         selMsgGroup = new JButton("Select");
         selMsgGroup.setBounds(15, 360, 200, 30);
+
         mainFrame.getContentPane().add(selMsgGroup);
 
         newMsgGroup = new JButton("New");
@@ -157,24 +162,41 @@ public class MainFrame {
                 }
             }
         });
+
         mainFrame.getContentPane().add(newMsgGroup);
 
         editMsgGroup = new JButton("Edit");
         editMsgGroup.setBounds(70, 390, 60, 30);
+
         mainFrame.getContentPane().add(editMsgGroup);
 
         delMsgGroup = new JButton("Delete");
         delMsgGroup.setBounds(130, 390, 80, 30);
+        delMsgGroup.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (secmsggroupList.getSelectedIndex() != -1) {
+                    String groupID = secmsggroupList.getSelectedValue();
+                    groupID = groupID.substring(groupID.indexOf("-") + 2);
+                    saife.deleteMsgGroup(groupID);
+                    populateGroups();
+                }
+            }
+        });
+
         mainFrame.getContentPane().add(delMsgGroup);
 
         // message window
         JLabel msgLabel = new JLabel("Messages:");
         msgLabel.setBounds(270, 0, 300, 25);
+
         mainFrame.getContentPane().add(msgLabel);
+
         messages = new JTextPane();
         messages.setEditable(false);
         msgScroll = new JScrollPane(messages);
         msgScroll.setBounds(270, 45, 410, 340);
+
         mainFrame.getContentPane().add(msgScroll);
 
         // selected group name
@@ -182,10 +204,13 @@ public class MainFrame {
         groupDesig.setEnabled(false);
         groupDesig.setEditable(false);
         groupDesig.setBounds(265, 25, 110, 20);
+
         mainFrame.getContentPane().add(groupDesig);
+
         selectedName = new JTextField();
         selectedName.setBounds(370, 25, 313, 20);
         selectedName.setEditable(false);
+
         mainFrame.getContentPane().add(selectedName);
 
         // message box
@@ -194,12 +219,14 @@ public class MainFrame {
         mainFrame.getContentPane().add(messageToSend);
         sendMsg = new JButton("Send");
         sendMsg.setBounds(626, 390, 60, 30);
+
         mainFrame.getContentPane().add(sendMsg);
 
+        // prepare the SAIFE library
         System.out.println("Preparing SAIFE");
         saife.saifePrepare();
 
-        System.out.println("    doing group stuff");
+        // populate the group list 
         populateGroups();
 
         mainFrame.setVisible(true);
@@ -210,12 +237,13 @@ public class MainFrame {
      * @TODO change to messaging groups and not omnigroups
      */
     void populateGroups() {
-        List<String> groups = saife.getOmnigroups();
+        List<String> groups = saife.getPrettyGroups();
         listModel.clear();
         for (String group : groups) {
             listModel.addElement(group);
         }
     }
+
     /**
      * method to show an error pop up
      */
@@ -223,4 +251,5 @@ public class MainFrame {
         // open window?
         System.exit(0);
     }
+
 }

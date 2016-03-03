@@ -59,20 +59,14 @@ public class NewMsgGroupFrame {
     /** scroll pane for omnigroup list */
     JScrollPane omnigroupScroll;
 
-    /** data list of omnigroups */
-    List<String> omnigroups;
+    /** label for secure messaging group name */
+    JLabel secmsggroupLabel;
+
+    /** text area for setting secure messaging group name */
+    JTextField secmsggroupName;
 
     /** list model for omnigroup list */
     DefaultListModel<String> omnigroupListModel = null;
-
-    /** create button */
-    JButton createGroup;
-
-    /** cancel button */
-    JButton cancelButton;
-
-    // instead of select group button, when list index is switched, change
-    // selected group
 
     /** list of contact label */
     JLabel contactLabel;
@@ -86,8 +80,11 @@ public class NewMsgGroupFrame {
     /** scroll pane for contact list */
     JScrollPane contactScroll;
 
-    /** data list of contact */
-    List<String> contacts;
+    /** create button */
+    JButton createGroup;
+
+    /** cancel button */
+    JButton cancelButton;
 
     /** 
      * constructor, creates the main frame and links the SAIFE manager
@@ -106,7 +103,7 @@ public class NewMsgGroupFrame {
     void initialize() {
         // main frame setup 
         mainFrame.setTitle("New Secure Messaging Group");
-        mainFrame.setBounds(140, 140, 350, 400);
+        mainFrame.setBounds(140, 140, 400, 400);
         mainFrame.setResizable(false);
         mainFrame.getContentPane().setLayout(null);
         mainFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -126,19 +123,32 @@ public class NewMsgGroupFrame {
                 }
             }
         });
+
         omnigroupScroll = new JScrollPane(omnigroupList);
         omnigroupScroll.setBounds(15, 25, 150, 300);
+
         mainFrame.getContentPane().add(omnigroupScroll);
+
+        // secure messaging group name setup
+        secmsggroupLabel = new JLabel("Group Name");
+        secmsggroupLabel.setBounds(195, 0, 200, 20);
+
+        mainFrame.getContentPane().add(secmsggroupLabel);
+
+        secmsggroupName = new JTextField();
+        secmsggroupName.setBounds(193, 25, 200, 20);
+
+        mainFrame.getContentPane().add(secmsggroupName);
 
         // contact list setup
         contactLabel = new JLabel("Members to add");
-        contactLabel.setBounds(195, 0, 150, 25);
+        contactLabel.setBounds(195, 50, 200, 25);
         mainFrame.getContentPane().add(contactLabel);
         contactListModel = new DefaultListModel<String>();
         contactList = new JList<String>(contactListModel);
         contactList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         contactScroll = new JScrollPane(contactList);
-        contactScroll.setBounds(190, 25, 150, 300);
+        contactScroll.setBounds(190, 75, 200, 250);
         mainFrame.getContentPane().add(contactScroll);
 
         // cancel button
@@ -150,15 +160,31 @@ public class NewMsgGroupFrame {
                 mainFrame.dispose();
             }
         });
+
         mainFrame.getContentPane().add(cancelButton);
 
         // create button
         createGroup = new JButton("Create");
         createGroup.setBounds(220, 340, 90, 25);
+        createGroup.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!secmsggroupName.getText().equals("")) {
+                    if (omnigroupList.getSelectedIndex() != -1) {
+                        saife.createMsgGroup(secmsggroupName.getText(),
+                            contactList.getSelectedValuesList());
+                        mainFrame.dispose();
+                    }
+                }
+            }
+        });
+
         mainFrame.getContentPane().add(createGroup);
 
+        // populate the omnigroups list
         populateOmnigroups();
 
+        // enable window
         mainFrame.setVisible(true);
 
     }
@@ -190,18 +216,15 @@ public class NewMsgGroupFrame {
      */
     void populateContacts(String omnigroupName) {
         // @TODO populate contacts from selected omnigroup
-        System.out.println("Getting group info for " + omnigroupName);
         List<String> cons = saife.getContacts();
         contactListModel.clear();
 
         for (String con : cons) {
             try {
                 Contact c = saife.getContact(con);
-                System.out.println("Contact " + c.getName());
                 List<GroupInfo> gl = c.getGroupList();
                 for (GroupInfo in : gl) {
                     if (omnigroupName.equals(in.getGroupName())) {
-                        System.out.println("Adding contact " + c.getName());
                         contactListModel.addElement(c.getName());
                     }
                 }

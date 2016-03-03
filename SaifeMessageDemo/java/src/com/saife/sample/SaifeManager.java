@@ -34,6 +34,9 @@ import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.GroupInfo;
 import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
+import com.saife.group.ContactGroupNotFoundException;
+import com.saife.group.GroupNotFoundException;
+import com.saife.group.GroupPermissionDeniedException;
 import com.saife.logging.LogSink.LogLevel;
 import com.saife.logging.LogSinkFactory;
 import com.saife.logging.LogSinkManager;
@@ -221,11 +224,6 @@ public class SaifeManager {
                     } catch (final IOException e) {
                         e.printStackTrace();
                     }
-                    // } finally {
-                    //     try {
-                    //         fin.close();
-                    //     } catch (final IOException e) {}
-                    // }
 
                 }
 
@@ -336,10 +334,65 @@ public class SaifeManager {
      * create a new secure messaging group
      *
      * @param name  name of the new group
-     * @param members  list of the members to add
-     * @return  true if success
+     * @param members  list of the names of Contacts to add
      */
-    public boolean createMsgGroup(String name, List<Contact> members) {
-        return false;
+    public void createMsgGroup(String name, List<String> members) {
+        List<Contact> contacts = new Vector<Contact>();
+
+        for (String member : members) {
+            try {
+                contacts.add(getContact(member));
+            } catch (NoSuchContactException e) {
+                e.printStackTrace();
+            } catch (InvalidManagementStateException e) {
+                e.printStackTrace();
+            }
+        }
+
+        try {
+            saife.createGroup(name, contacts);
+        } catch (ContactGroupNotFoundException e) {
+            e.printStackTrace();
+        }
+
     }
+
+    /**
+     * returns the prettyfied list of secure messaging groups
+     *
+     * @return  'group name - group id'
+     */
+    public List<String> getPrettyGroups() {
+        List<String> groups = saife.ListGroups();
+        List<String> prettyGroups = new Vector<String>();
+        
+        for (String group : groups) {
+            try {
+                String prettyGroup = saife.getGroup(group).name() + " - " 
+                    + group;
+                prettyGroups.add(prettyGroup);
+            } catch (GroupNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return prettyGroups;
+    }
+
+    /**
+     * delete a secure messaging group
+     *
+     * @param groupID  name of the group
+     */
+    public void deleteMsgGroup(String groupID) {
+        try {
+            saife.getGroup(groupID).destroy();
+        } catch (GroupNotFoundException e) {
+            e.printStackTrace();
+        } catch (GroupPermissionDeniedException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 }
