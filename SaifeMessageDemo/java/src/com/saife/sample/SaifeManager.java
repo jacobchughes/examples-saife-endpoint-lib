@@ -40,6 +40,7 @@ import com.saife.group.GroupPermissionDeniedException;
 import com.saife.logging.LogSink.LogLevel;
 import com.saife.logging.LogSinkFactory;
 import com.saife.logging.LogSinkManager;
+import com.saife.logging.Logger;
 import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
@@ -59,6 +60,11 @@ public class SaifeManager {
      * The SAIFE library
      */
     Saife saife;
+
+    /**
+     * The SAIFE logger 
+     */
+    Logger logger;
 
     /**
      * Indicates whether SAIFE is updated or not
@@ -179,6 +185,9 @@ public class SaifeManager {
         // to redirect SAIFE logging.
         saife = SaifeFactory.constructSaife(logMgr);
 
+        // get the logger for future use
+        logger = saife.getLogger("SaifeManager");
+
         // Set SAIFE logging level
         // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
         saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
@@ -241,7 +250,7 @@ public class SaifeManager {
                 // Add additional capabilities to the SAIFE capabilities list 
                 // that convey the application specific capabilities.
                 final List<String> capabilities = csr.getCapabilities();
-                capabilities.add("com::saife::demo::ns");
+                capabilities.add("com::saife::demo::msg");
 
                 // Provide CSR and capabilities (JSON string) to user for 
                 // provisioning. The application must restart from the UNKEYED
@@ -299,6 +308,8 @@ public class SaifeManager {
             return false;
         }
 
+        logger.trace("SAIFE library unlocked");
+
         // Update SAIFE after library is unlocked
         while (!saifeUpdated) {
             try {
@@ -309,10 +320,12 @@ public class SaifeManager {
             }
         }
 
+        logger.trace("SAIFE library updated");
+
         // we will need our contact info for the groups
         saife.subscribe();
 
-        System.out.println("SAIFE has been prepared");
+        logger.trace("SAIFE library has been prepared");
         return true;
     }
 
@@ -342,16 +355,14 @@ public class SaifeManager {
         for (String member : members) {
             try {
                 contacts.add(getContact(member));
-            } catch (NoSuchContactException e) {
-                e.printStackTrace();
-            } catch (InvalidManagementStateException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
         try {
             saife.createGroup(name, contacts);
-        } catch (ContactGroupNotFoundException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
 
@@ -363,7 +374,14 @@ public class SaifeManager {
      * @return  'group name - group id'
      */
     public List<String> getPrettyGroups() {
+
         List<String> groups = saife.ListGroups();
+        logger.trace("Got groups");
+
+        for (String group : groups) {
+            logger.trace("Group: " + group);
+        }
+
         List<String> prettyGroups = new Vector<String>();
         
         for (String group : groups) {
@@ -371,7 +389,7 @@ public class SaifeManager {
                 String prettyGroup = saife.getGroup(group).name() + " - " 
                     + group;
                 prettyGroups.add(prettyGroup);
-            } catch (GroupNotFoundException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -387,9 +405,7 @@ public class SaifeManager {
     public void deleteMsgGroup(String groupID) {
         try {
             saife.getGroup(groupID).destroy();
-        } catch (GroupNotFoundException e) {
-            e.printStackTrace();
-        } catch (GroupPermissionDeniedException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

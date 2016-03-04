@@ -173,7 +173,7 @@ public class NewMsgGroupFrame {
                     if (omnigroupList.getSelectedIndex() != -1) {
                         saife.createMsgGroup(secmsggroupName.getText(),
                             contactList.getSelectedValuesList());
-                        mainFrame.dispose();
+                        dispose();
                     }
                 }
             }
@@ -207,6 +207,15 @@ public class NewMsgGroupFrame {
         for (String g : og) {
             omnigroupListModel.addElement(g);
         }
+    }
+
+    /**
+     * dispose of the main frame
+     */
+    public void dispose() {
+        mainFrame.dispose();
+        secmsggroupName.setText("");
+        contactList.clearSelection();
     }
 
     /**
