@@ -18,6 +18,7 @@ package com.saife.sample;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Vector;
 
@@ -126,8 +127,7 @@ public class EditMsgGroupFrame {
 
         availConsModel = new DefaultListModel<String>();
         availCons = new JList<String>(availConsModel);
-        availCons.setSelectionMode(
-                ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        availCons.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         availConsScroll = new JScrollPane(availCons);
         availConsScroll.setBounds(15, 20, 150, 300);
         
@@ -136,12 +136,32 @@ public class EditMsgGroupFrame {
         // add available contacts button
         addAvailCons = new JButton(">>");
         addAvailCons.setBounds(175, 130, 40, 20);
+        addAvailCons.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (availCons.getSelectedIndex() != -1) {
+                    saife.groupAddMember(group, availCons.getSelectedValue());
+                    populateCurrent();
+                    populateAvailable();
+                }
+            }
+        });
 
         mainFrame.getContentPane().add(addAvailCons);
 
         // remove current members button
         remCurCons = new JButton("<<");
         remCurCons.setBounds(175, 170, 40, 20);
+        remCurCons.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (curMems.getSelectedIndex() != -1) {
+                    saife.groupRemoveMember(group, curMems.getSelectedValue());
+                    populateCurrent();
+                    populateAvailable();
+                }
+            }
+        });
 
         mainFrame.getContentPane().add(remCurCons);
 
@@ -153,8 +173,7 @@ public class EditMsgGroupFrame {
 
         curMemsModel = new DefaultListModel<String>();
         curMems = new JList<String>(curMemsModel);
-        curMems.setSelectionMode(
-                ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        curMems.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         curMemsScroll = new JScrollPane(curMems);
         curMemsScroll.setBounds(225, 20, 150, 300);
 
@@ -192,44 +211,51 @@ public class EditMsgGroupFrame {
      */
     void populateAvailable() {
         availConsModel.clear();
-        List<GroupInfo> groups = new Vector<GroupInfo>();
+        List<GroupInfoComp> groups = new Vector<GroupInfoComp>();
         try {
+            List<ContactComp> mems = new Vector<ContactComp>();
             boolean first = true;
-            List<Contact> mems = group.getMembers();
-            System.out.println("members:");
 
-            for (Contact con :mems) {
-                System.out.println(con.getName());
+            for (Contact c : group.getMembers()) {
+                mems.add(new ContactComp(c));
+            }
+
+            for (ContactComp c : mems) {
                 if (first) {
-                    groups = con.getGroupList();
+                    groups = c.getGroupListComp();
                     first = false;
                 } else {
-                    groups = intersectGroups(groups, con.getGroupList());
+                    groups.retainAll(c.getGroupListComp());
                 }
             }
-            
-            for (GroupInfo g : groups) {
-                System.out.println("group: " + g.getGroupName());
-            }
 
-            // @TODO find a better way to do this
-            // ask people, Chris, Dipen, etc
-            // maybe make this another method
+            // now we have a list of comparable GroupInfoComps that are shared
+            // by the SecureCommsGroup members
+
+            List<ContactComp> call = new Vector<ContactComp>();
             for (Contact c : saife.saife.getAllContacts()) {
-                boolean added = false;
-                for (GroupInfo g : c.getGroupList()) {
-                    for (GroupInfo g2 : groups) {
-                        for (Contact c2 : mems) {
-                            if(!added && g2.getGroupId().equals(g.getGroupId()) 
-                                    && !c.getFingerprint().equals(c2.getFingerprint())) {
-                                availConsModel.addElement(c.getName());
-                                added = true;
-                            }
+                call.add(new ContactComp(c));
+            }
+            for (ContactComp c : call) {
+                boolean exists = false;
+                for (ContactComp m : mems) {
+                    if (c.equals(m)) {
+                        exists = true;
+                    }
+                    
+                }
+
+                if (!exists) {
+                    boolean added = false;
+                    for (GroupInfoComp g : c.getGroupListComp()) {
+                        if (!added && groups.contains(g)) {
+                            availConsModel.addElement(c.getName());
+                            added = true;
                         }
                     }
                 }
-                
             }
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -238,23 +264,86 @@ public class EditMsgGroupFrame {
     }
 
     /**
-     * helper method to intersect group lists
-     *
-     * @param l1    first list
-     * @param l2    second list
-     * @return  intersected list
+     * wrapper class to add comparability of GroupInfos
      */
-    private static List<GroupInfo> intersectGroups(List<GroupInfo> l1, List<GroupInfo> l2) {
-        List<GroupInfo> intersect = new Vector<GroupInfo>();
-        for (GroupInfo g : l1) {
-            for (GroupInfo g2: l2) {
-                if (g.getGroupId().equals(g2.getGroupId())) {
-                // if (g.equals(g2)) {
-                    intersect.add(g);
-                }
-            }
+    class GroupInfoComp extends GroupInfo {
+
+        /** 
+         * create an instance using a current GroupInfo
+         *
+         * @param g     the GroupInfo to base this off of
+         */
+        public GroupInfoComp(final GroupInfo g) {
+            super(g.getGroupId(), g.getGroupName(), g.getGroupKind());
         }
-        return intersect;
+
+        /**
+         * the equals method, compares to other GroupInfoComp
+         *
+         * @param g     the GroupInfoComp to compare to
+         * @return  true if equal
+         */
+        @Override
+        public boolean equals(final Object g) {
+            if (g instanceof GroupInfo) {
+                GroupInfoComp gc = new GroupInfoComp((GroupInfo) g);
+                return this.getGroupId().equals(gc.getGroupId());
+            }
+
+            return false;
+        }
+        
+    }
+
+    /**
+     * wrapper class to add comparability of Contacts
+     */
+    class ContactComp extends Contact {
+
+        /** 
+         * create an instance using a current Contact
+         *
+         * @param c     the Contact to base this off of
+         */
+        public ContactComp(final Contact c) {
+            super();
+            this.setName(c.getName());
+            this.setFingerprint(c.getFingerprint());
+            this.setCapabilities(c.getCapabilities());
+            this.setGroupList(c.getGroupList());
+        }
+
+        /**
+         * the equals method, compares to other ContactComp
+         *
+         * @param c     the ContactComp to compare to
+         * @return  true if equal
+         */
+        @Override
+        public boolean equals(final Object c) {
+            if (c instanceof Contact) {
+                ContactComp cc = new ContactComp((ContactComp) c);
+                return Arrays.equals(this.getFingerprint(), 
+                        cc.getFingerprint());
+            }
+            return false;
+        }
+
+        /**
+         * overriding the getGroupList method to return GroupInfoComps
+         *
+         * @return  list of GroupInfoComps
+         */
+        public List<GroupInfoComp> getGroupListComp() {
+            List<GroupInfoComp> gil = new Vector<GroupInfoComp>();
+            for (GroupInfo g : this.getGroupList()) {
+                gil.add(new GroupInfoComp(g));
+            }
+
+            return gil;
+            
+        }
+        
     }
 
     /**

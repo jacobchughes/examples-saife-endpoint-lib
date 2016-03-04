@@ -37,6 +37,7 @@ import com.saife.crypto.InvalidCredentialException;
 import com.saife.group.ContactGroupNotFoundException;
 import com.saife.group.GroupNotFoundException;
 import com.saife.group.GroupPermissionDeniedException;
+import com.saife.group.SecureCommsGroup;
 import com.saife.logging.LogSink.LogLevel;
 import com.saife.logging.LogSinkFactory;
 import com.saife.logging.LogSinkManager;
@@ -408,6 +409,55 @@ public class SaifeManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     *  add a contact to a group, assumes contact is addable
+     *
+     *  @param group    reference to the group to add to
+     *  @param name     name of the contact to add
+     */
+    public void groupAddMember(SecureCommsGroup group, String name) {
+        try {
+            // Contact c = saife.getContactsByName(name).get(0);
+            Contact c = this.getContact(name);
+            group.addMember(c);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
+
+    /**
+     * remove a contact from a group
+     *
+     * @param group     reference to the group to remove from
+     * @param name      name of the contact to remove
+     */
+    public void groupRemoveMember(SecureCommsGroup group, String name) {
+        try {
+            Contact c = this.getContact(name);
+            group.removeMember(c);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * send a message to a secure comms group
+     *
+     * @param groupID   ID of the group to send a message to
+     * @param msg   the message to send, as a string
+     */
+    public void groupSend(String groupID, String msg) {
+        try {
+            byte[] mess = msg.getBytes();   
+            SecureCommsGroup group = saife.getGroup(groupID);
+            group.sendMessage(mess);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
     }
 
 

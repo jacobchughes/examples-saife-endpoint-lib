@@ -58,10 +58,6 @@ public class MainFrame {
     /** button to refresh secure messaging groups list */
     JButton refreshGroups;
 
-    /** name of the currently selected secure messaging group max 30 
-     * characters */
-    String secmsggroupName = null;
-
     /** default list model handles everything */
     DefaultListModel<String> listModel = null;
 
@@ -147,6 +143,14 @@ public class MainFrame {
         // select, new, edit, delete buttons
         selMsgGroup = new JButton("Select");
         selMsgGroup.setBounds(15, 360, 200, 30);
+        selMsgGroup.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (secmsggroupList.getSelectedIndex() != -1) {
+                    selectedName.setText(secmsggroupList.getSelectedValue());
+                }
+            }
+        });
 
         mainFrame.getContentPane().add(selMsgGroup);
 
@@ -230,6 +234,15 @@ public class MainFrame {
         mainFrame.getContentPane().add(messageToSend);
         sendMsg = new JButton("Send");
         sendMsg.setBounds(626, 390, 60, 30);
+        sendMsg.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (!selectedName.getText().equals("") 
+                        && !messageToSend.getText().equals("")) {
+                    //
+                }
+            }
+        });
 
         mainFrame.getContentPane().add(sendMsg);
 
@@ -249,6 +262,7 @@ public class MainFrame {
      */
     void populateGroups() {
         List<String> groups = saife.getPrettyGroups();
+        selectedName.setText("");
         listModel.clear();
         for (String group : groups) {
             listModel.addElement(group);
