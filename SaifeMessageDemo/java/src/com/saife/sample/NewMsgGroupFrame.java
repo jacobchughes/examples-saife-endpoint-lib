@@ -146,7 +146,8 @@ public class NewMsgGroupFrame {
         mainFrame.getContentPane().add(contactLabel);
         contactListModel = new DefaultListModel<String>();
         contactList = new JList<String>(contactListModel);
-        contactList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        contactList.setSelectionMode(
+                ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         contactScroll = new JScrollPane(contactList);
         contactScroll.setBounds(190, 75, 200, 250);
         mainFrame.getContentPane().add(contactScroll);

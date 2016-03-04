@@ -166,6 +166,17 @@ public class MainFrame {
         mainFrame.getContentPane().add(newMsgGroup);
 
         editMsgGroup = new JButton("Edit");
+        editMsgGroup.addActionListener(new ActionListener() {
+            @Override
+            @SuppressWarnings("unused")
+            public void actionPerformed(ActionEvent e) {
+                if (secmsggroupList.getSelectedIndex() != -1) {
+                    String groupID = secmsggroupList.getSelectedValue();
+                    groupID = groupID.substring(groupID.indexOf("-") + 2);
+                    new EditMsgGroupFrame(saife, groupID);
+                }
+            }
+        });
         editMsgGroup.setBounds(70, 390, 60, 30);
 
         mainFrame.getContentPane().add(editMsgGroup);
