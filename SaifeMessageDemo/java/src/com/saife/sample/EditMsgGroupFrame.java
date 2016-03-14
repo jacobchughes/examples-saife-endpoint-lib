@@ -155,7 +155,8 @@ public class EditMsgGroupFrame {
         remCurCons.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (curMems.getSelectedIndex() != -1) {
+                if (curMems.getSelectedIndex() != -1 && 
+                        curMemsModel.getSize() != 1) {
                     saife.groupRemoveMember(group, curMems.getSelectedValue());
                     populateCurrent();
                     populateAvailable();
@@ -236,6 +237,7 @@ public class EditMsgGroupFrame {
             for (Contact c : saife.saife.getAllContacts()) {
                 call.add(new ContactComp(c));
             }
+
             for (ContactComp c : call) {
                 boolean exists = false;
                 for (ContactComp m : mems) {

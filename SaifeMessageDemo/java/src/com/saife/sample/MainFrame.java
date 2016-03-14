@@ -31,6 +31,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.text.Document;
 
 /**
  * The main Java Swing frame
@@ -237,9 +238,11 @@ public class MainFrame {
         sendMsg.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (!selectedName.getText().equals("") 
-                        && !messageToSend.getText().equals("")) {
-                    //
+                final String g = selectedName.getText();
+                final String m = messageToSend.getText();
+                if (!g.equals("") && !m.equals("")) {
+                    saife.groupSend(g.substring(g.indexOf('-') + 2), m);
+                    messageToSend.setText("");
                 }
             }
         });
@@ -258,7 +261,6 @@ public class MainFrame {
 
     /**
      * method to populate the current secure messaging group list
-     * @TODO change to messaging groups and not omnigroups
      */
     void populateGroups() {
         List<String> groups = saife.getPrettyGroups();
@@ -275,6 +277,24 @@ public class MainFrame {
     void popError() {
         // open window?
         System.exit(0);
+    }
+
+    /**
+     * thread to update messages from the SAIFE library
+     */
+    class MessageUpdater implements Runnable {
+        @Override
+        public void run() {
+            try {
+                Document doc = messages.getDocument();
+                List<String> msgs = saife.getMessages();
+                for (String m : msgs) {
+                    doc.insertString(doc.getLength(), m, null);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 }

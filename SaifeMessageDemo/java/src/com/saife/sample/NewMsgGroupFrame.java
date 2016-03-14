@@ -225,7 +225,6 @@ public class NewMsgGroupFrame {
      * @param omnigroupName     name of the selected omnigroup
      */
     void populateContacts(String omnigroupName) {
-        // @TODO populate contacts from selected omnigroup
         List<String> cons = saife.getContacts();
         contactListModel.clear();
 

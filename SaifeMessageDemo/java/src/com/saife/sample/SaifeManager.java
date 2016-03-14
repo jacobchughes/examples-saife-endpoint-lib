@@ -38,6 +38,8 @@ import com.saife.group.ContactGroupNotFoundException;
 import com.saife.group.GroupNotFoundException;
 import com.saife.group.GroupPermissionDeniedException;
 import com.saife.group.SecureCommsGroup;
+import com.saife.group.SecureCommsGroupCallback;
+import com.saife.group.SecureCommsGroupListener;
 import com.saife.logging.LogSink.LogLevel;
 import com.saife.logging.LogSinkFactory;
 import com.saife.logging.LogSinkManager;
@@ -66,6 +68,16 @@ public class SaifeManager {
      * The SAIFE logger 
      */
     Logger logger;
+
+    /** 
+     * thread used to receive messages
+     */
+    private Thread messThread;
+
+    /**
+     * list to keep track of queued messages
+     */
+    private List<String> queuedMessages = new Vector<String>();
 
     /**
      * Indicates whether SAIFE is updated or not
@@ -460,5 +472,58 @@ public class SaifeManager {
         
     }
 
+    /**
+     * used to return the queued messages and clear the message queue
+     *
+     * @return  list of queued messages
+     */
+    public List<String> getMessages() {
+        List<String> ret = queuedMessages;
+        queuedMessages.clear();
+        return ret;
+    }
 
+    /**
+     * thread used to receive messages
+     */
+    class MessageReceiver implements Runnable {
+        private String selGroupID;
+        /** */
+        class MessageListener implements SecureCommsGroupListener, 
+              SecureCommsGroupCallback {
+                @Override
+                public void groupDestroyed(String groupID, String gropuName) {
+                    
+                }
+
+                @Override
+                public void groupMemberAdded(String groupID, String gropuName,
+                        Contact newMember) {
+                    
+                }
+
+                @Override
+                public void groupMemberRemoved(String groupID, String gropuName,
+                        Contact removedMember) {
+                    
+                }
+
+                @Override
+                public void newGroup(String groupID, String groupName) {
+                    
+                }
+
+                @Override
+                public void onMessage(Contact sender, byte[] groupMessage, 
+                    String groupID, String groupname) {
+                    if (groupID.equals(selGroupID)) {
+                        queuedMessages.add("new message");
+                    }
+              }
+        }
+        @Override
+        public void run() {
+            //
+        }
+    }
 }
