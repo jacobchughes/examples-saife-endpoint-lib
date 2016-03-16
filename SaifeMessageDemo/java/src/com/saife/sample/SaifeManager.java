@@ -584,7 +584,7 @@ public class SaifeManager {
                 logger.trace("Got message");
                 logger.trace("selected group ID: " + listenGroup);
                 logger.trace("received group ID: " + groupID);
-                final String msg = groupName + ") " + sender.getName()
+                final String msg = groupName + " - " + sender.getName()
                     + ": " + new String(groupMessage);
                 logger.trace(msg);
                 if (groupID.equals(listenGroup)) {
