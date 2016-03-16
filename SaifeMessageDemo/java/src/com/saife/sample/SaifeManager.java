@@ -21,7 +21,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Vector;
 
 import com.google.gson.Gson;
@@ -78,7 +80,7 @@ public class SaifeManager {
     /**
      * list to keep track of queued messages
      */
-    protected List<String> queuedMessages = new Vector<String>();
+    protected Queue<String> queuedMessages = new LinkedList<String>();
 
     /**
      * Indicates whether SAIFE is updated or not
@@ -478,8 +480,8 @@ public class SaifeManager {
      *
      * @return  list of queued messages
      */
-    public List<String> getMessages() {
-        List<String> ret = queuedMessages;
+    public Queue<String> getMessages() {
+        Queue<String> ret = queuedMessages;
         queuedMessages.clear();
         return ret;
     }

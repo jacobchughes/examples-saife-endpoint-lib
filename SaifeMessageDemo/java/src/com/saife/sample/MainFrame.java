@@ -20,6 +20,7 @@ package com.saife.sample;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.List;
+import java.util.Queue;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
@@ -292,14 +293,15 @@ public class MainFrame {
         @Override
         public void run() {
             while (true) {
+                System.out.println("Getting messages from SAIFE");
                 try {
                     Document doc = messages.getDocument();
-                    List<String> msgs = saife.getMessages();
+                    Queue<String> msgs = saife.getMessages();
+                    System.out.println("Got messages");
                     for (String m : msgs) {
                         System.out.println(m);
                         doc.insertString(doc.getLength(), m, null);
                     }
-                    System.out.println("Getting messages from SAIFE");
                     Thread.sleep(5000);
                 } catch (Exception e) {
                     e.printStackTrace();
