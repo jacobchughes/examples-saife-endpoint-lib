@@ -588,6 +588,7 @@ public class SaifeManager {
                     + ": " + new String(groupMessage);
                 logger.trace(msg);
                 if (groupID.equals(listenGroup)) {
+                    logger.trace("added message to queue");
                     queuedMessages.add(msg);
                 }
           }
