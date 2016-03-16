@@ -481,7 +481,7 @@ public class SaifeManager {
      * @return  list of queued messages
      */
     public Queue<String> getMessages() {
-        Queue<String> ret = queuedMessages;
+        Queue<String> ret = new LinkedList<String>(queuedMessages);
         queuedMessages.clear();
         return ret;
     }
