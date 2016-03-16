@@ -32,6 +32,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 /**
@@ -247,6 +248,12 @@ public class MainFrame {
                 if (!g.equals("") && !m.equals("")) {
                     saife.groupSend(g.substring(g.indexOf('-') + 2), m);
                     messageToSend.setText("");
+                    Document doc = messages.getDocument();
+                    try {
+                        doc.insertString(doc.getLength(), ">> " + m + "\n", null);
+                    } catch (final BadLocationException ble) {
+                        ble.printStackTrace();
+                    }
                 }
             }
         });
@@ -295,12 +302,10 @@ public class MainFrame {
             while (true) {
                 System.out.println("Getting messages from SAIFE");
                 try {
-                    Document doc = messages.getDocument();
                     Queue<String> msgs = saife.getMessages();
-                    System.out.println("Got messages");
+                    Document doc = messages.getDocument();
                     for (String m : msgs) {
-                        System.out.println(m);
-                        doc.insertString(doc.getLength(), m + "\n", null);
+                        doc.insertString(doc.getLength(), "<< " + m + "\n", null);
                     }
                     Thread.sleep(5000);
                 } catch (Exception e) {
