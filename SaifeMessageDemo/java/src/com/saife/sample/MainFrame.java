@@ -149,6 +149,9 @@ public class MainFrame {
             public void actionPerformed(ActionEvent e) {
                 if (secmsggroupList.getSelectedIndex() != -1) {
                     selectedName.setText(secmsggroupList.getSelectedValue());
+                    final String g = selectedName.getText();
+                    saife.updateMessageListener(g.substring(g.indexOf('-') 
+                                + 2));
                 }
             }
         });
@@ -257,6 +260,9 @@ public class MainFrame {
         populateGroups();
 
         mainFrame.setVisible(true);
+
+        final Thread msg = new Thread(new MessageUpdater());
+        msg.start();
     }
 
     /**
@@ -285,14 +291,19 @@ public class MainFrame {
     class MessageUpdater implements Runnable {
         @Override
         public void run() {
-            try {
-                Document doc = messages.getDocument();
-                List<String> msgs = saife.getMessages();
-                for (String m : msgs) {
-                    doc.insertString(doc.getLength(), m, null);
+            while (true) {
+                try {
+                    Document doc = messages.getDocument();
+                    List<String> msgs = saife.getMessages();
+                    for (String m : msgs) {
+                        System.out.println(m);
+                        doc.insertString(doc.getLength(), m, null);
+                    }
+                    System.out.println("Getting messages from SAIFE");
+                    Thread.sleep(5000);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
         }
     }

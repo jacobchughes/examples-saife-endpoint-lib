@@ -39,6 +39,7 @@ import com.saife.group.GroupNotFoundException;
 import com.saife.group.GroupPermissionDeniedException;
 import com.saife.group.SecureCommsGroup;
 import com.saife.group.SecureCommsGroupCallback;
+import com.saife.group.SecureCommsGroupCallbackFactory;
 import com.saife.group.SecureCommsGroupListener;
 import com.saife.logging.LogSink.LogLevel;
 import com.saife.logging.LogSinkFactory;
@@ -69,15 +70,15 @@ public class SaifeManager {
      */
     Logger logger;
 
-    /** 
-     * thread used to receive messages
+    /**
+     * Secure Comms Group message listener
      */
-    private Thread messThread;
+    SecureCommsGroupCallback messageCallback = null;
 
     /**
      * list to keep track of queued messages
      */
-    private List<String> queuedMessages = new Vector<String>();
+    protected List<String> queuedMessages = new Vector<String>();
 
     /**
      * Indicates whether SAIFE is updated or not
@@ -484,46 +485,109 @@ public class SaifeManager {
     }
 
     /**
+     * update the group message listener 
+     *
+     * @param listenGroup   ID of group to listen for
+     */
+    public void updateMessageListener(final String listenGroup) {
+        logger.trace("Updating the Message Listener");
+        new Thread(new MessageUpdater(listenGroup)).start();
+    }
+
+    /**
      * thread used to receive messages
      */
-    class MessageReceiver implements Runnable {
-        private String selGroupID;
-        /** */
-        class MessageListener implements SecureCommsGroupListener, 
-              SecureCommsGroupCallback {
-                @Override
-                public void groupDestroyed(String groupID, String gropuName) {
-                    
-                }
+    class MessageUpdater implements Runnable {
+        /** ID of listen group */
+        private final String listenGroup;
 
-                @Override
-                public void groupMemberAdded(String groupID, String gropuName,
-                        Contact newMember) {
-                    
-                }
-
-                @Override
-                public void groupMemberRemoved(String groupID, String gropuName,
-                        Contact removedMember) {
-                    
-                }
-
-                @Override
-                public void newGroup(String groupID, String groupName) {
-                    
-                }
-
-                @Override
-                public void onMessage(Contact sender, byte[] groupMessage, 
-                    String groupID, String groupname) {
-                    if (groupID.equals(selGroupID)) {
-                        queuedMessages.add("new message");
-                    }
-              }
+        /** 
+         * constructor to set group up for listening 
+         * 
+         * @param listenGroup   ID of Secure Comms Group
+         */
+        public MessageUpdater(final String listenGroup) {
+            this.listenGroup = listenGroup;
         }
+
         @Override
         public void run() {
-            //
+            try {
+                if (null != messageCallback) {
+                    logger.trace("Attempting to remove current Message "
+                            + "Listener");
+                    saife.removeSecureCommsGroupListener(messageCallback);
+                }
+                logger.trace("Creating a new Message Listener");
+                MessageListener msgListener = new MessageListener(listenGroup);
+                messageCallback = SecureCommsGroupCallbackFactory
+                    .construct(msgListener, saife);
+                logger.trace("Adding created callback");
+                saife.addSecureCommsGroupListener(messageCallback);
+            } catch (final Exception e) {
+                e.printStackTrace();
+            }
         }
     }
+
+    /**
+     * Message Listener class to listen for specific messages
+     */
+    class MessageListener implements SecureCommsGroupListener {
+
+            /** group ID to listen and report on */
+            private String listenGroup;
+
+            /**
+             * empty constructor
+             */
+            public MessageListener() {
+            }
+
+            /**
+             * constructor to supply with a group ID
+             *
+             * @param listenGroup   the group ID of the Secure Comms Group to
+             * add a listener for
+             */
+            public MessageListener(final String listenGroup) {
+                this.listenGroup = listenGroup;
+            }
+
+            @Override
+            public void groupDestroyed(String groupID, String groupName) {
+                logger.trace("group was destroyed: " + groupName);
+            }
+
+            @Override
+            public void groupMemberAdded(String groupID, String groupName,
+                    Contact newMember) {
+                logger.trace("member was added to group: " + groupName + " " 
+                        + newMember);
+            }
+
+            @Override
+            public void groupMemberRemoved(String groupID, String groupName,
+                    Contact removedMember) {
+                logger.trace("member was remove from group: " + groupName + " " 
+                        + removedMember);
+            }
+
+            @Override
+            public void newGroup(String groupID, String groupName) {
+                logger.trace("group was created: " + groupName);
+            }
+
+            @Override
+            public void onMessage(Contact sender, byte[] groupMessage, 
+                String groupID, String groupName) {
+                logger.trace("group was created: " + groupName);
+                if (groupID.equals(listenGroup)) {
+                    final String msg = groupName + ") " + sender.getName()
+                        + ": " + new String(groupMessage);
+                    queuedMessages.add(msg);
+                }
+          }
+    }
+
 }
