@@ -581,10 +581,13 @@ public class SaifeManager {
             @Override
             public void onMessage(Contact sender, byte[] groupMessage, 
                 String groupID, String groupName) {
-                logger.trace("group was created: " + groupName);
+                logger.trace("Got message");
+                logger.trace("selected group ID: " + listenGroup);
+                logger.trace("received group ID: " + groupID);
+                final String msg = groupName + ") " + sender.getName()
+                    + ": " + new String(groupMessage);
+                logger.trace(msg);
                 if (groupID.equals(listenGroup)) {
-                    final String msg = groupName + ") " + sender.getName()
-                        + ": " + new String(groupMessage);
                     queuedMessages.add(msg);
                 }
           }
