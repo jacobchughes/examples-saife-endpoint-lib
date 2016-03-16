@@ -19,6 +19,8 @@ package com.saife.sample;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.List;
 import java.util.Queue;
 import java.util.Vector;
@@ -237,7 +239,38 @@ public class MainFrame {
         // message box
         messageToSend = new JTextField();
         messageToSend.setBounds(270, 390, 360, 30);
+        messageToSend.addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    
+                    final String g = selectedName.getText();
+                    final String m = messageToSend.getText();
+                    if (!g.equals("") && !m.equals("")) {
+                        saife.groupSend(g.substring(g.indexOf('-') + 2), m);
+                        messageToSend.setText("");
+                        messageToSend.grabFocus();
+                        Document doc = messages.getDocument();
+                        try {
+                            doc.insertString(doc.getLength(), ">> " + m + "\n",
+                                    null);
+                        } catch (final BadLocationException ble) {
+                            ble.printStackTrace();
+                        }
+                    }
+                }
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+                //
+            }
+            @Override
+            public void keyTyped(KeyEvent e) {
+                //
+            }
+        });
         mainFrame.getContentPane().add(messageToSend);
+
         sendMsg = new JButton("Send");
         sendMsg.setBounds(626, 390, 60, 30);
         sendMsg.addActionListener(new ActionListener() {
@@ -250,7 +283,8 @@ public class MainFrame {
                     messageToSend.setText("");
                     Document doc = messages.getDocument();
                     try {
-                        doc.insertString(doc.getLength(), ">> " + m + "\n", null);
+                        doc.insertString(doc.getLength(), ">> " + m + "\n",
+                                null);
                     } catch (final BadLocationException ble) {
                         ble.printStackTrace();
                     }
@@ -305,7 +339,7 @@ public class MainFrame {
                     Queue<String> msgs = saife.getMessages();
                     Document doc = messages.getDocument();
                     for (String m : msgs) {
-                        doc.insertString(doc.getLength(), "<< " + m + "\n", null);
+                        doc.insertString(doc.getLength(), m + "\n", null);
                     }
                     Thread.sleep(5000);
                 } catch (Exception e) {
