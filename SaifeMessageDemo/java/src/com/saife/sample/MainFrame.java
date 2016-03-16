@@ -300,7 +300,7 @@ public class MainFrame {
                     System.out.println("Got messages");
                     for (String m : msgs) {
                         System.out.println(m);
-                        doc.insertString(doc.getLength(), m + "/n", null);
+                        doc.insertString(doc.getLength(), m + "\n", null);
                     }
                     Thread.sleep(5000);
                 } catch (Exception e) {
