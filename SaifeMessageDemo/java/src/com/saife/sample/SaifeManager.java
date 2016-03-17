@@ -207,6 +207,7 @@ public class SaifeManager {
         logger = saife.getLogger("SaifeManager");
 
         // Set SAIFE logging level
+        // @TODO remove trace
         // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
         saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
         /**
@@ -285,10 +286,6 @@ public class SaifeManager {
                         + "capabilities to provision at the SAIFE dashboard.");
                 return false;
             }
-        // } catch (final InsufficientEntropyException e) {
-        //     System.out.println("The SAIFE library does not have sufficient "
-        //             + "entropy");
-        //     return false;
         } catch (final InvalidManagementStateException e) {
             System.out.println("SAIFE entered an invalid or unrecoverable "
                     + "state.");
@@ -436,7 +433,6 @@ public class SaifeManager {
      */
     public void groupAddMember(SecureCommsGroup group, String name) {
         try {
-            // Contact c = saife.getContactsByName(name).get(0);
             Contact c = this.getContact(name);
             group.addMember(c);
         } catch (Exception e) {

@@ -272,11 +272,9 @@ public class MainFrame {
             }
             @Override
             public void keyReleased(KeyEvent e) {
-                //
             }
             @Override
             public void keyTyped(KeyEvent e) {
-                //
             }
         });
         mainFrame.getContentPane().add(messageToSend);
