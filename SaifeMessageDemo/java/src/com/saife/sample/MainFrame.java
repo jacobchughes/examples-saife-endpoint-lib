@@ -110,6 +110,16 @@ public class MainFrame {
     }
 
     /**
+     * constructor for creating an error window
+     *
+     * @param ml    the MainFrameLauncher
+     */
+    public MainFrame(final MainFrameLauncher ml) {
+        this.ml = ml;
+        popError();
+    }
+
+    /**
      * initialize the contents of the frame
      */
     void initialize() {
@@ -323,8 +333,34 @@ public class MainFrame {
      * method to show an error pop up
      */
     void popError() {
-        // open window?
-        System.exit(0);
+        mainFrame.setTitle("Secure Messaging Demo");
+        mainFrame.setBounds(120, 120, 300, 150);
+        mainFrame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        mainFrame.setResizable(false);
+        mainFrame.getContentPane().setLayout(null);
+
+        sendMsg = new JButton("close");
+        sendMsg.setBounds(110, 100, 70, 20);
+        sendMsg.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(final ActionEvent e) {
+                System.exit(0);
+            }
+        });
+
+        mainFrame.getContentPane().add(sendMsg);
+
+        messages = new JTextPane();
+        messages.setBounds(10, 10, 280, 80);
+        messages.setText("SAIFE generated .SaifeStore/newkey.smcsr which "
+                + "contains a certificate and capabilities to provision at the "
+                + "SAIFE dashboard. Please provision and re-run the program.");
+        messages.setEditable(false);
+
+        mainFrame.getContentPane().add(messages);
+
+        mainFrame.setVisible(true);
+
     }
 
     /**

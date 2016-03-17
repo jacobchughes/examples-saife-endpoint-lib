@@ -61,4 +61,28 @@ public class MainFrameLauncher {
         });
     }
 
+    /**
+     *
+     */
+    public void launchEF() {
+        System.out.println("launchEF");
+
+        if (null == ml) {
+            ml = new MainFrameLauncher();
+        }
+
+        EventQueue.invokeLater(new Runnable() {
+            
+            @Override
+            public void run() {
+                try {
+                    @SuppressWarnings("unused")
+                    final MainFrame window = new MainFrame(ml);
+                } catch (final Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
 }

@@ -40,10 +40,20 @@ public class GroupMsgSample {
     public GroupMsgSample() {
         saifeManager = new SaifeManager(defaultPassword);
 
-        launchGUI();
+        if (saifeManager.saifeInit()) {
+            launchGUI();
+        } else {
+            launchError();
+        }
 
-        saifeManager.saifeInit();
+    }
 
+    /**
+     * launch an error window instead of the main frame
+     */
+    public void launchError() {
+        final MainFrameLauncher ml = new MainFrameLauncher();
+        ml.launchEF();
     }
 
     /**
