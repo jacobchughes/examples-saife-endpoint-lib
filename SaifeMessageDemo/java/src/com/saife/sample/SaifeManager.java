@@ -32,6 +32,7 @@ import com.saife.Saife;
 import com.saife.SaifeFactory;
 import com.saife.contacts.Contact;
 import com.saife.contacts.ContactListUpdateCallback;
+import com.saife.contacts.ContactListUpdateCallbackFactory;
 import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.GroupInfo;
 import com.saife.contacts.NoSuchContactException;
@@ -111,8 +112,7 @@ public class SaifeManager {
          * 
          */
         public void registerForContactupdates() {
-            class Listener implements ContactListUpdateListener, 
-                  ContactListUpdateCallback {
+            class Listener implements ContactListUpdateListener { 
 
                 @Override
                 public void contactListUpdated() {
@@ -122,7 +122,9 @@ public class SaifeManager {
             }
 
             final Listener l = new Listener();
-            saife.addContactListUpdateListener(l);
+            final ContactListUpdateCallback clcb =
+                ContactListUpdateCallbackFactory.construct(l, saife);
+            saife.addContactListUpdateListener(clcb);
         }
 
         @Override
