@@ -212,9 +212,17 @@ public class MainFrame {
                 if (secmsggroupList.getSelectedIndex() != -1) {
                     try {
                         String groupID = secmsggroupList.getSelectedValue();
+                        String groupName = groupID.split("-")[0];
                         groupID = groupID.substring(groupID.indexOf("-") + 2);
-                        saife.deleteMsgGroup(groupID);
-                        populateGroups();
+                        final int yn = JOptionPane.showConfirmDialog(mainFrame,
+                                "Are you sure you want to delete the group " 
+                                + groupName + "?", "Confirm Delete",
+                                JOptionPane.YES_NO_OPTION,
+                                JOptionPane.PLAIN_MESSAGE);
+                        if (yn == 0) {
+                            saife.deleteMsgGroup(groupID);
+                            populateGroups();
+                        }
                     } catch (final Exception ex) {
                         JOptionPane.showMessageDialog(mainFrame, 
                             ex.getMessage(), "Error",
