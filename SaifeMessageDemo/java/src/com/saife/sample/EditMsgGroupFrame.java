@@ -27,11 +27,13 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.ListSelectionModel;
 
 import com.saife.contacts.Contact;
 import com.saife.contacts.GroupInfo;
+import com.saife.group.ContactGroupNotFoundException;
 import com.saife.group.SecureCommsGroup;
 
 /**
@@ -140,9 +142,16 @@ public class EditMsgGroupFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (availCons.getSelectedIndex() != -1) {
-                    saife.groupAddMember(group, availCons.getSelectedValue());
-                    populateCurrent();
-                    populateAvailable();
+                    try {
+                        saife.groupAddMember(group,
+                                availCons.getSelectedValue());
+                        populateCurrent();
+                        populateAvailable();
+                    } catch (final Exception ex) {
+                        JOptionPane.showMessageDialog(mainFrame, 
+                            ex.getMessage(), "Error",
+                            JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
             }
         });
@@ -155,11 +164,22 @@ public class EditMsgGroupFrame {
         remCurCons.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (curMems.getSelectedIndex() != -1 && 
-                        curMemsModel.getSize() != 1) {
-                    saife.groupRemoveMember(group, curMems.getSelectedValue());
-                    populateCurrent();
-                    populateAvailable();
+                if (curMems.getSelectedIndex() != -1)
+                    if (curMemsModel.getSize() == 1) {
+                        JOptionPane.showMessageDialog(mainFrame,
+                                "Cannot remove last member", "Error",
+                                JOptionPane.PLAIN_MESSAGE);
+                    } else {
+                        try {
+                            saife.groupRemoveMember(group, 
+                                    curMems.getSelectedValue());
+                            populateCurrent();
+                            populateAvailable();
+                        } catch (final Exception ex) {
+                            JOptionPane.showMessageDialog(mainFrame, 
+                                ex.getMessage(), "Error",
+                                JOptionPane.PLAIN_MESSAGE);
+                        }
                 }
             }
         });
@@ -212,36 +232,80 @@ public class EditMsgGroupFrame {
      */
     void populateAvailable() {
         availConsModel.clear();
+        // @TODO change back or update source
         List<GroupInfoComp> groups = new Vector<GroupInfoComp>();
+        // List<GroupInfo> groups = new Vector<GroupInfo>();
         try {
+            // @TODO change back or update source
             List<ContactComp> mems = new Vector<ContactComp>();
+            // List<Contact> mems = new Vector<Contact>();
             boolean first = true;
 
             for (Contact c : group.getMembers()) {
+                // @TODO remove
+                System.out.println("add to current group mems: " + c.getName());
+                // @TODO change back or update source
                 mems.add(new ContactComp(c));
+                // mems.add(c);
             }
 
+            // @TODO change back or update source
             for (ContactComp c : mems) {
+            // for (Contact c : mems) {
+                System.out.println("contacts groups:");
+                for (GroupInfo g : c.getGroupList()) {
+                    System.out.println(" " + g.getGroupName());
+                }
                 if (first) {
+                    // @TODO remove
+                    System.out.println("setting initial group list");
+                    // @TODO change back or update source
                     groups = c.getGroupListComp();
+                    // groups = c.getGroupList();
                     first = false;
                 } else {
+                    // @TODO remove
+                    System.out.println("intersecting groups");
+                    // @TODO change back or update source
                     groups.retainAll(c.getGroupListComp());
+                    // groups.retainAll(c.getGroupList());
+                }
+
+                // @TODO remove
+                System.out.println("current groups:");
+                for (GroupInfo g : groups) {
+                    System.out.println("  " + g.getGroupName() + " - " + g.getGroupId() + " - " + g.hashCode());
                 }
             }
 
             // now we have a list of comparable GroupInfoComps that are shared
             // by the SecureCommsGroup members
 
+            // @TODO change back or update source
+            // List<Contact> call = new Vector<Contact>();
             List<ContactComp> call = new Vector<ContactComp>();
             for (Contact c : saife.saife.getAllContacts()) {
+                // @TODO remove
+                System.out.println("adding contact to all: " + c.getName());
+                // @TODO change back or update source
                 call.add(new ContactComp(c));
+                // call.add(c);
             }
 
+            // @TODO change back or update source
             for (ContactComp c : call) {
+            // for (Contact c : call) {
+                // @TODO remove
+                System.out.println("iterating over contact: " + c.getName());
                 boolean exists = false;
+                // @TODO change back or update source
                 for (ContactComp m : mems) {
+                // for (Contact m : mems) {
+                    // @TODO remove
+                    System.out.println("  iterating over member: " + m.getName());
                     if (c.equals(m)) {
+                        // @TODO remove
+                        System.out.println("    contact and member are the same");
                         exists = true;
                     }
                     
@@ -249,8 +313,16 @@ public class EditMsgGroupFrame {
 
                 if (!exists) {
                     boolean added = false;
+                    // @TODO remove
+                    System.out.println("  contact's groups:");
+                    // @TODO change back or update source
                     for (GroupInfoComp g : c.getGroupListComp()) {
+                    // for (GroupInfo g : c.getGroupList()) {
+                        // @TODO remove
+                        System.out.println("    " + g.getGroupName() + " - " + g.getGroupId() + " - " + g.hashCode());
                         if (!added && groups.contains(g)) {
+                            // @TODO remove
+                            System.out.println("      added");
                             availConsModel.addElement(c.getName());
                             added = true;
                         }

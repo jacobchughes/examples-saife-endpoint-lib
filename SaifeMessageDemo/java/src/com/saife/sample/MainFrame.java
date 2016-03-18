@@ -30,6 +30,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
@@ -49,7 +50,7 @@ public class MainFrame {
     MainFrameLauncher ml;
 
     /** the main frame */
-    private final JFrame mainFrame = new JFrame();
+    protected final JFrame mainFrame = new JFrame();
 
     /** list of the current secure messaging groups */
     JList<String> secmsggroupList;
@@ -209,10 +210,16 @@ public class MainFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (secmsggroupList.getSelectedIndex() != -1) {
-                    String groupID = secmsggroupList.getSelectedValue();
-                    groupID = groupID.substring(groupID.indexOf("-") + 2);
-                    saife.deleteMsgGroup(groupID);
-                    populateGroups();
+                    try {
+                        String groupID = secmsggroupList.getSelectedValue();
+                        groupID = groupID.substring(groupID.indexOf("-") + 2);
+                        saife.deleteMsgGroup(groupID);
+                        populateGroups();
+                    } catch (final Exception ex) {
+                        JOptionPane.showMessageDialog(mainFrame, 
+                            ex.getMessage(), "Error",
+                            JOptionPane.PLAIN_MESSAGE);
+                    }
                 }
             }
         });
@@ -257,15 +264,21 @@ public class MainFrame {
                     final String g = selectedName.getText();
                     final String m = messageToSend.getText();
                     if (!g.equals("") && !m.equals("")) {
-                        saife.groupSend(g.substring(g.indexOf('-') + 2), m);
-                        messageToSend.setText("");
-                        messageToSend.grabFocus();
-                        Document doc = messages.getDocument();
                         try {
-                            doc.insertString(doc.getLength(), ">> " + m + "\n",
-                                    null);
-                        } catch (final BadLocationException ble) {
-                            ble.printStackTrace();
+                            saife.groupSend(g.substring(g.indexOf('-') + 2), m);
+                            messageToSend.setText("");
+                            messageToSend.grabFocus();
+                            Document doc = messages.getDocument();
+                            try {
+                                doc.insertString(doc.getLength(), ">> " + m + "\n",
+                                        null);
+                            } catch (final BadLocationException ble) {
+                                ble.printStackTrace();
+                            }
+                        } catch (final Exception ex) {
+                            JOptionPane.showMessageDialog(mainFrame, 
+                                ex.getMessage(), "Error",
+                                JOptionPane.PLAIN_MESSAGE);
                         }
                     }
                 }
@@ -287,14 +300,20 @@ public class MainFrame {
                 final String g = selectedName.getText();
                 final String m = messageToSend.getText();
                 if (!g.equals("") && !m.equals("")) {
-                    saife.groupSend(g.substring(g.indexOf('-') + 2), m);
-                    messageToSend.setText("");
-                    Document doc = messages.getDocument();
                     try {
-                        doc.insertString(doc.getLength(), ">> " + m + "\n",
-                                null);
-                    } catch (final BadLocationException ble) {
-                        ble.printStackTrace();
+                        saife.groupSend(g.substring(g.indexOf('-') + 2), m);
+                        messageToSend.setText("");
+                        Document doc = messages.getDocument();
+                        try {
+                            doc.insertString(doc.getLength(), ">> " + m + "\n",
+                                    null);
+                        } catch (final BadLocationException ble) {
+                            ble.printStackTrace();
+                        }
+                    } catch (final Exception ex) {
+                        JOptionPane.showMessageDialog(mainFrame, 
+                            ex.getMessage(), "Error",
+                            JOptionPane.PLAIN_MESSAGE);
                     }
                 }
             }

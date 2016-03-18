@@ -416,13 +416,10 @@ public class SaifeManager {
      * delete a secure messaging group
      *
      * @param groupID  name of the group
+     * @throws Exception    can be any number, let caller handle
      */
-    public void deleteMsgGroup(String groupID) {
-        try {
-            saife.getGroup(groupID).destroy();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    public void deleteMsgGroup(String groupID) throws Exception {
+        saife.getGroup(groupID).destroy();
     }
 
     /**
@@ -430,14 +427,12 @@ public class SaifeManager {
      *
      *  @param group    reference to the group to add to
      *  @param name     name of the contact to add
+     *  @throws Exception   can be numerous things, let caller handle
      */
-    public void groupAddMember(SecureCommsGroup group, String name) {
-        try {
+    public void groupAddMember(SecureCommsGroup group, String name)
+        throws Exception {
             Contact c = this.getContact(name);
             group.addMember(c);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         
     }
 
@@ -446,14 +441,12 @@ public class SaifeManager {
      *
      * @param group     reference to the group to remove from
      * @param name      name of the contact to remove
+     * @throws Exception    let caller decide
      */
-    public void groupRemoveMember(SecureCommsGroup group, String name) {
-        try {
+    public void groupRemoveMember(SecureCommsGroup group, String name) 
+        throws Exception {
             Contact c = this.getContact(name);
             group.removeMember(c);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     /**
@@ -461,16 +454,12 @@ public class SaifeManager {
      *
      * @param groupID   ID of the group to send a message to
      * @param msg   the message to send, as a string
+     * @throws Exception    let the caller decide
      */
-    public void groupSend(String groupID, String msg) {
-        try {
-            byte[] mess = msg.getBytes();   
-            SecureCommsGroup group = saife.getGroup(groupID);
-            group.sendMessage(mess);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
+    public void groupSend(String groupID, String msg) throws Exception {
+        byte[] mess = msg.getBytes();   
+        SecureCommsGroup group = saife.getGroup(groupID);
+        group.sendMessage(mess);
     }
 
     /**
