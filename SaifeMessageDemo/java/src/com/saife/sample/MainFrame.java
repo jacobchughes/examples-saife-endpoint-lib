@@ -156,7 +156,7 @@ public class MainFrame {
             }
         });
 
-        mainFrame.getContentPane().add(refreshGroups);
+        // mainFrame.getContentPane().add(refreshGroups);
 
         // select, new, edit, delete buttons
         selMsgGroup = new JButton("Select");

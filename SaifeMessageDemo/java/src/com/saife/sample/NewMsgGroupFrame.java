@@ -18,6 +18,8 @@ package com.saife.sample;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -137,19 +139,42 @@ public class NewMsgGroupFrame {
 
         secmsggroupName = new JTextField();
         secmsggroupName.setBounds(193, 25, 200, 20);
+        secmsggroupName.addKeyListener(new KeyListener() {
+            @Override
+            public void keyPressed(final KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                    if (!secmsggroupName.getText().equals("")) {
+                        if (omnigroupList.getSelectedIndex() != -1) {
+                            saife.createMsgGroup(secmsggroupName.getText(),
+                                contactList.getSelectedValuesList());
+                            dispose();
+                        }
+                    }
+                }
+            }
+            @Override
+            public void keyReleased(KeyEvent e) {
+            }
+            @Override
+            public void keyTyped(KeyEvent e) {
+            }
+        });
 
         mainFrame.getContentPane().add(secmsggroupName);
 
         // contact list setup
         contactLabel = new JLabel("Members to add");
         contactLabel.setBounds(195, 50, 200, 25);
+
         mainFrame.getContentPane().add(contactLabel);
+
         contactListModel = new DefaultListModel<String>();
         contactList = new JList<String>(contactListModel);
         contactList.setSelectionMode(
                 ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         contactScroll = new JScrollPane(contactList);
         contactScroll.setBounds(190, 75, 200, 250);
+
         mainFrame.getContentPane().add(contactScroll);
 
         // cancel button
