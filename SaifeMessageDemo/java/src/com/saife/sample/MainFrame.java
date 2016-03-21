@@ -21,6 +21,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.util.List;
 import java.util.Queue;
 import java.util.Vector;
@@ -180,6 +182,29 @@ public class MainFrame {
             public void actionPerformed(ActionEvent e) {
                 if (null == newMsgGroupFrame) {
                     newMsgGroupFrame = new NewMsgGroupFrame(saife);
+                    newMsgGroupFrame.mainFrame.addWindowListener(new WindowListener() {
+                        @Override
+                        public void windowClosed(final WindowEvent ev) {
+                            populateGroups();
+                        }
+                        @Override
+                        public void windowActivated(final WindowEvent ev) {}
+                        @Override
+                        public void windowClosing(final WindowEvent ev) {
+                        }
+                        @Override
+                        public void windowDeactivated(final WindowEvent ev) {
+                        }
+                        @Override
+                        public void windowDeiconified(final WindowEvent ev) {
+                        }
+                        @Override
+                        public void windowIconified(final WindowEvent ev) {
+                        }
+                        @Override
+                        public void windowOpened(final WindowEvent ev) {
+                        }
+                    });
                 } else {
                     newMsgGroupFrame.focus();
                 }
@@ -191,7 +216,6 @@ public class MainFrame {
         editMsgGroup = new JButton("Edit");
         editMsgGroup.addActionListener(new ActionListener() {
             @Override
-            @SuppressWarnings("unused")
             public void actionPerformed(ActionEvent e) {
                 if (secmsggroupList.getSelectedIndex() != -1) {
                     String groupID = secmsggroupList.getSelectedValue();
@@ -330,7 +354,7 @@ public class MainFrame {
         mainFrame.getContentPane().add(sendMsg);
 
         // prepare the SAIFE library
-        System.out.println("Preparing SAIFE");
+        saife.logTrace("Preparing SAIFE");
         saife.saifePrepare();
 
         // populate the group list 
@@ -395,7 +419,7 @@ public class MainFrame {
         @Override
         public void run() {
             while (true) {
-                System.out.println("Getting messages from SAIFE");
+                saife.logTrace("Getting messages from SAIFE");
                 try {
                     Queue<String> msgs = saife.getMessages();
                     Document doc = messages.getDocument();

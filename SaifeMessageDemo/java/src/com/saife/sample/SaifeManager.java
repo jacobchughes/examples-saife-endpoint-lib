@@ -37,9 +37,6 @@ import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.GroupInfo;
 import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
-import com.saife.group.ContactGroupNotFoundException;
-import com.saife.group.GroupNotFoundException;
-import com.saife.group.GroupPermissionDeniedException;
 import com.saife.group.SecureCommsGroup;
 import com.saife.group.SecureCommsGroupCallback;
 import com.saife.group.SecureCommsGroupCallbackFactory;
@@ -581,6 +578,13 @@ public class SaifeManager {
                     queuedMessages.add(msg);
                 }
           }
+    }
+
+    /**
+     * logs a message to the SAIFE logger with visibility of trace
+     */
+    public void logTrace(final String msg) {
+        this.logger.trace(msg);
     }
 
 }
