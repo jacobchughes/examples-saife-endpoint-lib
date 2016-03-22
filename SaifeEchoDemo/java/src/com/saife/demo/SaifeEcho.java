@@ -1,5 +1,6 @@
 package com.saife.demo;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -10,6 +11,7 @@ import java.util.concurrent.TimeUnit;
 import com.google.gson.Gson;
 import com.saife.Address;
 import com.saife.LicenseExceededException;
+import com.saife.InsufficientEntropyException;
 import com.saife.Saife;
 import com.saife.SaifeFactory;
 import com.saife.contacts.Contact;
@@ -102,8 +104,38 @@ public class SaifeEcho implements Runnable {
         // Setup the DN attributes to be used in the X509 certificate.
         final DistinguishedName dn = new DistinguishedName("SaifeEcho");
 
-        // Generate the public/private key pair and certificate signing request.
-        final CertificationSigningRequest csr = saife.generateSmCsr(dn, defaultPassword);
+        // Add the required amount of entropy
+        boolean entropic = false;
+
+        CertificationSigningRequest csr = null;
+
+        final FileInputStream fin 
+            = new FileInputStream("/dev/urandom");
+
+        byte[] b;
+
+        while (!entropic) {
+            try {
+                b = new byte[32];
+                fin.read(b);
+
+                System.out.println("adding entropy to SAIFE library");
+                saife.AddEntropy(b, 4);
+
+                // Generate the public/private key pair and certificate signing request.
+                csr = saife.generateSmCsr(dn, defaultPassword);
+
+                entropic = true;
+            } catch (final InsufficientEntropyException e) {
+                System.out.println(e.getMessage());
+                entropic = false;
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try {
+            fin.close();
+        } catch (final IOException e) {}
 
         // Add additional capabilities to the SAIFE capabilities list that convey application specific capabilities.
         final List<String> capabilities = csr.getCapabilities();
