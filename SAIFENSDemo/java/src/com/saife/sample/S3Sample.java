@@ -227,7 +227,12 @@ public class S3Sample {
             System.out.println("Uploading " + fileName + "...");
             File file = new File(fileName);
             if (file.exists()) {
-                s3m.upload(file);
+                if (fileName.length() < 3) {
+                    System.out.println("Filename too short: must be at least 3 "
+                        + "characters");
+                } else {
+                    s3m.upload(file);
+                }
             } else {
                 System.out.println("File " + file + " does not exist");
             }
