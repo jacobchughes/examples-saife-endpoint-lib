@@ -19,6 +19,7 @@ package com.saife.sample;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -32,11 +33,13 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.google.gson.Gson;
+import com.saife.InsufficientEntropyException;
 import com.saife.NotAllowedException;
 import com.saife.Saife;
 import com.saife.SaifeFactory;
 import com.saife.contacts.Contact;
 import com.saife.contacts.ContactListUpdateCallback;
+import com.saife.contacts.ContactListUpdateCallbackFactory;
 import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
@@ -192,7 +195,7 @@ public class SaifeManager {
          * 
          */
         public void registerForContactupdates() {
-            class Listener implements ContactListUpdateListener, ContactListUpdateCallback {
+            class Listener implements ContactListUpdateListener {
 
                 @Override
                 public void contactListUpdated() {
@@ -202,7 +205,9 @@ public class SaifeManager {
             }
 
             final Listener l = new Listener();
-            saife.addContactListUpdateListener(l);
+            final ContactListUpdateCallback cluc = 
+                ContactListUpdateCallbackFactory.construct(l, saife);
+            saife.addContactListUpdateListener(cluc);
         }
 
         @Override
@@ -526,7 +531,47 @@ public class SaifeManager {
                 final DistinguishedName dn = new DistinguishedName("SaifeEcho");
 
                 // Generate the public/private key pair and certificate signing request.
-                final CertificationSigningRequest csr = saife.generateSmCsr(dn, defaultPassword);
+                CertificationSigningRequest csr = null;
+
+                // add required entropy
+                boolean entropic = false;
+
+                final FileInputStream fin = new FileInputStream("/dev/urandom");
+
+                byte[] b;
+
+                while (!entropic) {
+                    try {
+                        // read in entropic data
+                        b = new byte[32];
+                        fin.read(b);
+
+                        // add entropy to SAIFE library
+                        // telling the library that 4 of the 8 bits are
+                        // acceptably entropic
+                        System.out.println("Adding entropy to SAIFE library");
+                        saife.AddEntropy(b, 4);
+
+                        // attempt to generate the certificate signing request
+                        csr = saife.generateSmCsr(dn, defaultPassword);
+
+                        // if successful, we are entropic
+                        entropic = true;
+                    } catch (final InsufficientEntropyException iee) {
+                        System.out.println(iee.getMessage());
+                        entropic = false;
+                    } catch (final IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+                }
+
+                try {
+                    fin.close();
+                } catch (final IOException ioe) {}
+
+                if (null == csr) {
+                    return false;
+                }
 
                 // Add additional capabilities to the SAIFE capabilities list that convey the application specific capabilities.
                 final List<String> capabilities = csr.getCapabilities();
