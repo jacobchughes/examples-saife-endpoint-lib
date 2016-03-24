@@ -21,6 +21,7 @@ package com.saife.sample;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,10 +35,12 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.S3Object;
 import com.google.gson.Gson;
 import com.saife.NotAllowedException;
+import com.saife.InsufficientEntropyException;
 import com.saife.Saife;
 import com.saife.SaifeFactory;
 import com.saife.contacts.Contact;
 import com.saife.contacts.ContactListUpdateCallback;
+import com.saife.contacts.ContactListUpdateCallbackFactory;
 import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
@@ -203,8 +206,7 @@ public class SaifeManager {
          */
         @SuppressWarnings("unused")
         public void registerForContactupdates() {
-            class Listener implements ContactListUpdateListener, 
-                  ContactListUpdateCallback {
+            class Listener implements ContactListUpdateListener {
 
                 @Override
                 public void contactListUpdated() {
@@ -214,8 +216,9 @@ public class SaifeManager {
             }
 
             final Listener l = new Listener();
-            // @TODO fix this, giving a Google preconditions error
-            // saife.addContactListUpdateListener(l);
+            final ContactListUpdateCallback cluc =
+                ContactListUpdateCallbackFactory.construct(l, saife);
+            saife.addContactListUpdateListener(cluc);
         }
 
         @Override
@@ -546,10 +549,7 @@ public class SaifeManager {
         saife = SaifeFactory.constructSaife(logMgr);
 
         // Set SAIFE logging level
-        // @TODO remove trace
         saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
-        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
-        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
         /**
          * SAIFE initialization
          */
@@ -564,8 +564,50 @@ public class SaifeManager {
 
                 // Generate the public/private key pair and certificate 
                 // signing request.
-                final CertificationSigningRequest csr = saife.generateSmCsr(dn,
-                        defaultPassword);
+
+                CertificationSigningRequest csr = null;
+
+                // add the required amount of entropy
+                boolean entropic = false;
+
+                // getting entropy from /dev/urandom
+                final FileInputStream fin = new FileInputStream("/dev/urandom");
+
+                byte[] b;
+
+                while (!entropic) {
+                    try {
+                        // read entropy
+                        b = new byte[32];
+                        fin.read(b);
+
+                        // add entropy, telling SAIFE that 4 of the 8 bits are
+                        // entropic enough
+                        System.out.println("adding entropy to SAIFE library");
+                        saife.AddEntropy(b, 4);
+
+                        // attempt to generate the certificate signing request
+                        csr = saife.generateSmCsr(dn, defaultPassword);
+
+                        entropic = true;
+                    } catch (final InsufficientEntropyException iee) {
+                        System.out.println(iee.getMessage());
+                        entropic = false;
+                    } catch (final IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+                }
+
+                try {
+                    fin.close();
+                } catch (final IOException ioe) {}
+
+                if (null == csr) {
+                    return false;
+                }
+
+
+
 
                 // Add additional capabilities to the SAIFE capabilities list 
                 // that convey the application specific capabilities.
