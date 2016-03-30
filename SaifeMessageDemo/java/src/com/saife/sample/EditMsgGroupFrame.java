@@ -33,7 +33,6 @@ import javax.swing.ListSelectionModel;
 
 import com.saife.contacts.Contact;
 import com.saife.contacts.GroupInfo;
-import com.saife.group.ContactGroupNotFoundException;
 import com.saife.group.SecureCommsGroup;
 
 /**
