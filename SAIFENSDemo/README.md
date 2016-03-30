@@ -40,36 +40,37 @@ The following instructions are relative to the cpp directory.
 
 # JAVA
 ## Dependencies
-	gson-2.3.1.jar 
 	base64-2.3.8.jar
-	quava-11.0.jar
+	gson-2.3.1.jar 
 	java-lib-2.1.0.jar 
+	quava-11.0.jar
 	simple-xml-2.3.2.jar
 ### the following are for AWS/S3
-	spring-core-3.0.7.jar
-	spring-beans-3.0.7.jar
-	spring-context-3.0.7.jar
-	javax.mail-api-1.4.6.jar
-	freemarker-2.3.18.jar
 	aspectjrt.jar
 	aspectjweaver.jar
-	commons-codec-1.6.jar
-	jackson-annotations-2.5.3.jar
-	commons-logging-1.1.3.jar
-	httpclient-4.3.6.jar
-	httpcore-4.3.3.jar
-	joda-time-2.8.1.jar
-	jackson-databind-2.5.3.jar
-	jackson-core-2.5.3.jar
 	aws-java-sdk-flow-build-tools-1.10.26.jar
 	aws-java-sdk-1.10.26-javadoc.jar
 	aws-java-sdk-1.10.26-sources.jar
 	aws-java-sdk-1.10.26.jar
+	commons-codec-1.6.jar
+	commons-logging-1.1.3.jar
+	freemarker-2.3.18.jar
+	httpcore-4.3.3.jar
+	httpclient-4.3.6.jar
+	jackson-core-2.5.3.jar
+	jackson-databind-2.5.3.jar
+	jackson-annotations-2.5.3.jar
+	javax.mail-api-1.4.6.jar
+	joda-time-2.8.1.jar
+	spring-core-3.0.7.jar
+	spring-beans-3.0.7.jar
+	spring-context-3.0.7.jar
 
 
 [Contact SAIFE to obtain SAIFE Endpoint Library.](http://saifeinc.com/company/contact_us/)
 
-[SAIFE Management Dashboard](https://dashboard.saifeinc.com/) account with <i/>at least one</i> organization and group
+[SAIFE Management Dashboard](https://dashboard.saifeinc.com/) account with 
+<i/>at least one</i> organization and group
 
 [AWS libraries are available from Amazon](https://aws.amazon.com/sdk-for-java/)
 
@@ -90,6 +91,7 @@ the CLI version is found in the `java/` directory.  Compilation is the same for
 either version, but running is slightly different.
 
 ## Build
+
     # create the bin directory, if it does not exist
     ~$ mkdir bin/
     # add needed libraries to java class path
@@ -107,7 +109,15 @@ program using the following command:
     ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
 
 If you are running the GUI client, you need to select a Network Share to prompt
-the creation of a new CSR. After running once, you will need to provision the newkey.smcsr at the Saife 
-Dashboard.  Run again to exercise the S3 library.
+the creation of a new CSR. After running once, you will need to provision the 
+newkey.smcsr at the Saife Dashboard.  Run again to exercise the S3 library.
 
     ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java
+
+If you are running the CLI version, run the program with no options or a `help`
+option to list the commands available.
+
+    ~$ java -cp bin:$MY_CP -Djava.library.path=$SAIFE_HOME/lib com.saife.demo.S3Sample.java help
+    
+You can run any of these commands at launch by supplying the program with the 
+proper arguments.
