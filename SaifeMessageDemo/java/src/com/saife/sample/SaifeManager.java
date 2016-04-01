@@ -19,7 +19,9 @@ package com.saife.sample;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Vector;
@@ -597,6 +599,37 @@ public class SaifeManager {
      */
     public void logTrace(final String msg) {
         this.logger.trace(msg);
+    }
+
+    /**
+     * method to store persisted messages
+     */
+    public void saveMessages() {
+        logger.trace("Saving messages");
+        FileOutputStream fos = null;
+        ObjectOutputStream oos = null;
+        try {
+            fos = new FileOutputStream(defaultKeyStore + "/messages.data");
+            oos = new ObjectOutputStream(fos);
+            logger.trace("Created file" + defaultKeyStore + "/messages.data");
+
+            for (int i = 0; i < persistedMessages.size(); i++) {
+                SecureGroupMessage m = persistedMessages.get(i);
+                logger.trace("Writing message: " + m.hashCode());
+                oos.writeObject(m);
+            }
+
+            logger.trace("Messages saved");
+        } catch (final FileNotFoundException fnfe) {
+            fnfe.printStackTrace();
+        } catch (final IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            try {
+                fos.close();
+                oos.close();
+            } catch (final IOException ioe) {}
+        }
     }
 
 }

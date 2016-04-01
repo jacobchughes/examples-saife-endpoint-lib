@@ -295,9 +295,9 @@ public class MainFrame {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     
                     final String g = selectedName.getText();
-                    final String gn = g.substring(0, g.indexOf('-') - 1);
                     final String m = messageToSend.getText();
                     if (!g.equals("") && !m.equals("")) {
+                        final String gn = g.substring(0, g.indexOf('-') - 1);
                         try {
                             saife.groupSend(g.substring(g.indexOf('-') + 2), m);
                             messageToSend.setText("");
@@ -333,9 +333,9 @@ public class MainFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 final String g = selectedName.getText();
-                final String gn = g.substring(0, g.indexOf('-') - 1);
                 final String m = messageToSend.getText();
                 if (!g.equals("") && !m.equals("")) {
+                    final String gn = g.substring(0, g.indexOf('-') - 1);
                     try {
                         saife.groupSend(g.substring(g.indexOf('-') + 2), m);
                         messageToSend.setText("");
@@ -357,6 +357,32 @@ public class MainFrame {
         });
 
         mainFrame.getContentPane().add(sendMsg);
+
+        mainFrame.addWindowListener(new WindowListener() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                saife.saveMessages();
+            }
+            @Override
+            public void windowClosed(final WindowEvent ev) {
+                populateGroups();
+            }
+            @Override
+            public void windowActivated(final WindowEvent ev) {
+            }
+            @Override
+            public void windowDeactivated(final WindowEvent ev) {
+            }
+            @Override
+            public void windowDeiconified(final WindowEvent ev) {
+            }
+            @Override
+            public void windowIconified(final WindowEvent ev) {
+            }
+            @Override
+            public void windowOpened(final WindowEvent ev) {
+            }
+        });
 
         // prepare the SAIFE library
         saife.logTrace("Preparing SAIFE");
