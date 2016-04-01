@@ -295,6 +295,7 @@ public class MainFrame {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     
                     final String g = selectedName.getText();
+                    final String gn = g.substring(0, g.indexOf('-') - 1);
                     final String m = messageToSend.getText();
                     if (!g.equals("") && !m.equals("")) {
                         try {
@@ -303,8 +304,9 @@ public class MainFrame {
                             messageToSend.grabFocus();
                             Document doc = messages.getDocument();
                             try {
-                                doc.insertString(doc.getLength(), ">> " + m 
-                                        + "\n", null);
+                                doc.insertString(doc.getLength(),
+                                        "(" + gn + ") >> " + m + "\n",
+                                        null);
                             } catch (final BadLocationException ble) {
                                 ble.printStackTrace();
                             }
@@ -331,6 +333,7 @@ public class MainFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 final String g = selectedName.getText();
+                final String gn = g.substring(0, g.indexOf('-') - 1);
                 final String m = messageToSend.getText();
                 if (!g.equals("") && !m.equals("")) {
                     try {
@@ -338,7 +341,8 @@ public class MainFrame {
                         messageToSend.setText("");
                         Document doc = messages.getDocument();
                         try {
-                            doc.insertString(doc.getLength(), ">> " + m + "\n",
+                            doc.insertString(doc.getLength(),
+                                    "(" + gn + ") >> " + m + "\n",
                                     null);
                         } catch (final BadLocationException ble) {
                             ble.printStackTrace();

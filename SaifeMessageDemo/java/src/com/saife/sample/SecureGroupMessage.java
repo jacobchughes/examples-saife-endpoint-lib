@@ -68,7 +68,7 @@ public class SecureGroupMessage implements Serializable {
     }
 
     public String prettify() {
-        return "(" + groupName + " ) " + sender.getName() 
+        return "(" + groupName + ") " + sender.getName() 
             + ": " + new String(this.message);
     }
 
