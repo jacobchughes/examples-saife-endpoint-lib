@@ -19,8 +19,6 @@ package com.saife.sample;
 
 import java.io.Serializable;
 
-import com.saife.contacts.Contact;
-
 /**
  * Class used to hold the information about a message sent within a secure group
  */
@@ -32,7 +30,9 @@ public class SecureGroupMessage implements Serializable {
 
     private String groupName;
     
-    private Contact sender;
+    private String senderName;
+
+    private byte[] senderFingerprint;
 
     private byte[] message;
 
@@ -49,12 +49,14 @@ public class SecureGroupMessage implements Serializable {
      * @param sender    contact that sent the message
      * @param message   byte array containing the sent message
      */
-    public SecureGroupMessage(final Contact sender, final byte[] message, 
+    public SecureGroupMessage(final String senderName,
+            final byte[] senderFingerprint, final byte[] message, 
             final String groupID, final String groupName) {
-        this.sender = sender;
+        this.senderName = senderName;
         this.message = message;
         this.groupID = groupID;
         this.groupName = groupName;
+        this.senderFingerprint = senderFingerprint;
     }
 
     @Override
@@ -68,14 +70,15 @@ public class SecureGroupMessage implements Serializable {
     }
 
     public String prettify() {
-        return "(" + groupName + ") " + sender.getName() 
-            + ": " + new String(this.message);
+        return "(" + groupName + ") " + senderName + ": " 
+            + new String(this.message);
     }
 
     @Override
     public int hashCode() {
         int hash = 1;
-        hash = hash * 176 + sender.hashCode();
+        hash = hash * 176 + senderName.hashCode();
+        hash = hash * 13 + senderFingerprint.hashCode();
         hash = hash * 67 + message.hashCode();
         hash = hash * 148 + groupID.hashCode();
         hash = hash * 23 + groupName.hashCode();
@@ -113,15 +116,29 @@ public class SecureGroupMessage implements Serializable {
     /**
      * @return the sender
      */
-    public Contact getSender() {
-        return sender;
+    public String getSenderName() {
+        return senderName;
     }
 
     /**
      * @param sender the sender to set
      */
-    public void setSender(final Contact sender) {
-        this.sender = sender;
+    public void setSender(final String senderName) {
+        this.senderName = senderName;
+    }
+
+    /**
+     * @return the senderFingerprint
+     */
+    public byte[] getSenderFingerprint() {
+        return senderFingerprint;
+    }
+
+    /**
+     * @param senderFingerprint the senderFingerprint to set
+     */
+    public void setSenderFingerprint(final byte[] senderFingerprint) {
+        this.senderFingerprint = senderFingerprint;
     }
 
     /**

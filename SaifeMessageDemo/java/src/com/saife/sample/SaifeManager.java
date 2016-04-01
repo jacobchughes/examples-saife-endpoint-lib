@@ -586,12 +586,10 @@ public class SaifeManager {
                 final String msg = sender.getName() + ": " 
                     + new String(groupMessage);
                 logger.trace(msg);
-                // if (groupID.equals(listenGroup)) {
-                //     logger.trace("added message to queue");
-                //     persistedMessages.add(msg);
-                // }
-                persistedMessages.add(new SecureGroupMessage(sender, 
-                    groupMessage, groupID, groupName));
+
+                persistedMessages.add(new SecureGroupMessage(sender.getName(),
+                            sender.getFingerprint(), groupMessage, groupID,
+                            groupName));
           }
     }
 
@@ -620,7 +618,9 @@ public class SaifeManager {
             for (int i = 0; i < persistedMessages.size(); i++) {
                 SecureGroupMessage m = persistedMessages.get(i);
                 jw.beginObject();
-                jw.name("sender").value(m.getSender().getName());
+                jw.name("senderName").value(m.getSenderName());
+                jw.name("senderFingerprint").value(
+                        new String(m.getSenderFingerprint()));
                 jw.name("message").value(new String(m.getMessage()));
                 jw.name("groupID").value(m.getGroupID());
                 jw.name("groupName").value(m.getGroupName());
@@ -643,6 +643,21 @@ public class SaifeManager {
                 jw.close();
             } catch (final IOException ioe) {}
         }
+    }
+
+    /**
+     * get a pseudo-contact for us
+     */
+    public Contact getFakeSelf() {
+        final Contact me = new Contact();
+        try {
+            me.setName(saife.certName());
+            me.setFingerprint(saife.fingerprint());
+        } catch (final InvalidManagementStateException imse) {
+            imse.printStackTrace();
+        }
+
+        return me;
     }
 
 }
