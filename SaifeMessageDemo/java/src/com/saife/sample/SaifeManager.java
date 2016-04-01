@@ -21,9 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Vector;
 
 import com.google.gson.Gson;
@@ -78,7 +76,13 @@ public class SaifeManager {
     /**
      * list to keep track of queued messages
      */
-    protected Queue<String> queuedMessages = new LinkedList<String>();
+    protected List<SecureGroupMessage> persistedMessages =
+        new Vector<SecureGroupMessage>();
+
+    /**
+     * current index of persisted messages
+     */
+    protected int persistedIndex = 0;
 
     /**
      * Indicates whether SAIFE is updated or not
@@ -464,9 +468,15 @@ public class SaifeManager {
      *
      * @return  list of queued messages
      */
-    public Queue<String> getMessages() {
-        Queue<String> ret = new LinkedList<String>(queuedMessages);
-        queuedMessages.clear();
+    public List<SecureGroupMessage> getMessages() {
+        List<SecureGroupMessage> ret = new Vector<SecureGroupMessage>();
+
+        for (int i = persistedIndex; i < persistedMessages.size(); i++) {
+            ret.add(persistedMessages.get(i));
+        }
+
+        persistedIndex = persistedMessages.size();
+
         return ret;
     }
 
@@ -555,7 +565,7 @@ public class SaifeManager {
             @Override
             public void groupMemberRemoved(String groupID, String groupName,
                     Contact removedMember) {
-                logger.trace("member was remove from group: " + groupName + " " 
+                logger.trace("member was removed from group: " + groupName + " " 
                         + removedMember);
             }
 
@@ -573,10 +583,12 @@ public class SaifeManager {
                 final String msg = sender.getName() + ": " 
                     + new String(groupMessage);
                 logger.trace(msg);
-                if (groupID.equals(listenGroup)) {
-                    logger.trace("added message to queue");
-                    queuedMessages.add(msg);
-                }
+                // if (groupID.equals(listenGroup)) {
+                //     logger.trace("added message to queue");
+                //     persistedMessages.add(msg);
+                // }
+                persistedMessages.add(new SecureGroupMessage(sender, 
+                    groupMessage, groupID, groupName));
           }
     }
 

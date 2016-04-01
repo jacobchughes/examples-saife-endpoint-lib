@@ -26,7 +26,7 @@ import com.saife.contacts.Contact;
  */
 public class SecureGroupMessage implements Serializable {
     
-    private static final long serialVersionUID = 1116100742L;
+    private static final long serialVersionUID = 8336226315510963306L;
 
     private String groupID;
 
@@ -49,12 +49,12 @@ public class SecureGroupMessage implements Serializable {
      * @param sender    contact that sent the message
      * @param message   byte array containing the sent message
      */
-    public SecureGroupMessage(final String groupID, final String groupName, 
-            final Contact sender, final byte[] message) {
-        this.groupID = groupID;
-        this.groupName = groupName;
+    public SecureGroupMessage(final Contact sender, final byte[] message, 
+            final String groupID, final String groupName) {
         this.sender = sender;
         this.message = message;
+        this.groupID = groupID;
+        this.groupName = groupName;
     }
 
     @Override
@@ -64,13 +64,22 @@ public class SecureGroupMessage implements Serializable {
             msg = (SecureGroupMessage) o;
         }
 
-        return (msg != null) ? this.toString().equals(msg.toString()) : false;
+        return (msg != null) ? this.hashCode() == msg.hashCode() : false;
+    }
+
+    public String prettify() {
+        return "(" + groupName + " ) " + sender.getName() 
+            + ": " + new String(this.message);
     }
 
     @Override
-    public String toString() {
-        return "(" + groupID + " - " + groupName + " ) " + sender.getName() 
-            + ": " + new String(this.message);
+    public int hashCode() {
+        int hash = 1;
+        hash = hash * 176 + sender.hashCode();
+        hash = hash * 67 + message.hashCode();
+        hash = hash * 148 + groupID.hashCode();
+        hash = hash * 23 + groupName.hashCode();
+        return hash;
     }
 
     /**

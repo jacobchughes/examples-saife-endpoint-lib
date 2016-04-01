@@ -24,7 +24,6 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.List;
-import java.util.Queue;
 import java.util.Vector;
 
 import javax.swing.DefaultListModel;
@@ -182,13 +181,15 @@ public class MainFrame {
             public void actionPerformed(ActionEvent e) {
                 if (null == newMsgGroupFrame) {
                     newMsgGroupFrame = new NewMsgGroupFrame(saife);
-                    newMsgGroupFrame.mainFrame.addWindowListener(new WindowListener() {
+                    newMsgGroupFrame.mainFrame.addWindowListener(
+                            new WindowListener() {
                         @Override
                         public void windowClosed(final WindowEvent ev) {
                             populateGroups();
                         }
                         @Override
-                        public void windowActivated(final WindowEvent ev) {}
+                        public void windowActivated(final WindowEvent ev) {
+                        }
                         @Override
                         public void windowClosing(final WindowEvent ev) {
                         }
@@ -302,8 +303,8 @@ public class MainFrame {
                             messageToSend.grabFocus();
                             Document doc = messages.getDocument();
                             try {
-                                doc.insertString(doc.getLength(), ">> " + m + "\n",
-                                        null);
+                                doc.insertString(doc.getLength(), ">> " + m 
+                                        + "\n", null);
                             } catch (final BadLocationException ble) {
                                 ble.printStackTrace();
                             }
@@ -421,10 +422,11 @@ public class MainFrame {
             while (true) {
                 saife.logTrace("Getting messages from SAIFE");
                 try {
-                    Queue<String> msgs = saife.getMessages();
+                    List<SecureGroupMessage> msgs = saife.getMessages();
                     Document doc = messages.getDocument();
-                    for (String m : msgs) {
-                        doc.insertString(doc.getLength(), m + "\n", null);
+                    for (SecureGroupMessage m : msgs) {
+                        doc.insertString(doc.getLength(), m.prettify() + "\n",
+                                null);
                     }
                     Thread.sleep(5000);
                 } catch (Exception e) {
