@@ -612,7 +612,7 @@ public class SaifeManager {
         JsonWriter jw = null;
         try {
             fos = new FileOutputStream(defaultKeyStore + "/messages.data");
-            osw = new OutputStreamWriter(fos);
+            osw = new OutputStreamWriter(fos, "UTF-8");
             jw = new JsonWriter(osw);
             logger.trace("Created file " + defaultKeyStore + "/messages.data");
 
@@ -628,6 +628,8 @@ public class SaifeManager {
                 logger.trace("Writing message: " + m.hashCode());
             }
             jw.endArray();
+
+            jw.flush();
 
             logger.trace("Messages saved");
         } catch (final FileNotFoundException fnfe) {
