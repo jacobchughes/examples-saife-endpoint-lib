@@ -21,12 +21,14 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Vector;
 
 import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import com.saife.InsufficientEntropyException;
 import com.saife.Saife;
@@ -641,6 +643,79 @@ public class SaifeManager {
                 fos.close();
                 osw.close();
                 jw.close();
+            } catch (final IOException ioe) {}
+        }
+    }
+
+    /**
+     * method to retrieve saved messages
+     */
+    public void loadMessages() {
+        logger.trace("Loading messages");
+        FileInputStream fis = null;
+        InputStreamReader isr = null;
+        JsonReader jr = null;
+        try {
+            fis = new FileInputStream(defaultKeyStore + "/messages.data");
+            isr = new InputStreamReader(fis, "UTF-8");
+            jr = new JsonReader(isr);
+            logger.trace("Opened file " + defaultKeyStore + "/messages.data");
+
+            jr.beginArray();
+            while (jr.hasNext()) {
+                jr.beginObject();
+                String sn = "";
+                byte[] sf = new byte[0];
+                byte[] m = new byte[0];
+                String gid = "";
+                String gn = "";
+
+                while (jr.hasNext()) {
+                    String name = jr.nextName();
+
+                    switch (name) {
+                        case "senderName":
+                            sn = jr.nextString();
+                            break;
+                        case "senderFingerprint":
+                            sf = jr.nextString().getBytes();
+                            break;
+                        case "message":
+                            m = jr.nextString().getBytes();
+                            break;
+                        case "groupID":
+                            gid = jr.nextString();
+                            break;
+                        case "groupName":
+                            gn = jr.nextString();
+                            break;
+                        default:
+                            jr.skipValue();
+                            break;
+                    }
+                }
+                jr.endObject();
+
+                SecureGroupMessage mess = new SecureGroupMessage(sn, sf, m, 
+                    gid, gn);
+
+                persistedMessages.add(mess);
+            }
+            jr.endArray();
+
+            persistedIndex = persistedMessages.size();
+
+            logger.trace("Messages read");
+
+        } catch (final FileNotFoundException fnfe) {
+            logger.trace("Cannot find the file, proceeding without");
+        } catch (final IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            try {
+                jr.close();
+                isr.close();
+                fis.close();
             } catch (final IOException ioe) {}
         }
     }
