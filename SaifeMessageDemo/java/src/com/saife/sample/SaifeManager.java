@@ -729,7 +729,8 @@ public class SaifeManager {
     public void addMessage(final String senderName,
             final byte[] senderFingerprint, final byte[] message,
             final String groupID, final String groupName) {
-        final SecureGroupMessage newMsg = new SecureGroupMessage(senderName, senderFingerprint, message, groupID, groupName);
+        final SecureGroupMessage newMsg = new SecureGroupMessage(senderName,
+                senderFingerprint, message, groupID, groupName);
 
         logger.trace("Adding own message " + newMsg.hashCode());
         persistedMessages.add(newMsg);

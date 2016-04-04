@@ -167,6 +167,7 @@ public class MainFrame {
             public void actionPerformed(ActionEvent e) {
                 if (secmsggroupList.getSelectedIndex() != -1) {
                     selectedName.setText(secmsggroupList.getSelectedValue());
+                    selectedName.setCaretPosition(0);
                     saife.updateMessageListener();
                 }
             }
@@ -463,6 +464,7 @@ public class MainFrame {
                     for (SecureGroupMessage m : msgs) {
                         doc.insertString(doc.getLength(), m.prettify() + "\n",
                                 null);
+                        messages.setCaretPosition(doc.getLength());
                     }
                     Thread.sleep(5000);
                 } catch (Exception e) {
