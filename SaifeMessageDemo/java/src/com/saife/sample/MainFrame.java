@@ -21,6 +21,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.List;
@@ -142,6 +144,13 @@ public class MainFrame {
         listModel = new DefaultListModel<String>();
         secmsggroupList = new JList<String>(listModel);
         secmsggroupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        secmsggroupList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    selectGroupAction();
+                }
+            }
+        });
         secmsggroupScroll = new JScrollPane(secmsggroupList);
         secmsggroupScroll.setBounds(15, 25, 200, 330);
 
@@ -165,7 +174,7 @@ public class MainFrame {
         selMsgGroup.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                selectGroupAction(e);
+                selectGroupAction();
             }
         });
 
@@ -437,7 +446,7 @@ public class MainFrame {
     /**
      * group selection action
      */
-    protected void selectGroupAction(final ActionEvent e) {
+    protected void selectGroupAction() {
         if (secmsggroupList.getSelectedIndex() != -1) {
             selectedName.setText(secmsggroupList.getSelectedValue());
             selectedName.setCaretPosition(0);
