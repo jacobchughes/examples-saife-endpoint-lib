@@ -490,41 +490,35 @@ public class SaifeManager {
      *
      * @param listenGroup   ID of group to listen for
      */
-    public void updateMessageListener(final String listenGroup) {
+    public void updateMessageListener() {
         logger.trace("Updating the Message Listener");
-        new Thread(new MessageUpdater(listenGroup)).start();
+        new Thread(new MessageUpdater()).start();
     }
 
     /**
      * thread used to receive messages
      */
     class MessageUpdater implements Runnable {
-        /** ID of listen group */
-        private final String listenGroup;
 
         /** 
-         * constructor to set group up for listening 
-         * 
-         * @param listenGroup   ID of Secure Comms Group
+         * constructor to create the thread
          */
-        public MessageUpdater(final String listenGroup) {
-            this.listenGroup = listenGroup;
+        public MessageUpdater() {
         }
 
         @Override
         public void run() {
             try {
-                if (null != messageCallback) {
-                    logger.trace("Attempting to remove current Message "
-                            + "Listener");
-                    saife.removeSecureCommsGroupListener(messageCallback);
+                if (null == messageCallback) {
+                    logger.trace("Creating a new Message Listener");
+                    MessageListener msgListener = new MessageListener();
+                    messageCallback = SecureCommsGroupCallbackFactory
+                        .construct(msgListener, saife);
+                    logger.trace("Adding created callback");
+                    saife.addSecureCommsGroupListener(messageCallback);
+                } else {
+                    logger.trace("Existing Message Listener");
                 }
-                logger.trace("Creating a new Message Listener");
-                MessageListener msgListener = new MessageListener(listenGroup);
-                messageCallback = SecureCommsGroupCallbackFactory
-                    .construct(msgListener, saife);
-                logger.trace("Adding created callback");
-                saife.addSecureCommsGroupListener(messageCallback);
             } catch (final Exception e) {
                 e.printStackTrace();
             }
@@ -536,23 +530,10 @@ public class SaifeManager {
      */
     class MessageListener implements SecureCommsGroupListener {
 
-            /** group ID to listen and report on */
-            private String listenGroup;
-
             /**
              * empty constructor
              */
             public MessageListener() {
-            }
-
-            /**
-             * constructor to supply with a group ID
-             *
-             * @param listenGroup   the group ID of the Secure Comms Group to
-             * add a listener for
-             */
-            public MessageListener(final String listenGroup) {
-                this.listenGroup = listenGroup;
             }
 
             @Override
@@ -583,7 +564,6 @@ public class SaifeManager {
             public void onMessage(Contact sender, byte[] groupMessage, 
                 String groupID, String groupName) {
                 logger.trace("Got message");
-                logger.trace("selected group ID: " + listenGroup);
                 logger.trace("received group ID: " + groupID);
                 final String msg = sender.getName() + ": " 
                     + new String(groupMessage);

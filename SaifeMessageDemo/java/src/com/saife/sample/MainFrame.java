@@ -165,9 +165,7 @@ public class MainFrame {
             public void actionPerformed(ActionEvent e) {
                 if (secmsggroupList.getSelectedIndex() != -1) {
                     selectedName.setText(secmsggroupList.getSelectedValue());
-                    final String g = selectedName.getText();
-                    saife.updateMessageListener(g.substring(g.indexOf('-') 
-                                + 2));
+                    saife.updateMessageListener();
                 }
             }
         });
