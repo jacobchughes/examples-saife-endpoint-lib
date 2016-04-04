@@ -695,9 +695,15 @@ public class SaifeManager {
             ioe.printStackTrace();
         } finally {
             try {
-                jr.close();
-                isr.close();
-                fis.close();
+                if (null != jr) {
+                    jr.close();
+                }
+                if (null != isr) {
+                    isr.close();
+                }
+                if (null != fis) {
+                    fis.close();
+                }
             } catch (final IOException ioe) {}
         }
     }

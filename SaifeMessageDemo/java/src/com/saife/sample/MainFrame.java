@@ -165,11 +165,7 @@ public class MainFrame {
         selMsgGroup.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (secmsggroupList.getSelectedIndex() != -1) {
-                    selectedName.setText(secmsggroupList.getSelectedValue());
-                    selectedName.setCaretPosition(0);
-                    saife.updateMessageListener();
-                }
+                selectGroupAction(e);
             }
         });
 
@@ -294,31 +290,7 @@ public class MainFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    
-                    final String g = selectedName.getText();
-                    final String m = messageToSend.getText();
-                    if (!g.equals("") && !m.equals("")) {
-                        final String gn = g.substring(0, g.indexOf('-') - 1);
-                        final String gid = g.substring(g.indexOf('-') + 2);
-                        try {
-                            saife.groupSend(g.substring(g.indexOf('-') + 2), m);
-                            addOwnMessage(gn, gid, m);
-                            messageToSend.setText("");
-                            messageToSend.grabFocus();
-                            Document doc = messages.getDocument();
-                            // try {
-                            //     doc.insertString(doc.getLength(),
-                            //             "(" + gn + ") >> " + m + "\n",
-                            //             null);
-                            // } catch (final BadLocationException ble) {
-                            //     ble.printStackTrace();
-                            // }
-                        } catch (final Exception ex) {
-                            JOptionPane.showMessageDialog(mainFrame, 
-                                ex.getMessage(), "Error",
-                                JOptionPane.PLAIN_MESSAGE);
-                        }
-                    }
+                    sendGroupAction();
                 }
             }
             @Override
@@ -335,29 +307,7 @@ public class MainFrame {
         sendMsg.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                final String g = selectedName.getText();
-                final String m = messageToSend.getText();
-                if (!g.equals("") && !m.equals("")) {
-                    final String gn = g.substring(0, g.indexOf('-') - 1);
-                    final String gid = g.substring(g.indexOf('-') + 2);
-                    try {
-                        saife.groupSend(g.substring(g.indexOf('-') + 2), m);
-                        addOwnMessage(gn, gid, m);
-                        messageToSend.setText("");
-                        Document doc = messages.getDocument();
-                        // try {
-                        //     doc.insertString(doc.getLength(),
-                        //             "(" + gn + ") >> " + m + "\n",
-                        //             null);
-                        // } catch (final BadLocationException ble) {
-                        //     ble.printStackTrace();
-                        // }
-                    } catch (final Exception ex) {
-                        JOptionPane.showMessageDialog(mainFrame, 
-                            ex.getMessage(), "Error",
-                            JOptionPane.PLAIN_MESSAGE);
-                    }
-                }
+                sendGroupAction();
             }
         });
 
@@ -482,6 +432,46 @@ public class MainFrame {
         final Contact me = saife.getFakeSelf();
         saife.addMessage(me.getName(), me.getFingerprint(), message.getBytes(),
                 groupID, groupName);
+    }
+
+    /**
+     * group selection action
+     */
+    protected void selectGroupAction(final ActionEvent e) {
+        if (secmsggroupList.getSelectedIndex() != -1) {
+            selectedName.setText(secmsggroupList.getSelectedValue());
+            selectedName.setCaretPosition(0);
+            saife.updateMessageListener();
+        }
+
+    }
+
+    protected void sendGroupAction() {
+        final String g = selectedName.getText();
+        final String m = messageToSend.getText();
+        if (!g.equals("") && !m.equals("")) {
+            final String gn = g.substring(0, g.indexOf('-') - 1);
+            final String gid = g.substring(g.indexOf('-') + 2);
+            try {
+                saife.groupSend(g.substring(g.indexOf('-') + 2), m);
+                addOwnMessage(gn, gid, m);
+                messageToSend.setText("");
+                messageToSend.grabFocus();
+                // locally print message 
+                // Document doc = messages.getDocument();
+                // try {
+                //     doc.insertString(doc.getLength(),
+                //             "(" + gn + ") >> " + m + "\n",
+                //             null);
+                // } catch (final BadLocationException ble) {
+                //     ble.printStackTrace();
+                // }
+            } catch (final Exception ex) {
+                JOptionPane.showMessageDialog(mainFrame, 
+                    ex.getMessage(), "Error",
+                    JOptionPane.PLAIN_MESSAGE);
+            }
+        }
     }
 
 }
