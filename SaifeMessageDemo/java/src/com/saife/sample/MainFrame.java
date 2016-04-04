@@ -39,6 +39,8 @@ import javax.swing.ListSelectionModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
+import com.saife.contacts.Contact;
+
 /**
  * The main Java Swing frame
  */
@@ -296,18 +298,20 @@ public class MainFrame {
                     final String m = messageToSend.getText();
                     if (!g.equals("") && !m.equals("")) {
                         final String gn = g.substring(0, g.indexOf('-') - 1);
+                        final String gid = g.substring(g.indexOf('-') + 2);
                         try {
                             saife.groupSend(g.substring(g.indexOf('-') + 2), m);
+                            addOwnMessage(gn, gid, m);
                             messageToSend.setText("");
                             messageToSend.grabFocus();
                             Document doc = messages.getDocument();
-                            try {
-                                doc.insertString(doc.getLength(),
-                                        "(" + gn + ") >> " + m + "\n",
-                                        null);
-                            } catch (final BadLocationException ble) {
-                                ble.printStackTrace();
-                            }
+                            // try {
+                            //     doc.insertString(doc.getLength(),
+                            //             "(" + gn + ") >> " + m + "\n",
+                            //             null);
+                            // } catch (final BadLocationException ble) {
+                            //     ble.printStackTrace();
+                            // }
                         } catch (final Exception ex) {
                             JOptionPane.showMessageDialog(mainFrame, 
                                 ex.getMessage(), "Error",
@@ -334,17 +338,19 @@ public class MainFrame {
                 final String m = messageToSend.getText();
                 if (!g.equals("") && !m.equals("")) {
                     final String gn = g.substring(0, g.indexOf('-') - 1);
+                    final String gid = g.substring(g.indexOf('-') + 2);
                     try {
                         saife.groupSend(g.substring(g.indexOf('-') + 2), m);
+                        addOwnMessage(gn, gid, m);
                         messageToSend.setText("");
                         Document doc = messages.getDocument();
-                        try {
-                            doc.insertString(doc.getLength(),
-                                    "(" + gn + ") >> " + m + "\n",
-                                    null);
-                        } catch (final BadLocationException ble) {
-                            ble.printStackTrace();
-                        }
+                        // try {
+                        //     doc.insertString(doc.getLength(),
+                        //             "(" + gn + ") >> " + m + "\n",
+                        //             null);
+                        // } catch (final BadLocationException ble) {
+                        //     ble.printStackTrace();
+                        // }
                     } catch (final Exception ex) {
                         JOptionPane.showMessageDialog(mainFrame, 
                             ex.getMessage(), "Error",
@@ -390,6 +396,8 @@ public class MainFrame {
         populateGroups();
 
         mainFrame.setVisible(true);
+
+        saife.loadMessages();
 
         final Thread msg = new Thread(new MessageUpdater());
         msg.start();
@@ -462,6 +470,16 @@ public class MainFrame {
                 }
             }
         }
+    }
+
+    /**
+     * method to add own messages to persisted messages
+     */
+    private void addOwnMessage(final String groupName, final String groupID,
+            final String message) {
+        final Contact me = saife.getFakeSelf();
+        saife.addMessage(me.getName(), me.getFingerprint(), message.getBytes(),
+                groupID, groupName);
     }
 
 }

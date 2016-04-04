@@ -679,11 +679,13 @@ public class SaifeManager {
                 SecureGroupMessage mess = new SecureGroupMessage(sn, sf, m, 
                     gid, gn);
 
+                logger.trace("Got message " + mess.hashCode());
+
                 persistedMessages.add(mess);
             }
             jr.endArray();
 
-            persistedIndex = persistedMessages.size();
+            // persistedIndex = persistedMessages.size();
 
             logger.trace("Messages read");
 
@@ -713,6 +715,25 @@ public class SaifeManager {
         }
 
         return me;
+    }
+
+    /**
+     * add a message to the queue(for persisting own messages)
+     *
+     * @param senderName    name of the sender
+     * @param senderFingerprint     fingerprint of the sender
+     * @param message   message that was sent
+     * @param groupID   ID of the group the message was sent to
+     * @param groupName     name of the group this message was sent to
+     */
+    public void addMessage(final String senderName,
+            final byte[] senderFingerprint, final byte[] message,
+            final String groupID, final String groupName) {
+        final SecureGroupMessage newMsg = new SecureGroupMessage(senderName, senderFingerprint, message, groupID, groupName);
+
+        logger.trace("Adding own message " + newMsg.hashCode());
+        persistedMessages.add(newMsg);
+        
     }
 
 }
