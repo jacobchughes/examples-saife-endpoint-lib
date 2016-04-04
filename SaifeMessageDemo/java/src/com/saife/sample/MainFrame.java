@@ -416,16 +416,18 @@ public class MainFrame {
         @Override
         public void run() {
             while (true) {
-                saife.logTrace("Getting messages from SAIFE");
                 try {
                     List<SecureGroupMessage> msgs = saife.getMessages();
                     Document doc = messages.getDocument();
+                    if (msgs.size() > 0) {
+                        saife.logTrace("Got new messages");
+                    }
                     for (SecureGroupMessage m : msgs) {
                         doc.insertString(doc.getLength(), m.prettify() + "\n",
                                 null);
                         messages.setCaretPosition(doc.getLength());
                     }
-                    Thread.sleep(5000);
+                    Thread.sleep(1000);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
