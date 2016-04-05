@@ -61,34 +61,34 @@ public class EditMsgGroupFrame {
     JLabel availConsLabel;
 
     /** list model for available contacts list */
-    DefaultListModel<String> availConsModel = null;
+    DefaultListModel<String> availConsListModel = null;
 
     /** list of available contacts */
-    JList<String> availCons;
+    JList<String> availConsList;
 
     /** scroll pane for available contacts list */
     JScrollPane availConsScroll;
 
     /** button to add available contact to group */
-    JButton addAvailCons;
+    JButton addAvailConsBtn;
 
     /** label for current members */
     JLabel curMemsLabel;
 
     /** list model for current members list */
-    DefaultListModel<String> curMemsModel = null;
+    DefaultListModel<String> curMemsListModel = null;
 
     /** list of current members */
-    JList<String> curMems;
+    JList<String> curMemsList;
 
     /** scroll pane for current members list */
     JScrollPane curMemsScroll;
 
     /** button to remove current members from group */
-    JButton remCurCons;
+    JButton remCurConsBtn;
 
     /** button to cancel */
-    JButton closeButton;
+    JButton closeBtn;
 
     /** 
      * constructor, needs a reference to the SAIFE manager and the group ID
@@ -129,24 +129,24 @@ public class EditMsgGroupFrame {
         
         mainFrame.getContentPane().add(availConsLabel);
 
-        availConsModel = new DefaultListModel<String>();
-        availCons = new JList<String>(availConsModel);
-        availCons.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        availConsScroll = new JScrollPane(availCons);
+        availConsListModel = new DefaultListModel<String>();
+        availConsList = new JList<String>(availConsListModel);
+        availConsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        availConsScroll = new JScrollPane(availConsList);
         availConsScroll.setBounds(15, 20, 150, 300);
         
         mainFrame.getContentPane().add(availConsScroll);
 
         // add available contacts button
-        addAvailCons = new JButton(">>");
-        addAvailCons.setBounds(175, 130, 40, 20);
-        addAvailCons.addActionListener(new ActionListener() {
+        addAvailConsBtn = new JButton(">>");
+        addAvailConsBtn.setBounds(175, 130, 40, 20);
+        addAvailConsBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (availCons.getSelectedIndex() != -1) {
+                if (availConsList.getSelectedIndex() != -1) {
                     try {
                         saife.groupAddMember(group,
-                                availCons.getSelectedValue());
+                                availConsList.getSelectedValue());
                         populateCurrent();
                         populateAvailable();
                     } catch (final Exception ex) {
@@ -158,23 +158,23 @@ public class EditMsgGroupFrame {
             }
         });
 
-        mainFrame.getContentPane().add(addAvailCons);
+        mainFrame.getContentPane().add(addAvailConsBtn);
 
         // remove current members button
-        remCurCons = new JButton("<<");
-        remCurCons.setBounds(175, 170, 40, 20);
-        remCurCons.addActionListener(new ActionListener() {
+        remCurConsBtn = new JButton("<<");
+        remCurConsBtn.setBounds(175, 170, 40, 20);
+        remCurConsBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (curMems.getSelectedIndex() != -1)
-                    if (curMemsModel.getSize() == 1) {
+                if (curMemsList.getSelectedIndex() != -1)
+                    if (curMemsListModel.getSize() == 1) {
                         JOptionPane.showMessageDialog(mainFrame,
                                 "Cannot remove last member", "Error",
                                 JOptionPane.PLAIN_MESSAGE);
                     } else {
                         try {
                             saife.groupRemoveMember(group, 
-                                    curMems.getSelectedValue());
+                                    curMemsList.getSelectedValue());
                             populateCurrent();
                             populateAvailable();
                         } catch (final Exception ex) {
@@ -186,7 +186,7 @@ public class EditMsgGroupFrame {
             }
         });
 
-        mainFrame.getContentPane().add(remCurCons);
+        mainFrame.getContentPane().add(remCurConsBtn);
 
         // current members list setup
         curMemsLabel = new JLabel("Current Members");
@@ -194,25 +194,25 @@ public class EditMsgGroupFrame {
 
         mainFrame.getContentPane().add(curMemsLabel);
 
-        curMemsModel = new DefaultListModel<String>();
-        curMems = new JList<String>(curMemsModel);
-        curMems.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        curMemsScroll = new JScrollPane(curMems);
+        curMemsListModel = new DefaultListModel<String>();
+        curMemsList = new JList<String>(curMemsListModel);
+        curMemsList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        curMemsScroll = new JScrollPane(curMemsList);
         curMemsScroll.setBounds(225, 20, 150, 300);
 
         mainFrame.getContentPane().add(curMemsScroll);
 
         // close button
-        closeButton = new JButton("close");
-        closeButton.setBounds(155, 340, 80, 20);
-        closeButton.addActionListener(new ActionListener() {
+        closeBtn = new JButton("close");
+        closeBtn.setBounds(155, 340, 80, 20);
+        closeBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 dispose();
             }
         });
 
-        mainFrame.getContentPane().add(closeButton);
+        mainFrame.getContentPane().add(closeBtn);
 
         populateCurrent();
         populateAvailable();
@@ -233,7 +233,7 @@ public class EditMsgGroupFrame {
      * populate the available contacts list
      */
     void populateAvailable() {
-        availConsModel.clear();
+        availConsListModel.clear();
         // using comparable version
         List<GroupInfoComp> groups = new Vector<GroupInfoComp>();
         try {
@@ -285,7 +285,7 @@ public class EditMsgGroupFrame {
                     // using comparable version
                     for (GroupInfoComp g : c.getGroupListComp()) {
                         if (!added && groups.contains(g)) {
-                            availConsModel.addElement(c.getName());
+                            availConsListModel.addElement(c.getName());
                             added = true;
                         }
                     }
@@ -386,11 +386,11 @@ public class EditMsgGroupFrame {
      * populate the current members list
      */
     void populateCurrent() {
-        curMemsModel.clear();
+        curMemsListModel.clear();
 
         try {
             for (Contact member : group.getMembers()) {
-                curMemsModel.addElement(member.getName());
+                curMemsListModel.addElement(member.getName());
             }
         } catch (Exception e) {
             e.printStackTrace();
