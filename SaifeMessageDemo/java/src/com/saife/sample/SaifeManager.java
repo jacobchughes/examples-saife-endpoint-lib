@@ -132,10 +132,10 @@ public class SaifeManager {
                     saife.updateSaifeData();
                     saifeUpdated = true;
                 } catch (final InvalidManagementStateException e) {
-                    System.out.println("saifeUpdater: "
-                            + "InvalidManagementStateException.");
+                    logger.error("SAIFE entered an invalid or unrecoverable "
+                            + "state.");
                 } catch (final IOException e) {
-                    System.out.println("saifeUpdater: IOException.");
+                    logger.error("saifeUpdater: IOException.");
                 }
                 try {
                     Thread.sleep(10000);
@@ -165,7 +165,8 @@ public class SaifeManager {
             }
 
         } catch (InvalidManagementStateException e) {
-            e.printStackTrace();
+            logger.error("SAIFE entered an invalid or unrecoverable "
+                    + "state.");
             return null;
         }
 
@@ -182,6 +183,8 @@ public class SaifeManager {
                 con.add(c.getName());
             }
         } catch (final InvalidManagementStateException e) {
+            logger.error("SAIFE entered an invalid or unrecoverable "
+                    + "state.");
             return null;
         }
         return con;
@@ -247,10 +250,10 @@ public class SaifeManager {
 
 
                     } catch (final InsufficientEntropyException e) {
-                        System.out.println(e.getMessage());
+                        logger.warning(e.getMessage());
                         entropic = false;
                     } catch (final IOException e) {
-                        e.printStackTrace();
+                        logger.error("Error reading in from /dev/urandom");
                     }
 
                 }
@@ -281,26 +284,26 @@ public class SaifeManager {
                 f.println("CAPS: " + gson.toJson(capabilities));
                 f.close();
 
-                System.out.println("SAIFE generated " + defaultKeyStore
+                logger.info("SAIFE generated " + defaultKeyStore
                         + "/newkey.smcsr which contains a certificate and "
                         + "capabilities to provision at the SAIFE dashboard.");
                 return false;
             }
         } catch (final InvalidManagementStateException e) {
-            System.out.println("SAIFE entered an invalid or unrecoverable "
+            logger.error("SAIFE entered an invalid or unrecoverable "
                     + "state.");
             return false;
         } catch (final FileNotFoundException e) {
-            System.out.println("File Not Found (smcsr)");
+            logger.error("File Not Found (smcsr)");
             e.printStackTrace();
             return false;
         } catch (final InvalidCredentialException e) {
-            System.out.println("Invalid credentials");
+            logger.error("Invalid credentials");
             e.printStackTrace();
             return false;
         }
 
-        System.out.println("SAIFE has been initialized correctly.");
+        logger.info("SAIFE has been initialized correctly.");
         return true;
     }
 
@@ -317,9 +320,10 @@ public class SaifeManager {
         try {
             saife.unlock(defaultPassword);
         } catch (final InvalidCredentialException e1) {
-            e1.printStackTrace();
+            logger.error("Invalid credentials provided to the SAIFE library");
         } catch (final InvalidManagementStateException e1) {
-            e1.printStackTrace();
+            logger.error("SAIFE entered an invalid or unrecoverable "
+                    + "state.");
             return false;
         }
 
@@ -328,7 +332,7 @@ public class SaifeManager {
         // Update SAIFE after library is unlocked
         while (!saifeUpdated) {
             try {
-                System.out.println("Waiting for SAIFE update.");
+                logger.info("Waiting for SAIFE update.");
                 Thread.sleep(5000);
             } catch (final InterruptedException e) {
 
@@ -371,14 +375,16 @@ public class SaifeManager {
             try {
                 contacts.add(getContact(member));
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("SAIFE encountered an exception: " 
+                    + e.getMessage());
             }
         }
 
         try {
             saife.createGroup(name, contacts);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("SAIFE encountered an exception: " 
+                + e.getMessage());
         }
 
     }
@@ -405,7 +411,8 @@ public class SaifeManager {
                     + group;
                 prettyGroups.add(prettyGroup);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("SAIFE encountered an exception: " 
+                    + e.getMessage());
             }
         }
 
@@ -511,10 +518,11 @@ public class SaifeManager {
                 MessageListener msgListener = new MessageListener(listenGroup);
                 messageCallback = SecureCommsGroupCallbackFactory
                     .construct(msgListener, saife);
-                logger.trace("Adding created callback");
+                logger.trace("Adding created listener");
                 saife.addSecureCommsGroupListener(messageCallback);
             } catch (final Exception e) {
-                e.printStackTrace();
+                logger.error("SAIFE encountered an exception: " 
+                        + e.getMessage());
             }
         }
     }
@@ -588,6 +596,20 @@ public class SaifeManager {
      */
     public void logTrace(final String msg) {
         this.logger.trace(msg);
+    }
+
+    /**
+     * logs a message to the SAIFE logger with visibility of info
+     */
+    public void logInfo(final String msg) {
+        this.logger.info(msg);
+    }
+
+    /**
+     * logs a message to the SAIFE logger with visibility of error
+     */
+    public void logError(final String msg) {
+        this.logger.error(msg);
     }
 
 }

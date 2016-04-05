@@ -43,7 +43,7 @@ public class MainFrameLauncher {
     public void launchMF(final SaifeManager sm) {
         handler = sm;
 
-        System.out.println("launchMF");
+        handler.logInfo("Launching Main Frame");
 
         if (null == ml) {
             ml = new MainFrameLauncher();
@@ -57,7 +57,8 @@ public class MainFrameLauncher {
                     final MainFrame window = new MainFrame(ml, handler);
 
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    handler.logError("SAIFE encountered an exception: " 
+                        + e.getMessage());
                 }
             }
         });
@@ -67,7 +68,7 @@ public class MainFrameLauncher {
      *
      */
     public void launchEF() {
-        System.out.println("launchEF");
+        handler.logInfo("Launching Error Frame");
 
         if (null == ml) {
             ml = new MainFrameLauncher();
@@ -81,7 +82,8 @@ public class MainFrameLauncher {
                     @SuppressWarnings("unused")
                     final MainFrame window = new MainFrame(ml);
                 } catch (final Exception e) {
-                    e.printStackTrace();
+                    handler.logError("SAIFE encountered an exception: "
+                        + e.getMessage());
                 }
             }
         });

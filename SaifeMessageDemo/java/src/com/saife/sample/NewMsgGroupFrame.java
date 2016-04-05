@@ -265,10 +265,11 @@ public class NewMsgGroupFrame {
                     }
                 }
 
-            } catch (NoSuchContactException e) {
-                System.out.println("No contact " + con);
-            } catch (InvalidManagementStateException e) {
-                e.printStackTrace();
+            } catch (final NoSuchContactException e) {
+                saife.logError("There is no contact named " + con);
+            } catch (final InvalidManagementStateException e) {
+                saife.logError("SAIFE has reached an invalid or unrecoverable" 
+                    + " state.");
             }
         }
     }

@@ -102,8 +102,8 @@ public class EditMsgGroupFrame {
         try {
             this.group = saife.saife.getGroup(groupID);
             mainFrame.setTitle("Edit Group: " + group.name());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            saife.logError("SAIFE encountered an exception: " + e.getMessage());
             this.dispose();
         }
 
@@ -293,8 +293,8 @@ public class EditMsgGroupFrame {
             }
 
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            saife.logError("SAIFE encountered an exception: " + e.getMessage());
         }
         
     }
@@ -392,8 +392,8 @@ public class EditMsgGroupFrame {
             for (Contact member : group.getMembers()) {
                 curMemsListModel.addElement(member.getName());
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            saife.logError("SAIFE encountered an exception: " + e.getMessage());
         }
 
     }

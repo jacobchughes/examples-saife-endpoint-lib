@@ -308,7 +308,8 @@ public class MainFrame {
                                 doc.insertString(doc.getLength(), ">> " + m + "\n",
                                         null);
                             } catch (final BadLocationException ble) {
-                                ble.printStackTrace();
+                                saife.logError("Bad Location provided while" 
+                                    + " inserting message");
                             }
                         } catch (final Exception ex) {
                             JOptionPane.showMessageDialog(mainFrame, 
@@ -343,7 +344,8 @@ public class MainFrame {
                             doc.insertString(doc.getLength(), ">> " + m + "\n",
                                     null);
                         } catch (final BadLocationException ble) {
-                            ble.printStackTrace();
+                                saife.logError("Bad Location provided while" 
+                                    + " inserting message");
                         }
                     } catch (final Exception ex) {
                         JOptionPane.showMessageDialog(mainFrame, 
@@ -357,7 +359,7 @@ public class MainFrame {
         mainFrame.getContentPane().add(sedMsgBtn);
 
         // prepare the SAIFE library
-        saife.logTrace("Preparing SAIFE");
+        saife.logInfo("Preparing SAIFE");
         saife.saifePrepare();
 
         // populate the group list 
@@ -422,7 +424,7 @@ public class MainFrame {
         @Override
         public void run() {
             while (true) {
-                saife.logTrace("Getting messages from SAIFE");
+                saife.logInfo("Getting messages from SAIFE");
                 try {
                     Queue<String> messages = saife.getMessages();
                     Document doc = msgs.getDocument();
@@ -430,8 +432,9 @@ public class MainFrame {
                         doc.insertString(doc.getLength(), m + "\n", null);
                     }
                     Thread.sleep(5000);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (final Exception e) {
+                    saife.logError("SAIFE encountered an error: " 
+                            + e.getMessage());
                 }
             }
         }
