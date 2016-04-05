@@ -1,11 +1,11 @@
-/*
- * Copyright (c) 2016 SAIFE, Inc.  All Rights Reserved.
+/* 
+ * Copyright (c) 2015-2016 SAIFE Inc.
  *
- * This software is proprietary to, and a valuable trade secret of, SAIFE, Inc.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The software and documentation may not be copied, reproduced, translated,
- * or reduced to any electronic medium or machine-readable form without a
- * prior written agreement from SAIFE, Inc.
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING, THE SOFTWARE
  * AND DOCUMENTATION ARE DISTRIBUTED ON AN "AS IS" BASIS, WITHOUT WARRANTIES
@@ -13,6 +13,8 @@
  * LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
  * PURPOSE AND NONINFRINGEMENT.  REFER TO THE WRITTEN AGREEMENT FOR SPECIFIC
  * LANGUAGE GOVERNING PERMISSIONS AND LIMITATIONS.
+ *
+ *
  */
 package com.saife.sample;
 
