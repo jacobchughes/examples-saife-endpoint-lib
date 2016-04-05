@@ -205,8 +205,10 @@ public class SaifeManager {
 
         // Set SAIFE logging level
         // @TODO remove trace
-        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
-        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_ERROR);
         /**
          * SAIFE initialization
          */
@@ -235,7 +237,7 @@ public class SaifeManager {
                         b = new byte[32];
                         fin.read(b);
 
-                        System.out.println("adding entropy to SAIFE library");
+                        logger.info("adding entropy to SAIFE library");
                         saife.AddEntropy(b, 4);
 
                         csr = saife.generateSmCsr(dn, defaultPassword);
@@ -320,7 +322,7 @@ public class SaifeManager {
             return false;
         }
 
-        logger.trace("SAIFE library unlocked");
+        logger.info("SAIFE library unlocked");
 
         // Update SAIFE after library is unlocked
         while (!saifeUpdated) {
@@ -332,12 +334,12 @@ public class SaifeManager {
             }
         }
 
-        logger.trace("SAIFE library updated");
+        logger.info("SAIFE library updated");
 
         // we will need our contact info for the groups
         saife.subscribe();
 
-        logger.trace("SAIFE library has been prepared");
+        logger.info("SAIFE library has been prepared");
         return true;
     }
 
@@ -476,7 +478,7 @@ public class SaifeManager {
      * @param listenGroup   ID of group to listen for
      */
     public void updateMessageListener(final String listenGroup) {
-        logger.trace("Updating the Message Listener");
+        logger.info("Updating the Message Listener");
         new Thread(new MessageUpdater(listenGroup)).start();
     }
 
