@@ -147,8 +147,8 @@ public class EditMsgGroupFrame {
                     try {
                         saife.groupAddMember(group,
                                 availConsList.getSelectedValue());
-                        populateCurrent();
-                        populateAvailable();
+                        populateCurrentMembers();
+                        populateAvailableContacts();
                     } catch (final Exception ex) {
                         JOptionPane.showMessageDialog(mainFrame, 
                             ex.getMessage(), "Error",
@@ -175,8 +175,8 @@ public class EditMsgGroupFrame {
                         try {
                             saife.groupRemoveMember(group, 
                                     curMemsList.getSelectedValue());
-                            populateCurrent();
-                            populateAvailable();
+                            populateCurrentMembers();
+                            populateAvailableContacts();
                         } catch (final Exception ex) {
                             JOptionPane.showMessageDialog(mainFrame, 
                                 ex.getMessage(), "Error",
@@ -214,8 +214,8 @@ public class EditMsgGroupFrame {
 
         mainFrame.getContentPane().add(closeBtn);
 
-        populateCurrent();
-        populateAvailable();
+        populateCurrentMembers();
+        populateAvailableContacts();
 
         // enable the main frame
         mainFrame.setVisible(true);
@@ -232,7 +232,7 @@ public class EditMsgGroupFrame {
     /**
      * populate the available contacts list
      */
-    void populateAvailable() {
+    void populateAvailableContacts() {
         availConsListModel.clear();
         // using comparable version
         List<GroupInfoComp> groups = new Vector<GroupInfoComp>();
@@ -385,7 +385,7 @@ public class EditMsgGroupFrame {
     /**
      * populate the current members list
      */
-    void populateCurrent() {
+    void populateCurrentMembers() {
         curMemsListModel.clear();
 
         try {
