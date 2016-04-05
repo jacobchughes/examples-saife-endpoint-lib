@@ -2,6 +2,7 @@ package com.saife.demo;
 
 import java.io.FileReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,6 +12,7 @@ import java.util.List;
 import com.google.common.io.ByteStreams;
 import com.google.gson.*;
 
+import com.saife.InsufficientEntropyException;
 import com.saife.Saife;
 import com.saife.Address;
 import com.saife.SaifeFactory;
@@ -39,8 +41,9 @@ public class SaifeVol implements Runnable {
   /** The default path where all persisted SAIFE data is written. */
   static final String defaultKeyStore = ".SaifeStore";
 
-  /**gti 
-   * The default password to unlock the SAIFE private key. In practice a user is always prompted for this input.
+  /** 
+   * The default password to unlock the SAIFE private key. In practice a user 
+   * is always prompted for this input.
    */
   static final String defaultPassword = "mysecret";
 
@@ -52,7 +55,10 @@ public class SaifeVol implements Runnable {
   /** iFile names a file to store to / retrieve from the virtual file system. */
   protected String iFile = null;
 
-  /** oFile names a file to store to the regular file system. Ignored if setting storeIfTrue) */
+  /** 
+   * oFile names a file to store to the regular file system. Ignored if 
+   * setting storeIfTrue 
+   */
   protected String oFile = "red_data.bin";
 
   /** Store a iFile to the VFS or retrieve iFile VFS. */
@@ -76,9 +82,11 @@ public class SaifeVol implements Runnable {
     try {
 
         // Create a Logging Manager
-        final LogSinkManager logMgr = LogSinkFactory.constructConsoleSinkManager();
+        final LogSinkManager logMgr =
+            LogSinkFactory.constructConsoleSinkManager();
 
-      // Create instance of SAIFE. A log manager may be optionally specified to redirect SAIFE logging.
+      // Create instance of SAIFE. A log manager may be optionally specified to
+      // redirect SAIFE logging.
       saife = SaifeFactory.constructSaife(logMgr);
 
       // Set SAIFE logging level
@@ -87,24 +95,70 @@ public class SaifeVol implements Runnable {
       // Initialize the SAIFE library
       ManagementState state = saife.initialize(defaultKeyStore);
       if (state == ManagementState.UNKEYED) {
-        // The UNKEYED state is returned when SAIFE doesn't have a public/private key pair.
+        // The UNKEYED state is returned when SAIFE doesn't have a 
+        // public/private key pair.
 
         // Setup the DN attributes to be used in the X509 certificate.
-        final DistinguishedName dn = new DistinguishedName("com.saife.file_store");
+        final DistinguishedName dn =
+            new DistinguishedName("com.saife.file_store");
 
         // A list of addresses associated with this SAIFE instance.
         final List<Address> addressList = new ArrayList<Address>();
 
         // Generate the public/private key pair and certificate signing request.
-        final CertificationSigningRequest csr = saife.generateSmCsr(dn, defaultPassword, addressList);
 
-        // Add additional capabilities to the SAIFE capabilities list that convey the application specific capabilities.
+        // add required entropy
+        boolean entropic = false;
+
+        CertificationSigningRequest csr = null;
+
+        // getting entropy from /dev/urandom
+        final FileInputStream fin = new FileInputStream("/dev/urandom");
+
+        byte[] b;
+
+        while (!entropic) {
+            try {
+                // read entropy
+                b = new byte[32];
+                fin.read(b);
+
+                // add entropy to SAIFE library, assuming 4 of 8 bits are
+                // entropic enough
+                System.out.println("Adding entropy to SAIFE library");
+                saife.AddEntropy(b, 4);
+
+                // attempt to create the certificate singing request
+                csr = saife.generateSmCsr(dn, defaultPassword, addressList);
+
+                // if success, we are entropic enough
+                entropic = true;
+                
+            } catch (final InsufficientEntropyException iee) {
+                System.out.println(iee.getMessage());
+                entropic = false;
+            } catch (final IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+
+        try { 
+            fin.close();
+        } catch (final IOException ioe) {}
+
+        if (null == csr) {
+            System.exit(1);
+        }
+
+        // Add additional capabilities to the SAIFE capabilities list that 
+        // convey the application specific capabilities.
         final List<String> capabilities = csr.getCapabilities();
         capabilities.add("com::saife::demo::dar");
 
         // Provide CSR and capabilities (JSON string) to user for provisioning.
         // The application must restart from the UNKEYED state.
-        final PrintWriter f = new PrintWriter(defaultKeyStore + "/newkey.smcsr");
+        final PrintWriter f =
+            new PrintWriter(defaultKeyStore + "/newkey.smcsr");
         f.println("CSR: " + csr.getEncodedCsr());
         
         final Gson gson = new Gson();
@@ -112,7 +166,8 @@ public class SaifeVol implements Runnable {
         f.close();
 
         System.out.println("Generated keys and a new CSR for this library.");
-        System.out.println("Please provision .SaifeStore/newkey.smcsr and re-run.");
+        System.out.println("Please provision .SaifeStore/newkey.smcsr and "
+                + "re-run.");
 
       } else if ( state == ManagementState.ERROR) {
         System.out.println("ManagementState.ERROR");
@@ -251,7 +306,8 @@ public class SaifeVol implements Runnable {
         }
 
         // SAIFE provides an output stream, encrypting files as they are written
-        final SecureFileOutputStream sfos = new SecureFileOutputStream(newFile, false);
+        final SecureFileOutputStream sfos =
+            new SecureFileOutputStream(newFile, false);
         final FileInputStream fis = new FileInputStream(iFile);
 
         ByteStreams.copy(fis, sfos);
@@ -287,7 +343,8 @@ public class SaifeVol implements Runnable {
 
             outS = new FileOutputStream ( file );
 
-            // SAIFE provides an input stream for reads, decrypting the file as it is read.
+            // SAIFE provides an input stream for reads, decrypting the file as
+            // it is read.
             SecureFileInputStream inS = new SecureFileInputStream ( oldFile );
             ByteStreams.copy(inS, outS);
 
@@ -298,7 +355,8 @@ public class SaifeVol implements Runnable {
             System.out.println("Error: file " + oFile + "can not be created.");
             e.printStackTrace();
           } catch ( Exception e ) {
-            System.out.println("Error: unexpected exception during data retrieval.");
+            System.out.println("Error: unexpected exception during data "
+                    + "retrieval.");
             e.printStackTrace();
           }
 
