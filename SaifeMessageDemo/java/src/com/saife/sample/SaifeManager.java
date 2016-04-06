@@ -156,7 +156,9 @@ public class SaifeManager {
         }
     }
 
-    @SuppressWarnings("javadoc")
+    /**
+     * @return  list of omnigroup names
+     */
     public List<String> getOmnigroups() {
         List<String> groupNames = new Vector<String>();
 
@@ -173,7 +175,7 @@ public class SaifeManager {
                 }
             }
 
-        } catch (InvalidManagementStateException e) {
+        } catch (final InvalidManagementStateException e) {
             logger.error("SAIFE entered an invalid or unrecoverable "
                     + "state.");
             return null;
@@ -383,7 +385,7 @@ public class SaifeManager {
         for (String member : members) {
             try {
                 contacts.add(getContact(member));
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.error("SAIFE encountered an exception: " 
                     + e.getMessage());
             }
@@ -391,7 +393,7 @@ public class SaifeManager {
 
         try {
             saife.createGroup(name, contacts);
-        } catch (Exception e) {
+        } catch (final Exception e) {
             logger.error("SAIFE encountered an exception: " 
                 + e.getMessage());
         }
@@ -419,7 +421,7 @@ public class SaifeManager {
                 String prettyGroup = saife.getGroup(group).name() + " - " 
                     + group;
                 prettyGroups.add(prettyGroup);
-            } catch (Exception e) {
+            } catch (final Exception e) {
                 logger.error("SAIFE encountered an exception: " 
                     + e.getMessage());
             }

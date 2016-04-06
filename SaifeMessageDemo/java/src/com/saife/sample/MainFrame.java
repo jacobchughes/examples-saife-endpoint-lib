@@ -430,7 +430,7 @@ public class MainFrame {
                         msgs.setCaretPosition(doc.getLength());
                     }
                     Thread.sleep(1000);
-                } catch (Exception e) {
+                } catch (final Exception e) {
                     saife.logError("SAIFE encountered an error: " 
                             + e.getMessage());
                 }
