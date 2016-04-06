@@ -218,8 +218,8 @@ public class SaifeManager {
 
         // Set SAIFE logging level
         // @TODO remove trace
-        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
-        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
+        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
         // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
         // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_ERROR);
         /**
