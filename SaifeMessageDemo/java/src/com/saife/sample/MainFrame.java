@@ -26,6 +26,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.IOException;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -38,9 +39,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
+import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 
 import com.saife.contacts.Contact;
+import com.saife.group.GroupNotFoundException;
+import com.saife.group.GroupPermissionDeniedException;
+import com.saife.management.UnlockRequiredException;
 
 /**
  * The main Java Swing frame
@@ -256,9 +261,31 @@ public class MainFrame {
                             saife.deleteMsgGroup(groupID);
                             populateGroups();
                         }
+                    } catch (final GroupPermissionDeniedException gpde) {
+                        final String m = gpde.getMessage();
+                        saife.logError(m + " while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
+                            JOptionPane.PLAIN_MESSAGE);
+                    } catch (final IOException ioe) {
+                        final String m = ioe.getMessage();
+                        saife.logError(m + " while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
+                            JOptionPane.PLAIN_MESSAGE);
+                    } catch (final UnlockRequiredException ure) {
+                        final String m = ure.getMessage();
+                        saife.logError(m + " while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
+                            JOptionPane.PLAIN_MESSAGE);
+                    } catch (final GroupNotFoundException gnfe) {
+                        final String m = gnfe.getMessage();
+                        saife.logError(m + " while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
+                            JOptionPane.PLAIN_MESSAGE);
                     } catch (final Exception ex) {
-                        JOptionPane.showMessageDialog(mainFrame, 
-                            ex.getMessage(), "Error",
+                        final String m = ex.getMessage();
+                        saife.logError("General exception: " + m 
+                                + "while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
                             JOptionPane.PLAIN_MESSAGE);
                     }
                 }
@@ -430,9 +457,12 @@ public class MainFrame {
                         msgs.setCaretPosition(doc.getLength());
                     }
                     Thread.sleep(1000);
-                } catch (final Exception e) {
-                    saife.logError("SAIFE encountered an error: " 
-                            + e.getMessage());
+                } catch (final BadLocationException ble) {
+                    final String m = ble.getMessage();
+                    saife.logError(m + " while updating messages");
+                } catch (final InterruptedException ie) {
+                    final String m = ie.getMessage();
+                    saife.logError(m + " while updating messages");
                 }
             }
         }
@@ -471,6 +501,21 @@ public class MainFrame {
                 addOwnMessage(gn, gid, m);
                 msgToSend.setText("");
                 msgToSend.grabFocus();
+            } catch (final GroupNotFoundException gnfe) {
+                final String mess = gnfe.getMessage();
+                saife.logError(mess + " while sending message");
+                JOptionPane.showMessageDialog(mainFrame, mess, "Error",
+                    JOptionPane.PLAIN_MESSAGE);
+            } catch (final IOException ioe) {
+                final String mess = ioe.getMessage();
+                saife.logError(mess + " while sending message");
+                JOptionPane.showMessageDialog(mainFrame, mess, "Error",
+                    JOptionPane.PLAIN_MESSAGE);
+            } catch (final UnlockRequiredException ure) {
+                final String mess = ure.getMessage();
+                saife.logError(mess + " while sending message");
+                JOptionPane.showMessageDialog(mainFrame, mess, "Error",
+                    JOptionPane.PLAIN_MESSAGE);
             } catch (final Exception ex) {
                 JOptionPane.showMessageDialog(mainFrame, 
                     ex.getMessage(), "Error",

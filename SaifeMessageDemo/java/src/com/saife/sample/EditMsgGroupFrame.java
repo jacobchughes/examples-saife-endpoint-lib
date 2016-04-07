@@ -35,7 +35,11 @@ import javax.swing.ListSelectionModel;
 
 import com.saife.contacts.Contact;
 import com.saife.contacts.GroupInfo;
+import com.saife.contacts.NoSuchContactException;
+import com.saife.group.ContactGroupNotFoundException;
+import com.saife.group.GroupNotFoundException;
 import com.saife.group.SecureCommsGroup;
+import com.saife.management.InvalidManagementStateException;
 
 /**
  * Swing frame to handle the editing of a Secure Messaging Group
@@ -101,6 +105,9 @@ public class EditMsgGroupFrame {
         try {
             this.group = saife.saife.getGroup(groupID);
             mainFrame.setTitle("Edit Group: " + group.name());
+        } catch (final GroupNotFoundException gnfe) {
+            final String m = gnfe.getMessage();
+            saife.logError(m + " while setting group");
         } catch (final Exception e) {
             saife.logError("SAIFE encountered an exception: " + e.getMessage());
             this.dispose();
@@ -148,6 +155,15 @@ public class EditMsgGroupFrame {
                                 availConsList.getSelectedValue());
                         populateCurrentMembers();
                         populateAvailableContacts();
+                    } catch (final NoSuchContactException nsce) {
+                        final String m = nsce.getMessage();
+                        saife.logError(m + " while adding contact to group");
+                    } catch (final InvalidManagementStateException imse) {
+                        final String m = imse.getMessage();
+                        saife.logError(m + " while adding contact to group");
+                    } catch (final ContactGroupNotFoundException cgnfe) {
+                        final String m = cgnfe.getMessage();
+                        saife.logError(m + " while adding contact to group");
                     } catch (final Exception ex) {
                         JOptionPane.showMessageDialog(mainFrame, 
                             ex.getMessage(), "Error",

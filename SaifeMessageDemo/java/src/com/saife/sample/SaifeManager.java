@@ -41,6 +41,10 @@ import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.GroupInfo;
 import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
+import com.saife.group.ContactGroupNotFoundException;
+import com.saife.group.GroupNotFoundException;
+import com.saife.group.GroupPermissionDeniedException;
+import com.saife.group.KeySizeNotSupportedException;
 import com.saife.group.SecureCommsGroup;
 import com.saife.group.SecureCommsGroupCallback;
 import com.saife.group.SecureCommsGroupCallbackFactory;
@@ -53,6 +57,7 @@ import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
 import com.saife.management.ManagementService.ManagementState;
+import com.saife.management.UnlockRequiredException;
 
 /**
  * Class used to manage the Saife Library's calls and methods
@@ -385,14 +390,32 @@ public class SaifeManager {
         for (String member : members) {
             try {
                 contacts.add(getContact(member));
-            } catch (final Exception e) {
-                logger.error("SAIFE encountered an exception: " 
-                    + e.getMessage());
+            } catch (final NoSuchContactException nsce) {
+                final String m = nsce.getMessage();
+                logger.error(m + " while creating new group");
+            } catch (final InvalidManagementStateException imse) {
+                final String m = imse.getMessage();
+                logger.error(m + " while creating new group");
             }
         }
 
         try {
             saife.createGroup(name, contacts);
+        } catch (final ContactGroupNotFoundException cgnfe) {
+            final String m = cgnfe.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final IllegalArgumentException iae) {
+            final String m = iae.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final IOException ioe) {
+            final String m = ioe.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final KeySizeNotSupportedException ksnse) {
+            final String m = ksnse.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final UnlockRequiredException ure) {
+            final String m = ure.getMessage();
+            logger.error(m + " while creating new group");
         } catch (final Exception e) {
             logger.error("SAIFE encountered an exception: " 
                 + e.getMessage());
@@ -401,7 +424,7 @@ public class SaifeManager {
     }
 
     /**
-     * returns the prettyfied list of secure messaging groups
+     * returns the prettified list of secure messaging groups
      *
      * @return  'group name - group id'
      */
@@ -421,9 +444,12 @@ public class SaifeManager {
                 String prettyGroup = saife.getGroup(group).name() + " - " 
                     + group;
                 prettyGroups.add(prettyGroup);
+            } catch (final GroupNotFoundException gnfe) {
+                final String m = gnfe.getMessage();
+                logger.error(m + " while getting prettified groups");
             } catch (final Exception e) {
-                logger.error("SAIFE encountered an exception: " 
-                    + e.getMessage());
+                final String m = e.getMessage();
+                logger.error("SAIFE encountered an exception: " + m);
             }
         }
 
@@ -436,7 +462,9 @@ public class SaifeManager {
      * @param groupID  name of the group
      * @throws Exception    can be any number, let caller handle
      */
-    public void deleteMsgGroup(String groupID) throws Exception {
+    public void deleteMsgGroup(String groupID) 
+            throws GroupPermissionDeniedException, IOException,
+                  UnlockRequiredException, GroupNotFoundException, Exception {
         saife.getGroup(groupID).destroy();
     }
 
@@ -448,9 +476,10 @@ public class SaifeManager {
      *  @throws Exception   can be numerous things, let caller handle
      */
     public void groupAddMember(SecureCommsGroup group, String name)
-        throws Exception {
-            Contact c = this.getContact(name);
-            group.addMember(c);
+            throws NoSuchContactException, InvalidManagementStateException,
+                  ContactGroupNotFoundException, Exception {
+        Contact c = this.getContact(name);
+        group.addMember(c);
         
     }
 
@@ -474,7 +503,9 @@ public class SaifeManager {
      * @param msg   the message to send, as a string
      * @throws Exception    let the caller decide
      */
-    public void groupSend(String groupID, String msg) throws Exception {
+    public void groupSend(String groupID, String msg) 
+            throws GroupNotFoundException, IOException, UnlockRequiredException,
+                  Exception {
         byte[] mess = msg.getBytes();   
         SecureCommsGroup group = saife.getGroup(groupID);
         group.sendMessage(mess);
@@ -520,20 +551,15 @@ public class SaifeManager {
 
         @Override
         public void run() {
-            try {
-                if (null == messageCallback) {
-                    logger.trace("Creating a new Message Listener");
-                    MessageListener msgListener = new MessageListener();
-                    messageCallback = SecureCommsGroupCallbackFactory
-                        .construct(msgListener, saife);
-                    logger.trace("Adding created callback");
-                    saife.addSecureCommsGroupListener(messageCallback);
-                } else {
-                    logger.trace("Existing Message Listener");
-                }
-            } catch (final Exception e) {
-                logger.error("SAIFE encountered an exception: " 
-                        + e.getMessage());
+            if (null == messageCallback) {
+                logger.trace("Creating a new Message Listener");
+                MessageListener msgListener = new MessageListener();
+                messageCallback = SecureCommsGroupCallbackFactory
+                    .construct(msgListener, saife);
+                logger.trace("Adding created callback");
+                saife.addSecureCommsGroupListener(messageCallback);
+            } else {
+                logger.trace("Existing Message Listener");
             }
         }
     }
