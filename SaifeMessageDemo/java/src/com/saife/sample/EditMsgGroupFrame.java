@@ -73,7 +73,7 @@ public class EditMsgGroupFrame {
     JScrollPane availConsScroll;
 
     /** button to add available contact to group */
-    JButton addAvailConsBtn;
+    JButton addAvailConBtn;
 
     /** label for current members */
     JLabel curMemsLabel;
@@ -88,7 +88,7 @@ public class EditMsgGroupFrame {
     JScrollPane curMemsScroll;
 
     /** button to remove current members from group */
-    JButton remCurConsBtn;
+    JButton remCurConBtn;
 
     /** button to cancel */
     JButton closeBtn;
@@ -144,9 +144,9 @@ public class EditMsgGroupFrame {
         mainFrame.getContentPane().add(availConsScroll);
 
         // add available contacts button
-        addAvailConsBtn = new JButton(">>");
-        addAvailConsBtn.setBounds(175, 130, 40, 20);
-        addAvailConsBtn.addActionListener(new ActionListener() {
+        addAvailConBtn = new JButton(">>");
+        addAvailConBtn.setBounds(175, 130, 40, 20);
+        addAvailConBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (availConsList.getSelectedIndex() != -1) {
@@ -173,12 +173,12 @@ public class EditMsgGroupFrame {
             }
         });
 
-        mainFrame.getContentPane().add(addAvailConsBtn);
+        mainFrame.getContentPane().add(addAvailConBtn);
 
         // remove current members button
-        remCurConsBtn = new JButton("<<");
-        remCurConsBtn.setBounds(175, 170, 40, 20);
-        remCurConsBtn.addActionListener(new ActionListener() {
+        remCurConBtn = new JButton("<<");
+        remCurConBtn.setBounds(175, 170, 40, 20);
+        remCurConBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (curMemsList.getSelectedIndex() != -1)
@@ -201,7 +201,7 @@ public class EditMsgGroupFrame {
             }
         });
 
-        mainFrame.getContentPane().add(remCurConsBtn);
+        mainFrame.getContentPane().add(remCurConBtn);
 
         // current members list setup
         curMemsLabel = new JLabel("Current Members");
