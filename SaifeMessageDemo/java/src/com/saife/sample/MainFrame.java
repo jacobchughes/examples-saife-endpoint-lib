@@ -390,6 +390,7 @@ public class MainFrame {
 
         final Thread msg = new Thread(new MessageUpdater());
         msg.start();
+        saife.updateMessageListener();
     }
 
     /**
