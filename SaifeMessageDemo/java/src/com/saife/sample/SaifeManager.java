@@ -20,14 +20,17 @@ package com.saife.sample;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Vector;
 
 import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 import com.saife.InsufficientEntropyException;
 import com.saife.Saife;
 import com.saife.SaifeFactory;
@@ -38,6 +41,10 @@ import com.saife.contacts.ContactListUpdateListener;
 import com.saife.contacts.GroupInfo;
 import com.saife.contacts.NoSuchContactException;
 import com.saife.crypto.InvalidCredentialException;
+import com.saife.group.ContactGroupNotFoundException;
+import com.saife.group.GroupNotFoundException;
+import com.saife.group.GroupPermissionDeniedException;
+import com.saife.group.KeySizeNotSupportedException;
 import com.saife.group.SecureCommsGroup;
 import com.saife.group.SecureCommsGroupCallback;
 import com.saife.group.SecureCommsGroupCallbackFactory;
@@ -50,6 +57,7 @@ import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
 import com.saife.management.ManagementService.ManagementState;
+import com.saife.management.UnlockRequiredException;
 
 /**
  * Class used to manage the Saife Library's calls and methods
@@ -79,7 +87,13 @@ public class SaifeManager {
     /**
      * list to keep track of queued messages
      */
-    protected Queue<String> queuedMessages = new LinkedList<String>();
+    protected List<SecureGroupMessage> persistedMessages =
+        new Vector<SecureGroupMessage>();
+
+    /**
+     * current index of persisted messages
+     */
+    protected int persistedIndex = 0;
 
     /**
      * Indicates whether SAIFE is updated or not
@@ -147,7 +161,9 @@ public class SaifeManager {
         }
     }
 
-    @SuppressWarnings("javadoc")
+    /**
+     * @return  list of omnigroup names
+     */
     public List<String> getOmnigroups() {
         List<String> groupNames = new Vector<String>();
 
@@ -164,7 +180,7 @@ public class SaifeManager {
                 }
             }
 
-        } catch (InvalidManagementStateException e) {
+        } catch (final InvalidManagementStateException e) {
             logger.error("SAIFE entered an invalid or unrecoverable "
                     + "state.");
             return null;
@@ -209,8 +225,8 @@ public class SaifeManager {
 
         // Set SAIFE logging level
         // @TODO remove trace
-        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
-        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+        // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
+        saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
         // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_WARNING);
         // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_ERROR);
         /**
@@ -374,15 +390,33 @@ public class SaifeManager {
         for (String member : members) {
             try {
                 contacts.add(getContact(member));
-            } catch (Exception e) {
-                logger.error("SAIFE encountered an exception: " 
-                    + e.getMessage());
+            } catch (final NoSuchContactException nsce) {
+                final String m = nsce.getMessage();
+                logger.error(m + " while creating new group");
+            } catch (final InvalidManagementStateException imse) {
+                final String m = imse.getMessage();
+                logger.error(m + " while creating new group");
             }
         }
 
         try {
             saife.createGroup(name, contacts);
-        } catch (Exception e) {
+        } catch (final ContactGroupNotFoundException cgnfe) {
+            final String m = cgnfe.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final IllegalArgumentException iae) {
+            final String m = iae.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final IOException ioe) {
+            final String m = ioe.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final KeySizeNotSupportedException ksnse) {
+            final String m = ksnse.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final UnlockRequiredException ure) {
+            final String m = ure.getMessage();
+            logger.error(m + " while creating new group");
+        } catch (final Exception e) {
             logger.error("SAIFE encountered an exception: " 
                 + e.getMessage());
         }
@@ -390,7 +424,7 @@ public class SaifeManager {
     }
 
     /**
-     * returns the prettyfied list of secure messaging groups
+     * returns the prettified list of secure messaging groups
      *
      * @return  'group name - group id'
      */
@@ -410,9 +444,12 @@ public class SaifeManager {
                 String prettyGroup = saife.getGroup(group).name() + " - " 
                     + group;
                 prettyGroups.add(prettyGroup);
-            } catch (Exception e) {
-                logger.error("SAIFE encountered an exception: " 
-                    + e.getMessage());
+            } catch (final GroupNotFoundException gnfe) {
+                final String m = gnfe.getMessage();
+                logger.error(m + " while getting prettified groups");
+            } catch (final Exception e) {
+                final String m = e.getMessage();
+                logger.error("SAIFE encountered an exception: " + m);
             }
         }
 
@@ -425,7 +462,9 @@ public class SaifeManager {
      * @param groupID  name of the group
      * @throws Exception    can be any number, let caller handle
      */
-    public void deleteMsgGroup(String groupID) throws Exception {
+    public void deleteMsgGroup(String groupID) 
+            throws GroupPermissionDeniedException, IOException,
+                  UnlockRequiredException, GroupNotFoundException, Exception {
         saife.getGroup(groupID).destroy();
     }
 
@@ -437,9 +476,10 @@ public class SaifeManager {
      *  @throws Exception   can be numerous things, let caller handle
      */
     public void groupAddMember(SecureCommsGroup group, String name)
-        throws Exception {
-            Contact c = this.getContact(name);
-            group.addMember(c);
+            throws NoSuchContactException, InvalidManagementStateException,
+                  ContactGroupNotFoundException, Exception {
+        Contact c = this.getContact(name);
+        group.addMember(c);
         
     }
 
@@ -463,7 +503,9 @@ public class SaifeManager {
      * @param msg   the message to send, as a string
      * @throws Exception    let the caller decide
      */
-    public void groupSend(String groupID, String msg) throws Exception {
+    public void groupSend(String groupID, String msg) 
+            throws GroupNotFoundException, IOException, UnlockRequiredException,
+                  Exception {
         byte[] mess = msg.getBytes();   
         SecureCommsGroup group = saife.getGroup(groupID);
         group.sendMessage(mess);
@@ -474,9 +516,15 @@ public class SaifeManager {
      *
      * @return  list of queued messages
      */
-    public Queue<String> getMessages() {
-        Queue<String> ret = new LinkedList<String>(queuedMessages);
-        queuedMessages.clear();
+    public List<SecureGroupMessage> getMessages() {
+        List<SecureGroupMessage> ret = new Vector<SecureGroupMessage>();
+
+        for (int i = persistedIndex; i < persistedMessages.size(); i++) {
+            ret.add(persistedMessages.get(i));
+        }
+
+        persistedIndex = persistedMessages.size();
+
         return ret;
     }
 
@@ -485,44 +533,33 @@ public class SaifeManager {
      *
      * @param listenGroup   ID of group to listen for
      */
-    public void updateMessageListener(final String listenGroup) {
-        logger.info("Updating the Message Listener");
-        new Thread(new MessageUpdater(listenGroup)).start();
+    public void updateMessageListener() {
+        logger.trace("Updating the Message Listener");
+        new Thread(new MessageUpdater()).start();
     }
 
     /**
      * thread used to receive messages
      */
     class MessageUpdater implements Runnable {
-        /** ID of listen group */
-        private final String listenGroup;
 
         /** 
-         * constructor to set group up for listening 
-         * 
-         * @param listenGroup   ID of Secure Comms Group
+         * constructor to create the thread
          */
-        public MessageUpdater(final String listenGroup) {
-            this.listenGroup = listenGroup;
+        public MessageUpdater() {
         }
 
         @Override
         public void run() {
-            try {
-                if (null != messageCallback) {
-                    logger.trace("Attempting to remove current Message "
-                            + "Listener");
-                    saife.removeSecureCommsGroupListener(messageCallback);
-                }
+            if (null == messageCallback) {
                 logger.trace("Creating a new Message Listener");
-                MessageListener msgListener = new MessageListener(listenGroup);
+                MessageListener msgListener = new MessageListener();
                 messageCallback = SecureCommsGroupCallbackFactory
                     .construct(msgListener, saife);
-                logger.trace("Adding created listener");
+                logger.trace("Adding created callback");
                 saife.addSecureCommsGroupListener(messageCallback);
-            } catch (final Exception e) {
-                logger.error("SAIFE encountered an exception: " 
-                        + e.getMessage());
+            } else {
+                logger.trace("Existing Message Listener");
             }
         }
     }
@@ -532,23 +569,10 @@ public class SaifeManager {
      */
     class MessageListener implements SecureCommsGroupListener {
 
-            /** group ID to listen and report on */
-            private String listenGroup;
-
             /**
              * empty constructor
              */
             public MessageListener() {
-            }
-
-            /**
-             * constructor to supply with a group ID
-             *
-             * @param listenGroup   the group ID of the Secure Comms Group to
-             * add a listener for
-             */
-            public MessageListener(final String listenGroup) {
-                this.listenGroup = listenGroup;
             }
 
             @Override
@@ -566,7 +590,7 @@ public class SaifeManager {
             @Override
             public void groupMemberRemoved(String groupID, String groupName,
                     Contact removedMember) {
-                logger.trace("member was remove from group: " + groupName + " " 
+                logger.trace("member was removed from group: " + groupName + " " 
                         + removedMember);
             }
 
@@ -579,15 +603,14 @@ public class SaifeManager {
             public void onMessage(Contact sender, byte[] groupMessage, 
                 String groupID, String groupName) {
                 logger.trace("Got message");
-                logger.trace("selected group ID: " + listenGroup);
                 logger.trace("received group ID: " + groupID);
                 final String msg = sender.getName() + ": " 
                     + new String(groupMessage);
                 logger.trace(msg);
-                if (groupID.equals(listenGroup)) {
-                    logger.trace("added message to queue");
-                    queuedMessages.add(msg);
-                }
+
+                persistedMessages.add(new SecureGroupMessage(sender.getName(),
+                            sender.getFingerprint(), groupMessage, groupID,
+                            groupName));
           }
     }
 
@@ -598,6 +621,166 @@ public class SaifeManager {
         this.logger.trace(msg);
     }
 
+    /**
+     * method to store persisted messages
+     */
+    public void saveMessages() {
+        logger.trace("Saving messages");
+        FileOutputStream fos = null;
+        OutputStreamWriter osw = null;
+        JsonWriter jw = null;
+        try {
+            fos = new FileOutputStream(defaultKeyStore + "/messages.data");
+            osw = new OutputStreamWriter(fos, "UTF-8");
+            jw = new JsonWriter(osw);
+            logger.trace("Created file " + defaultKeyStore + "/messages.data");
+
+            jw.beginArray();
+            for (int i = 0; i < persistedMessages.size(); i++) {
+                SecureGroupMessage m = persistedMessages.get(i);
+                jw.beginObject();
+                jw.name("senderName").value(m.getSenderName());
+                jw.name("senderFingerprint").value(
+                        new String(m.getSenderFingerprint()));
+                jw.name("message").value(new String(m.getMessage()));
+                jw.name("groupID").value(m.getGroupID());
+                jw.name("groupName").value(m.getGroupName());
+                jw.endObject();
+                logger.trace("Writing message: " + m.hashCode());
+            }
+            jw.endArray();
+
+            jw.flush();
+
+            logger.trace("Messages saved");
+        } catch (final FileNotFoundException fnfe) {
+            fnfe.printStackTrace();
+        } catch (final IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            try {
+                fos.close();
+                osw.close();
+                jw.close();
+            } catch (final IOException ioe) {}
+        }
+    }
+
+    /**
+     * method to retrieve saved messages
+     */
+    public void loadMessages() {
+        logger.trace("Loading messages");
+        FileInputStream fis = null;
+        InputStreamReader isr = null;
+        JsonReader jr = null;
+        try {
+            fis = new FileInputStream(defaultKeyStore + "/messages.data");
+            isr = new InputStreamReader(fis, "UTF-8");
+            jr = new JsonReader(isr);
+            logger.trace("Opened file " + defaultKeyStore + "/messages.data");
+
+            jr.beginArray();
+            while (jr.hasNext()) {
+                jr.beginObject();
+                String sn = "";
+                byte[] sf = new byte[0];
+                byte[] m = new byte[0];
+                String gid = "";
+                String gn = "";
+
+                while (jr.hasNext()) {
+                    String name = jr.nextName();
+
+                    switch (name) {
+                        case "senderName":
+                            sn = jr.nextString();
+                            break;
+                        case "senderFingerprint":
+                            sf = jr.nextString().getBytes();
+                            break;
+                        case "message":
+                            m = jr.nextString().getBytes();
+                            break;
+                        case "groupID":
+                            gid = jr.nextString();
+                            break;
+                        case "groupName":
+                            gn = jr.nextString();
+                            break;
+                        default:
+                            jr.skipValue();
+                            break;
+                    }
+                }
+                jr.endObject();
+
+                SecureGroupMessage mess = new SecureGroupMessage(sn, sf, m, 
+                    gid, gn);
+
+                logger.trace("Got message " + mess.hashCode());
+
+                persistedMessages.add(mess);
+            }
+            jr.endArray();
+
+            // persistedIndex = persistedMessages.size();
+
+            logger.trace("Messages read");
+
+        } catch (final FileNotFoundException fnfe) {
+            logger.trace("Cannot find the file, proceeding without");
+        } catch (final IOException ioe) {
+            ioe.printStackTrace();
+        } finally {
+            try {
+                if (null != jr) {
+                    jr.close();
+                }
+                if (null != isr) {
+                    isr.close();
+                }
+                if (null != fis) {
+                    fis.close();
+                }
+            } catch (final IOException ioe) {}
+        }
+    }
+
+    /**
+     * get a pseudo-contact for us
+     */
+    public Contact getFakeSelf() {
+        final Contact me = new Contact();
+        try {
+            me.setName(saife.certName());
+            me.setFingerprint(saife.fingerprint());
+        } catch (final InvalidManagementStateException imse) {
+            imse.printStackTrace();
+        }
+
+        return me;
+    }
+
+    /**
+     * add a message to the queue(for persisting own messages)
+     *
+     * @param senderName    name of the sender
+     * @param senderFingerprint     fingerprint of the sender
+     * @param message   message that was sent
+     * @param groupID   ID of the group the message was sent to
+     * @param groupName     name of the group this message was sent to
+     */
+    public void addMessage(final String senderName,
+            final byte[] senderFingerprint, final byte[] message,
+            final String groupID, final String groupName) {
+        final SecureGroupMessage newMsg = new SecureGroupMessage(senderName,
+                senderFingerprint, message, groupID, groupName);
+
+        logger.trace("Adding own message " + newMsg.hashCode());
+        persistedMessages.add(newMsg);
+    }
+        
     /**
      * logs a message to the SAIFE logger with visibility of info
      */

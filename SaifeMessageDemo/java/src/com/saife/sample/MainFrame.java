@@ -22,10 +22,12 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
+import java.io.IOException;
 import java.util.List;
-import java.util.Queue;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -39,6 +41,11 @@ import javax.swing.JTextPane;
 import javax.swing.ListSelectionModel;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
+
+import com.saife.contacts.Contact;
+import com.saife.group.GroupNotFoundException;
+import com.saife.group.GroupPermissionDeniedException;
+import com.saife.management.UnlockRequiredException;
 
 /**
  * The main Java Swing frame
@@ -82,7 +89,7 @@ public class MainFrame {
     JButton delMsgGroupBtn;
 
     /** text area to store current secure messaging group name */
-    JTextField selectedMsgGrpLabel;
+    JTextField selectedMsgGrpName;
 
     /** label for the messages text pane */
     JLabel msgsLabel;
@@ -144,6 +151,13 @@ public class MainFrame {
         secureGroupListModel = new DefaultListModel<String>();
         secureGroupList = new JList<String>(secureGroupListModel);
         secureGroupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        secureGroupList.addMouseListener(new MouseAdapter() {
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 2) {
+                    selectGroupAction();
+                }
+            }
+        });
         secureGroupScroll = new JScrollPane(secureGroupList);
         secureGroupScroll.setBounds(15, 25, 200, 330);
 
@@ -167,12 +181,7 @@ public class MainFrame {
         selMsgGroupBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (secureGroupList.getSelectedIndex() != -1) {
-                    selectedMsgGrpLabel.setText(secureGroupList.getSelectedValue());
-                    final String g = selectedMsgGrpLabel.getText();
-                    saife.updateMessageListener(g.substring(g.indexOf('-') 
-                                + 2));
-                }
+                selectGroupAction();
             }
         });
 
@@ -185,13 +194,15 @@ public class MainFrame {
             public void actionPerformed(ActionEvent e) {
                 if (null == newMsgGroupFrame) {
                     newMsgGroupFrame = new NewMsgGroupFrame(saife);
-                    newMsgGroupFrame.mainFrame.addWindowListener(new WindowListener() {
+                    newMsgGroupFrame.mainFrame.addWindowListener(
+                            new WindowListener() {
                         @Override
                         public void windowClosed(final WindowEvent ev) {
                             populateGroups();
                         }
                         @Override
-                        public void windowActivated(final WindowEvent ev) {}
+                        public void windowActivated(final WindowEvent ev) {
+                        }
                         @Override
                         public void windowClosing(final WindowEvent ev) {
                         }
@@ -250,9 +261,31 @@ public class MainFrame {
                             saife.deleteMsgGroup(groupID);
                             populateGroups();
                         }
+                    } catch (final GroupPermissionDeniedException gpde) {
+                        final String m = gpde.getMessage();
+                        saife.logError(m + " while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
+                            JOptionPane.PLAIN_MESSAGE);
+                    } catch (final IOException ioe) {
+                        final String m = ioe.getMessage();
+                        saife.logError(m + " while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
+                            JOptionPane.PLAIN_MESSAGE);
+                    } catch (final UnlockRequiredException ure) {
+                        final String m = ure.getMessage();
+                        saife.logError(m + " while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
+                            JOptionPane.PLAIN_MESSAGE);
+                    } catch (final GroupNotFoundException gnfe) {
+                        final String m = gnfe.getMessage();
+                        saife.logError(m + " while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
+                            JOptionPane.PLAIN_MESSAGE);
                     } catch (final Exception ex) {
-                        JOptionPane.showMessageDialog(mainFrame, 
-                            ex.getMessage(), "Error",
+                        final String m = ex.getMessage();
+                        saife.logError("General exception: " + m 
+                                + "while destroying group");
+                        JOptionPane.showMessageDialog(mainFrame, m, "Error",
                             JOptionPane.PLAIN_MESSAGE);
                     }
                 }
@@ -282,11 +315,11 @@ public class MainFrame {
 
         mainFrame.getContentPane().add(groupDesig);
 
-        selectedMsgGrpLabel = new JTextField();
-        selectedMsgGrpLabel.setBounds(370, 25, 313, 20);
-        selectedMsgGrpLabel.setEditable(false);
+        selectedMsgGrpName = new JTextField();
+        selectedMsgGrpName.setBounds(370, 25, 313, 20);
+        selectedMsgGrpName.setEditable(false);
 
-        mainFrame.getContentPane().add(selectedMsgGrpLabel);
+        mainFrame.getContentPane().add(selectedMsgGrpName);
 
         // message box
         msgToSend = new JTextField();
@@ -295,28 +328,7 @@ public class MainFrame {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    
-                    final String g = selectedMsgGrpLabel.getText();
-                    final String m = msgToSend.getText();
-                    if (!g.equals("") && !m.equals("")) {
-                        try {
-                            saife.groupSend(g.substring(g.indexOf('-') + 2), m);
-                            msgToSend.setText("");
-                            msgToSend.grabFocus();
-                            Document doc = msgs.getDocument();
-                            try {
-                                doc.insertString(doc.getLength(), ">> " + m + "\n",
-                                        null);
-                            } catch (final BadLocationException ble) {
-                                saife.logError("Bad Location provided while" 
-                                    + " inserting message");
-                            }
-                        } catch (final Exception ex) {
-                            JOptionPane.showMessageDialog(mainFrame, 
-                                ex.getMessage(), "Error",
-                                JOptionPane.PLAIN_MESSAGE);
-                        }
-                    }
+                    sendGroupAction();
                 }
             }
             @Override
@@ -333,30 +345,37 @@ public class MainFrame {
         sedMsgBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                final String g = selectedMsgGrpLabel.getText();
-                final String m = msgToSend.getText();
-                if (!g.equals("") && !m.equals("")) {
-                    try {
-                        saife.groupSend(g.substring(g.indexOf('-') + 2), m);
-                        msgToSend.setText("");
-                        Document doc = msgs.getDocument();
-                        try {
-                            doc.insertString(doc.getLength(), ">> " + m + "\n",
-                                    null);
-                        } catch (final BadLocationException ble) {
-                                saife.logError("Bad Location provided while" 
-                                    + " inserting message");
-                        }
-                    } catch (final Exception ex) {
-                        JOptionPane.showMessageDialog(mainFrame, 
-                            ex.getMessage(), "Error",
-                            JOptionPane.PLAIN_MESSAGE);
-                    }
-                }
+                sendGroupAction();
             }
         });
 
         mainFrame.getContentPane().add(sedMsgBtn);
+
+        mainFrame.addWindowListener(new WindowListener() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                saife.saveMessages();
+            }
+            @Override
+            public void windowClosed(final WindowEvent ev) {
+                populateGroups();
+            }
+            @Override
+            public void windowActivated(final WindowEvent ev) {
+            }
+            @Override
+            public void windowDeactivated(final WindowEvent ev) {
+            }
+            @Override
+            public void windowDeiconified(final WindowEvent ev) {
+            }
+            @Override
+            public void windowIconified(final WindowEvent ev) {
+            }
+            @Override
+            public void windowOpened(final WindowEvent ev) {
+            }
+        });
 
         // prepare the SAIFE library
         saife.logInfo("Preparing SAIFE");
@@ -367,8 +386,11 @@ public class MainFrame {
 
         mainFrame.setVisible(true);
 
+        saife.loadMessages();
+
         final Thread msg = new Thread(new MessageUpdater());
         msg.start();
+        saife.updateMessageListener();
     }
 
     /**
@@ -376,7 +398,7 @@ public class MainFrame {
      */
     void populateGroups() {
         List<String> groups = saife.getPrettyGroups();
-        selectedMsgGrpLabel.setText("");
+        selectedMsgGrpName.setText("");
         secureGroupListModel.clear();
         for (String group : groups) {
             secureGroupListModel.addElement(group);
@@ -424,18 +446,81 @@ public class MainFrame {
         @Override
         public void run() {
             while (true) {
-                saife.logInfo("Getting messages from SAIFE");
                 try {
-                    Queue<String> messages = saife.getMessages();
+                    List<SecureGroupMessage> messages = saife.getMessages();
                     Document doc = msgs.getDocument();
-                    for (String m : messages) {
-                        doc.insertString(doc.getLength(), m + "\n", null);
+                    if (messages.size() > 0) {
+                        saife.logTrace("Got new messages");
                     }
-                    Thread.sleep(5000);
-                } catch (final Exception e) {
-                    saife.logError("SAIFE encountered an error: " 
-                            + e.getMessage());
+                    for (SecureGroupMessage m : messages) {
+                        doc.insertString(doc.getLength(), m.prettify() + "\n",
+                                null);
+                        msgs.setCaretPosition(doc.getLength());
+                    }
+                    Thread.sleep(1000);
+                } catch (final BadLocationException ble) {
+                    final String m = ble.getMessage();
+                    saife.logError(m + " while updating messages");
+                } catch (final InterruptedException ie) {
+                    final String m = ie.getMessage();
+                    saife.logError(m + " while updating messages");
                 }
+            }
+        }
+    }
+
+    /**
+     * method to add own messages to persisted messages
+     */
+    private void addOwnMessage(final String groupName, final String groupID,
+            final String message) {
+        final Contact me = saife.getFakeSelf();
+        saife.addMessage(me.getName(), me.getFingerprint(), message.getBytes(),
+                groupID, groupName);
+    }
+
+    /**
+     * group selection action
+     */
+    protected void selectGroupAction() {
+        if (secureGroupList.getSelectedIndex() != -1) {
+            selectedMsgGrpName.setText(secureGroupList.getSelectedValue());
+            selectedMsgGrpName.setCaretPosition(0);
+            saife.updateMessageListener();
+        }
+
+    }
+
+    protected void sendGroupAction() {
+        final String g = selectedMsgGrpName.getText();
+        final String m = msgToSend.getText();
+        if (!g.equals("") && !m.equals("")) {
+            final String gn = g.substring(0, g.indexOf('-') - 1);
+            final String gid = g.substring(g.indexOf('-') + 2);
+            try {
+                saife.groupSend(g.substring(g.indexOf('-') + 2), m);
+                addOwnMessage(gn, gid, m);
+                msgToSend.setText("");
+                msgToSend.grabFocus();
+            } catch (final GroupNotFoundException gnfe) {
+                final String mess = gnfe.getMessage();
+                saife.logError(mess + " while sending message");
+                JOptionPane.showMessageDialog(mainFrame, mess, "Error",
+                    JOptionPane.PLAIN_MESSAGE);
+            } catch (final IOException ioe) {
+                final String mess = ioe.getMessage();
+                saife.logError(mess + " while sending message");
+                JOptionPane.showMessageDialog(mainFrame, mess, "Error",
+                    JOptionPane.PLAIN_MESSAGE);
+            } catch (final UnlockRequiredException ure) {
+                final String mess = ure.getMessage();
+                saife.logError(mess + " while sending message");
+                JOptionPane.showMessageDialog(mainFrame, mess, "Error",
+                    JOptionPane.PLAIN_MESSAGE);
+            } catch (final Exception ex) {
+                JOptionPane.showMessageDialog(mainFrame, 
+                    ex.getMessage(), "Error",
+                    JOptionPane.PLAIN_MESSAGE);
             }
         }
     }
