@@ -1,4 +1,5 @@
-/* Copyright (c) 2016 SAIFE Inc.
+/* 
+ * Copyright (c) 2015-2016 SAIFE Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +26,6 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.util.List;
 import java.util.Queue;
-import java.util.Vector;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
@@ -54,47 +54,50 @@ public class MainFrame {
     /** the main frame */
     protected final JFrame mainFrame = new JFrame();
 
-    /** list of the current secure messaging groups */
-    JList<String> secmsggroupList;
+    /** label for the secure messaging groups */
+    JLabel secureGroupLabel;
+    
+    /** default list model handles everything */
+    DefaultListModel<String> secureGroupListModel = null;
 
-    /** list of secure messaging groups */
-    List<String> secmsggropu = new Vector<String>();
+    /** list of the current secure messaging groups */
+    JList<String> secureGroupList;
 
     /** scroll pane for group list */
-    JScrollPane secmsggroupScroll;
+    JScrollPane secureGroupScroll;
 
     /** button to refresh secure messaging groups list */
-    JButton refreshGroups;
-
-    /** default list model handles everything */
-    DefaultListModel<String> listModel = null;
+    JButton refreshGroupBtn;
 
     /** button to open new secure messaging group dialog box */
-    JButton newMsgGroup;
+    JButton newMsgGroupBtn;
 
     /** button to select secure messaging group */
-    JButton selMsgGroup;
+    JButton selMsgGroupBtn;
 
     /** button to open edit secure messaging group dialog box */
-    JButton editMsgGroup;
+    JButton editMsgGroupBtn;
 
     /** button to delete a secure messaging group */
-    JButton delMsgGroup;
+    JButton delMsgGroupBtn;
 
     /** text area to store current secure messaging group name */
-    JTextField selectedName;
+    JTextField selectedMsgGrpLabel;
+
+    /** label for the messages text pane */
+    JLabel msgsLabel;
 
     /** text area to display messages */
-    JTextPane messages;
+    JTextPane msgs;
 
     /** scroll pane for messages */
-    JScrollPane msgScroll;
+    JScrollPane msgsScroll;
 
     /** text field for sending a message */
-    JTextField messageToSend;
+    JTextField msgToSend;
 
     /** button to send the message */
-    JButton sendMsg;
+    JButton sedMsgBtn;
 
     /** new messaging group window */
     NewMsgGroupFrame newMsgGroupFrame;
@@ -133,51 +136,51 @@ public class MainFrame {
         mainFrame.getContentPane().setLayout(null);
 
         // list of secure messaging groups
-        JLabel secmsgLabel = new JLabel("Messaging Groups");
-        secmsgLabel.setBounds(20, 0, 130, 25);
+        secureGroupLabel = new JLabel("Messaging Groups");
+        secureGroupLabel.setBounds(20, 0, 130, 25);
 
-        mainFrame.getContentPane().add(secmsgLabel);
+        mainFrame.getContentPane().add(secureGroupLabel);
 
-        listModel = new DefaultListModel<String>();
-        secmsggroupList = new JList<String>(listModel);
-        secmsggroupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        secmsggroupScroll = new JScrollPane(secmsggroupList);
-        secmsggroupScroll.setBounds(15, 25, 200, 330);
+        secureGroupListModel = new DefaultListModel<String>();
+        secureGroupList = new JList<String>(secureGroupListModel);
+        secureGroupList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        secureGroupScroll = new JScrollPane(secureGroupList);
+        secureGroupScroll.setBounds(15, 25, 200, 330);
 
-        mainFrame.getContentPane().add(secmsggroupScroll);
+        mainFrame.getContentPane().add(secureGroupScroll);
 
         // refresh button
-        refreshGroups = new JButton("refresh");
-        refreshGroups.setBounds(145, 0, 70, 25);
-        refreshGroups.addActionListener(new ActionListener() {
+        refreshGroupBtn = new JButton("refresh");
+        refreshGroupBtn.setBounds(145, 0, 70, 25);
+        refreshGroupBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 populateGroups();
             }
         });
 
-        mainFrame.getContentPane().add(refreshGroups);
+        mainFrame.getContentPane().add(refreshGroupBtn);
 
         // select, new, edit, delete buttons
-        selMsgGroup = new JButton("Select");
-        selMsgGroup.setBounds(15, 360, 200, 30);
-        selMsgGroup.addActionListener(new ActionListener() {
+        selMsgGroupBtn = new JButton("Select");
+        selMsgGroupBtn.setBounds(15, 360, 200, 30);
+        selMsgGroupBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (secmsggroupList.getSelectedIndex() != -1) {
-                    selectedName.setText(secmsggroupList.getSelectedValue());
-                    final String g = selectedName.getText();
+                if (secureGroupList.getSelectedIndex() != -1) {
+                    selectedMsgGrpLabel.setText(secureGroupList.getSelectedValue());
+                    final String g = selectedMsgGrpLabel.getText();
                     saife.updateMessageListener(g.substring(g.indexOf('-') 
                                 + 2));
                 }
             }
         });
 
-        mainFrame.getContentPane().add(selMsgGroup);
+        mainFrame.getContentPane().add(selMsgGroupBtn);
 
-        newMsgGroup = new JButton("New");
-        newMsgGroup.setBounds(15, 390, 60, 30);
-        newMsgGroup.addActionListener(new ActionListener() {
+        newMsgGroupBtn = new JButton("New");
+        newMsgGroupBtn.setBounds(15, 390, 60, 30);
+        newMsgGroupBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (null == newMsgGroupFrame) {
@@ -211,31 +214,31 @@ public class MainFrame {
             }
         });
 
-        mainFrame.getContentPane().add(newMsgGroup);
+        mainFrame.getContentPane().add(newMsgGroupBtn);
 
-        editMsgGroup = new JButton("Edit");
-        editMsgGroup.addActionListener(new ActionListener() {
+        editMsgGroupBtn = new JButton("Edit");
+        editMsgGroupBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (secmsggroupList.getSelectedIndex() != -1) {
-                    String groupID = secmsggroupList.getSelectedValue();
+                if (secureGroupList.getSelectedIndex() != -1) {
+                    String groupID = secureGroupList.getSelectedValue();
                     groupID = groupID.substring(groupID.indexOf("-") + 2);
                     new EditMsgGroupFrame(saife, groupID);
                 }
             }
         });
-        editMsgGroup.setBounds(70, 390, 60, 30);
+        editMsgGroupBtn.setBounds(70, 390, 60, 30);
 
-        mainFrame.getContentPane().add(editMsgGroup);
+        mainFrame.getContentPane().add(editMsgGroupBtn);
 
-        delMsgGroup = new JButton("Delete");
-        delMsgGroup.setBounds(130, 390, 80, 30);
-        delMsgGroup.addActionListener(new ActionListener() {
+        delMsgGroupBtn = new JButton("Delete");
+        delMsgGroupBtn.setBounds(130, 390, 80, 30);
+        delMsgGroupBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (secmsggroupList.getSelectedIndex() != -1) {
+                if (secureGroupList.getSelectedIndex() != -1) {
                     try {
-                        String groupID = secmsggroupList.getSelectedValue();
+                        String groupID = secureGroupList.getSelectedValue();
                         String groupName = groupID.split("-")[0];
                         groupID = groupID.substring(groupID.indexOf("-") + 2);
                         final int yn = JOptionPane.showConfirmDialog(mainFrame,
@@ -256,20 +259,20 @@ public class MainFrame {
             }
         });
 
-        mainFrame.getContentPane().add(delMsgGroup);
+        mainFrame.getContentPane().add(delMsgGroupBtn);
 
         // message window
-        JLabel msgLabel = new JLabel("Messages:");
-        msgLabel.setBounds(270, 0, 300, 25);
+        msgsLabel = new JLabel("Messages:");
+        msgsLabel.setBounds(270, 0, 300, 25);
 
-        mainFrame.getContentPane().add(msgLabel);
+        mainFrame.getContentPane().add(msgsLabel);
 
-        messages = new JTextPane();
-        messages.setEditable(false);
-        msgScroll = new JScrollPane(messages);
-        msgScroll.setBounds(270, 45, 410, 340);
+        msgs = new JTextPane();
+        msgs.setEditable(false);
+        msgsScroll = new JScrollPane(msgs);
+        msgsScroll.setBounds(270, 45, 410, 340);
 
-        mainFrame.getContentPane().add(msgScroll);
+        mainFrame.getContentPane().add(msgsScroll);
 
         // selected group name
         JTextField groupDesig = new JTextField("Selected Group:");
@@ -279,33 +282,34 @@ public class MainFrame {
 
         mainFrame.getContentPane().add(groupDesig);
 
-        selectedName = new JTextField();
-        selectedName.setBounds(370, 25, 313, 20);
-        selectedName.setEditable(false);
+        selectedMsgGrpLabel = new JTextField();
+        selectedMsgGrpLabel.setBounds(370, 25, 313, 20);
+        selectedMsgGrpLabel.setEditable(false);
 
-        mainFrame.getContentPane().add(selectedName);
+        mainFrame.getContentPane().add(selectedMsgGrpLabel);
 
         // message box
-        messageToSend = new JTextField();
-        messageToSend.setBounds(270, 390, 360, 30);
-        messageToSend.addKeyListener(new KeyListener() {
+        msgToSend = new JTextField();
+        msgToSend.setBounds(270, 390, 360, 30);
+        msgToSend.addKeyListener(new KeyListener() {
             @Override
             public void keyPressed(KeyEvent e) {
                 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
                     
-                    final String g = selectedName.getText();
-                    final String m = messageToSend.getText();
+                    final String g = selectedMsgGrpLabel.getText();
+                    final String m = msgToSend.getText();
                     if (!g.equals("") && !m.equals("")) {
                         try {
                             saife.groupSend(g.substring(g.indexOf('-') + 2), m);
-                            messageToSend.setText("");
-                            messageToSend.grabFocus();
-                            Document doc = messages.getDocument();
+                            msgToSend.setText("");
+                            msgToSend.grabFocus();
+                            Document doc = msgs.getDocument();
                             try {
                                 doc.insertString(doc.getLength(), ">> " + m + "\n",
                                         null);
                             } catch (final BadLocationException ble) {
-                                ble.printStackTrace();
+                                saife.logError("Bad Location provided while" 
+                                    + " inserting message");
                             }
                         } catch (final Exception ex) {
                             JOptionPane.showMessageDialog(mainFrame, 
@@ -322,25 +326,26 @@ public class MainFrame {
             public void keyTyped(KeyEvent e) {
             }
         });
-        mainFrame.getContentPane().add(messageToSend);
+        mainFrame.getContentPane().add(msgToSend);
 
-        sendMsg = new JButton("Send");
-        sendMsg.setBounds(626, 390, 60, 30);
-        sendMsg.addActionListener(new ActionListener() {
+        sedMsgBtn = new JButton("Send");
+        sedMsgBtn.setBounds(626, 390, 60, 30);
+        sedMsgBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                final String g = selectedName.getText();
-                final String m = messageToSend.getText();
+                final String g = selectedMsgGrpLabel.getText();
+                final String m = msgToSend.getText();
                 if (!g.equals("") && !m.equals("")) {
                     try {
                         saife.groupSend(g.substring(g.indexOf('-') + 2), m);
-                        messageToSend.setText("");
-                        Document doc = messages.getDocument();
+                        msgToSend.setText("");
+                        Document doc = msgs.getDocument();
                         try {
                             doc.insertString(doc.getLength(), ">> " + m + "\n",
                                     null);
                         } catch (final BadLocationException ble) {
-                            ble.printStackTrace();
+                                saife.logError("Bad Location provided while" 
+                                    + " inserting message");
                         }
                     } catch (final Exception ex) {
                         JOptionPane.showMessageDialog(mainFrame, 
@@ -351,10 +356,10 @@ public class MainFrame {
             }
         });
 
-        mainFrame.getContentPane().add(sendMsg);
+        mainFrame.getContentPane().add(sedMsgBtn);
 
         // prepare the SAIFE library
-        saife.logTrace("Preparing SAIFE");
+        saife.logInfo("Preparing SAIFE");
         saife.saifePrepare();
 
         // populate the group list 
@@ -371,10 +376,10 @@ public class MainFrame {
      */
     void populateGroups() {
         List<String> groups = saife.getPrettyGroups();
-        selectedName.setText("");
-        listModel.clear();
+        selectedMsgGrpLabel.setText("");
+        secureGroupListModel.clear();
         for (String group : groups) {
-            listModel.addElement(group);
+            secureGroupListModel.addElement(group);
         }
     }
 
@@ -388,25 +393,25 @@ public class MainFrame {
         mainFrame.setResizable(false);
         mainFrame.getContentPane().setLayout(null);
 
-        sendMsg = new JButton("close");
-        sendMsg.setBounds(110, 100, 70, 20);
-        sendMsg.addActionListener(new ActionListener() {
+        sedMsgBtn = new JButton("close");
+        sedMsgBtn.setBounds(110, 100, 70, 20);
+        sedMsgBtn.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(final ActionEvent e) {
                 System.exit(0);
             }
         });
 
-        mainFrame.getContentPane().add(sendMsg);
+        mainFrame.getContentPane().add(sedMsgBtn);
 
-        messages = new JTextPane();
-        messages.setBounds(10, 10, 280, 80);
-        messages.setText("SAIFE generated .SaifeStore/newkey.smcsr which "
+        msgs = new JTextPane();
+        msgs.setBounds(10, 10, 280, 80);
+        msgs.setText("SAIFE generated .SaifeStore/newkey.smcsr which "
                 + "contains a certificate and capabilities to provision at the "
                 + "SAIFE dashboard. Please provision and re-run the program.");
-        messages.setEditable(false);
+        msgs.setEditable(false);
 
-        mainFrame.getContentPane().add(messages);
+        mainFrame.getContentPane().add(msgs);
 
         mainFrame.setVisible(true);
 
@@ -419,16 +424,17 @@ public class MainFrame {
         @Override
         public void run() {
             while (true) {
-                saife.logTrace("Getting messages from SAIFE");
+                saife.logInfo("Getting messages from SAIFE");
                 try {
-                    Queue<String> msgs = saife.getMessages();
-                    Document doc = messages.getDocument();
-                    for (String m : msgs) {
+                    Queue<String> messages = saife.getMessages();
+                    Document doc = msgs.getDocument();
+                    for (String m : messages) {
                         doc.insertString(doc.getLength(), m + "\n", null);
                     }
                     Thread.sleep(5000);
-                } catch (Exception e) {
-                    e.printStackTrace();
+                } catch (final Exception e) {
+                    saife.logError("SAIFE encountered an error: " 
+                            + e.getMessage());
                 }
             }
         }
