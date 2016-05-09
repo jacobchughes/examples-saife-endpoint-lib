@@ -213,6 +213,17 @@ public class SaifeManager {
                     // handle updates here, if needed.
                 }
 
+                @Override
+                public void contactListLoaded() {
+                    // handle updates here, if needed.
+                }
+
+                @Override
+                public void synchronizeComplete(final boolean success, 
+                        final String groupId) {
+                    // handle updates here, if needed.
+                }
+
             }
 
             final Listener l = new Listener();
