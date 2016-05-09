@@ -350,7 +350,6 @@ public class SaifeManager {
             }
         }
 
-        @SuppressWarnings("resource")
         @Override
         public InputStream getInputStream(final PersistedObject object) 
                 throws IOException {
@@ -362,7 +361,6 @@ public class SaifeManager {
             return s3object.getObjectContent();
         }
 
-        @SuppressWarnings("resource")
         @Override
         public InputStream getInputStream(final String storagePath,
                 final String name) throws IOException {
