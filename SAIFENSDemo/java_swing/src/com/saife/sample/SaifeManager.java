@@ -56,6 +56,7 @@ import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
 import com.saife.management.ManagementService.ManagementState;
+import com.saife.management.ProvisioningRequiredException;
 import com.saife.management.UnlockRequiredException;
 
 /**
@@ -711,6 +712,9 @@ public class SaifeManager {
 
         try {
             ns = mgr.getNetworkShare(s3m.getBucket(), "/", blackDataHandler);
+        } catch (final NotAllowedException nae) {
+            final String m = nae.getMessage();
+            System.out.println(m);
         } catch (final IOException e1) {
             System.out.println("getNetworkShare IO exception!");
             return;
@@ -725,6 +729,12 @@ public class SaifeManager {
                 //
                 ns = mgr.createNetworkShare(s3m.getBucket(), "/",
                         blackDataHandler);
+            } catch (final UnlockRequiredException ure) {
+                final String m = ure.getMessage();
+                System.out.println(m);
+            } catch (final ProvisioningRequiredException pre) {
+                final String m = pre.getMessage();
+                System.out.println(m);
             } catch (final IOException e) {
                 System.out.println("CreateNetworkShare IOException");
                 e.printStackTrace();
