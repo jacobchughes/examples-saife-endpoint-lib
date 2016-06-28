@@ -524,13 +524,13 @@ public class S3Sample {
          * help string for usage
          */
         public static final String USAGE = "%nThese are the available commands:"
-            + "%n%ncommands that deal with shares%n  shares      list all the "
-            + "shares connected to your current credentials%n  create      "
-            + "create a network share%n  delete      delete a network share%n"
-            + "%ncommands that deal with files inside of shares%n  files      "
+            + "%n%ncommands that deal with shares%n  shares    list all the "
+            + "shares connected to your current credentials%n  create    "
+            + "create a network share%n  delete    delete a network share%n"
+            + "%ncommands that deal with files inside of shares%n  files     "
             + "list all the files in the selected share%n  push      push the "
             + "selected files into the specified share%n  pull      pull the "
-            + "selected files from the specified share%n  remove      remove "
+            + "selected files from the specified share%n  remove    remove "
             + "the selected files from the specified share%n%nmiscellaneous "
             + "commands:%n  help      display the help screen, or help with a "
             + "specific command%n";

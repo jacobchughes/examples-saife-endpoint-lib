@@ -61,7 +61,6 @@ public class S3Manager {
      * @param outName the file to save to
      * @return true if download works
      */
-    @SuppressWarnings({ "null" })
     public boolean download(final String fname, final String outName) {
 
         // in real code oName should be used.
@@ -114,7 +113,6 @@ public class S3Manager {
      * @param f the path to a file.
      * @return true if the write is completed
      */
-    @SuppressWarnings("null")
     public boolean upload(final File f) {
 
         final String fname = f.getName();
@@ -345,9 +343,6 @@ public class S3Manager {
         /*
          * Create a globally unique bucket name if needed.
          */
-        // @TODO do we want the user to be able to create more than one bucket
-        // with the same simple name? Adding the UUID allows this, but it might
-        // be sloppy or a poor decision
         String aName = null;
 
         aName = name + UUID.randomUUID();
@@ -547,7 +542,6 @@ public class S3Manager {
                 final String date = isodate.print(dt);
                 final String time = isotime.print(dt).substring(0,8);
                 final String key = objectSummary.getKey();
-                // @TODO change bucketName to owner or add owner field
                 System.out.format("%s %" + dateMax + "s %" + timeMax + "s %" 
                         + sizeMax + "dB %-" + keyMax + "s%n", bucketName,
                         date, time, size, key);
