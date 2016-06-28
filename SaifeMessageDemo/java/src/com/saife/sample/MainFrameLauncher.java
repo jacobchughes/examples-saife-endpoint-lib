@@ -68,7 +68,7 @@ public class MainFrameLauncher {
      *
      */
     public void launchEF() {
-        handler.logInfo("Launching Error Frame");
+        System.out.println("Launching Error Frame");
 
         if (null == ml) {
             ml = new MainFrameLauncher();
@@ -82,7 +82,7 @@ public class MainFrameLauncher {
                     @SuppressWarnings("unused")
                     final MainFrame window = new MainFrame(ml);
                 } catch (final Exception e) {
-                    handler.logError("SAIFE encountered an exception: "
+                    System.out.println("SAIFE encountered an exception: "
                         + e.getMessage());
                 }
             }
