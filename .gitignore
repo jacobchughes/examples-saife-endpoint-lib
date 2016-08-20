@@ -17,3 +17,9 @@ bin/
 
 *.swp
 *.swo
+
+.classpath
+.project
+.settings/
+c
+r
