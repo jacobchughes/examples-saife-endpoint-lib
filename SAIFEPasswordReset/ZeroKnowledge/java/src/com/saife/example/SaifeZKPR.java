@@ -1,8 +1,10 @@
 package com.saife.example;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Random;
@@ -21,6 +23,8 @@ import com.saife.management.CertificationSigningRequest;
 import com.saife.management.DistinguishedName;
 import com.saife.management.InvalidManagementStateException;
 import com.saife.management.ManagementService.ManagementState;
+import com.saife.management.PasswordCallbackFactory;
+import com.saife.management.PasswordResetCallback;
 import com.saife.management.PasswordResetListener;
 import com.saife.messaging.SecureMessageService;
 
@@ -28,6 +32,9 @@ public class SaifeZKPR {
 
     // directory to save the keystore in
     public static final String keystoreDir = ".SaifeStore";
+
+    // password file
+    public static final String SAIFE_PASSWORD_FILE = "saife_password";
 
     public static boolean isPasswordReset = false;
 
@@ -42,11 +49,11 @@ public class SaifeZKPR {
 
     public static Random rand = new Random();
 
-    // public static void main(final String[] agrs) {
-    //     for (int i = 0; i < 50; i++) {
-    //         System.out.println(generatePassword(rand.nextInt(5) + 10));
-    //     }
-    // }
+    // SAIFE keeps a weak reference to these objects, we have to keep strong
+    // references
+    private static PasswordListener pwlist;
+    private static PasswordResetCallback pwcb;
+
     public static void main(final String[] args) {
         if (initSaife()) {
             try {
@@ -66,6 +73,13 @@ public class SaifeZKPR {
                     logger.error("SAIFE did not subscribe in time");
                     System.exit(1);
                 }
+
+                pwlist = new PasswordListener();
+                pwcb = PasswordCallbackFactory.construct(pwlist, saife);
+                saife.addPasswordResetListener(pwcb);
+
+                logger.info("SAIFE library is ready to be reset");
+                logger.info("Please issue a Password Reset for the certificate \"" + saife.certName() + "\" via the dashboard(https://dashboard.saifeinc.com)");
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
                 System.exit(1);
@@ -88,12 +102,17 @@ public class SaifeZKPR {
             try {
                 Thread.sleep(5_000);
             } catch (InterruptedException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
+                // do nothing, still want to busy-wait so program ends when
+                // password is reset
             }
         }
     }
 
+    /**
+     * helper method to initialize and/or generate keys for saife library
+     *
+     * @return true if and only if saife is initialized properly
+     */
     private static boolean initSaife() {
         try {
             // create a logger
@@ -103,7 +122,8 @@ public class SaifeZKPR {
             saife = SaifeFactory.constructSaife(logMgr);
 
             // set logging level of SAIFE
-            saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+            // saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_TRACE);
+            saife.setSaifeLogLevel(LogLevel.SAIFE_LOG_INFO);
 
             logger = saife.getLogger("SaifeZKPR");
 
@@ -180,7 +200,18 @@ public class SaifeZKPR {
         } 
     }
 
-    private static String generatePassword(int length) {
+    /**
+     * used to generate or prompt for a new password
+     *
+     * @param length  length of the password to generate
+     * @return  string of password
+     */
+    private static String getNewPassword() {
+        // this is where a new password is created, whether it be generated or
+        // prompted from the user. In this example, it is a randomly generated,
+        // mixed-case, alphanumeric string. This code is highly dependent on
+        // your own use-case.
+        int length = 10;
         StringBuilder password = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
             // 62
@@ -193,23 +224,47 @@ public class SaifeZKPR {
             }
             password.append((char) c);
         }
+        logger.info("new password is \"" + password.toString() + "\"");
+        try {
+            setPasswordFile(password.toString());   // the use of a password file is for example only
+        } catch (FileNotFoundException e) {
+            logger.error("password file cannot be found");
+        }
         return password.toString();
     }
 
-    class PasswordListener implements PasswordResetListener {
+    static class PasswordListener implements PasswordResetListener {
 
         @Override
         public void passwordResetProcessed() {
-            logger.info("Password has been reset");
-            String newPass = generatePassword(10);
+            // here is where you handle the Password Reset request, getting a
+            // new password, and setting the new user credentials
+            logger.debug("Password Reset request received");
+            String newPass = getNewPassword();
             try {
+                logger.debug("setting new password");
                 saife.setUserCredential(newPass);
-                logger.info("New password is: " + newPass);
+
+                logger.info("Password was successfully reset");
+                isPasswordReset = true;
             } catch (InvalidManagementStateException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            } 
+                logger.error("Password Reset failed due to InvalidManagementStateException");
+            }
         }
 
+    }
+
+    /**
+     * set the file to contain the new password
+     * this is for examples only, and is a terrible way to store passwords
+     *
+     * @param password  the new password to set
+     */
+    private static void setPasswordFile(final String password) throws FileNotFoundException {
+        File pwfile = new File(SAIFE_PASSWORD_FILE);
+        pwfile.delete();
+        PrintStream pwout = new PrintStream(pwfile);
+        pwout.println(password);
+        pwout.close();
     }
 }
