@@ -27,6 +27,7 @@ import com.saife.management.PasswordCallbackFactory;
 import com.saife.management.PasswordResetCallback;
 import com.saife.management.PasswordResetListener;
 import com.saife.messaging.SecureMessageService;
+import com.saife.messaging.SecureMessageService.SubscriptionState;
 
 public class SaifeZKPR {
 
@@ -64,19 +65,20 @@ public class SaifeZKPR {
                 saife.unlock(password);
 
                 saife.updateSaifeData();
-                Thread.sleep(10_000);
 
                 saife.subscribe();
-                Thread.sleep(10_000);
+                SubscriptionState state = saife.getSubscriptionState();
+                int tries = 5;
+                while (state != SubscriptionState.SUBSCRIBED_AUTHENTICATED && tries > 0) {
+                    Thread.sleep(2_000);
+                    tries--;
+                    state = saife.getSubscriptionState();
+                }
 
-                if (saife.getSubscriptionState() != SecureMessageService.SubscriptionState.SUBSCRIBED_AUTHENTICATED) {
+                if (state != SecureMessageService.SubscriptionState.SUBSCRIBED_AUTHENTICATED) {
                     logger.error("SAIFE did not subscribe in time");
                     System.exit(1);
                 }
-
-                pwlist = new PasswordListener();
-                pwcb = PasswordCallbackFactory.construct(pwlist, saife);
-                saife.addPasswordResetListener(pwcb);
 
                 logger.info("SAIFE library is ready to be reset");
                 logger.info("Please issue a Password Reset for the certificate \"" + saife.certName() + "\" via the dashboard(https://dashboard.saifeinc.com)");
@@ -182,7 +184,11 @@ public class SaifeZKPR {
                 logger.error("SAIFE failed to initialize");
                 return false;
             } else {
-                // SAIFE is initialized
+                // SAIFE is initialized, add password reset listener
+                pwlist = new PasswordListener();
+                pwcb = PasswordCallbackFactory.construct(pwlist, saife);
+                saife.addPasswordResetListener(pwcb);
+
                 return true;
             }
         } catch (InvalidManagementStateException imse) {
@@ -219,7 +225,7 @@ public class SaifeZKPR {
             if (c > 57) {
                 c += 7;
             }
-            if (c > 91) {
+            if (c > 90) {
                 c += 6;
             }
             password.append((char) c);
