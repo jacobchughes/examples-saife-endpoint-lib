@@ -26,7 +26,6 @@ import com.saife.management.ManagementService.ManagementState;
 import com.saife.management.PasswordCallbackFactory;
 import com.saife.management.PasswordResetCallback;
 import com.saife.management.PasswordResetListener;
-import com.saife.messaging.SecureMessageService;
 import com.saife.messaging.SecureMessageService.SubscriptionState;
 
 public class SaifeZKPR {
@@ -75,7 +74,7 @@ public class SaifeZKPR {
                     state = saife.getSubscriptionState();
                 }
 
-                if (state != SecureMessageService.SubscriptionState.SUBSCRIBED_AUTHENTICATED) {
+                if (state != SubscriptionState.SUBSCRIBED_AUTHENTICATED) {
                     logger.error("SAIFE did not subscribe in time");
                     System.exit(1);
                 }
